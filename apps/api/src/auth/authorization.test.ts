@@ -123,50 +123,67 @@ async function createOrganizationForUser(params: {
 }
 
 async function cleanupAuthorizationFixtures() {
-  await prisma.membership.deleteMany({
+  const users = await prisma.user.findMany({
     where: {
-      OR: [
-        {
-          user: {
-            is: {
-              email: {
-                endsWith: "@authorization.test"
-              }
-            }
-          }
-        },
-        {
-          organization: {
-            is: {
-              slug: {
-                contains: "authorization-test"
-              }
-            }
-          }
-        }
-      ]
+      email: {
+        endsWith: "@authorization.test"
+      }
+    },
+    select: {
+      id: true
     }
   });
-
-  await prisma.organization.deleteMany({
+  const organizations = await prisma.organization.findMany({
     where: {
       slug: {
         contains: "authorization-test"
       }
+    },
+    select: {
+      id: true
     }
   });
+  const userIds = users.map(({ id }) => id);
+  const organizationIds = organizations.map(({ id }) => id);
 
-  await prisma.authSession.deleteMany({
-    where: {
-      user: {
-        is: {
-          email: {
-            endsWith: "@authorization.test"
+  if (userIds.length > 0 || organizationIds.length > 0) {
+    await prisma.membership.deleteMany({
+      where: {
+        OR: [
+          {
+            userId: {
+              in: userIds
+            }
+          },
+          {
+            organizationId: {
+              in: organizationIds
+            }
           }
+        ]
+      }
+    });
+  }
+
+  if (organizationIds.length > 0) {
+    await prisma.organization.deleteMany({
+      where: {
+        id: {
+          in: organizationIds
         }
       }
-    }
-  });
+    });
+  }
+
+  if (userIds.length > 0) {
+    await prisma.authSession.deleteMany({
+      where: {
+        userId: {
+          in: userIds
+        }
+      }
+    });
+  }
 
   await prisma.user.deleteMany({
     where: {
