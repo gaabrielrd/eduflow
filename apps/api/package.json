@@ -13,7 +13,7 @@
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
     "prisma:studio": "prisma studio",
-    "test": "pnpm build && node --test dist/src/**/*.test.js"
+    "test": "pnpm build && node --test --test-isolation=none dist/src/**/*.test.js"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.27",

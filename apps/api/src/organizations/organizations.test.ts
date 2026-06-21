@@ -150,12 +150,12 @@ test("POST /organizations creates an organization, normalizes slug and assigns O
     .set("Authorization", `Bearer ${accessToken}`)
     .send({
       name: "EduFlow Demo",
-      slug: "  EduFlow   Demo__Org  "
+      slug: "  Organizations Test Demo__Org  "
     })
     .expect(201);
 
   assert.equal(response.body.name, "EduFlow Demo");
-  assert.equal(response.body.slug, "eduflow-demo-org");
+  assert.equal(response.body.slug, "organizations-test-demo-org");
   assert.equal(response.body.role, Role.OWNER);
 
   const membership = await prisma.membership.findUnique({
@@ -315,7 +315,7 @@ test("PATCH /organizations/current updates name and slug for OWNER and ADMIN", a
     .set("X-Organization-Id", ownerOrganization.id)
     .send({
       name: "Owner Org Updated",
-      slug: "Owner Org Updated"
+      slug: "Organizations Test Owner Org Updated"
     })
     .expect(200);
 
@@ -329,7 +329,10 @@ test("PATCH /organizations/current updates name and slug for OWNER and ADMIN", a
     .expect(200);
 
   assert.equal(ownerResponse.body.name, "Owner Org Updated");
-  assert.equal(ownerResponse.body.slug, "owner-org-updated");
+  assert.equal(
+    ownerResponse.body.slug,
+    "organizations-test-owner-org-updated"
+  );
   assert.equal(adminResponse.body.name, "Admin Org Updated");
   assert.equal(adminResponse.body.slug, "organizations-test-patch-admin");
 });
