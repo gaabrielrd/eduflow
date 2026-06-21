@@ -36,8 +36,10 @@ async function cleanupAuthFixtures() {
   await (prisma as PrismaService & { authSession: AuthSessionDelegate }).authSession.deleteMany({
     where: {
       user: {
-        email: {
-          endsWith: "@auth.test"
+        is: {
+          email: {
+            endsWith: "@auth.test"
+          }
         }
       }
     }

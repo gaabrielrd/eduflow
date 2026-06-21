@@ -74,15 +74,19 @@ async function cleanupOrganizationFixtures() {
       OR: [
         {
           user: {
-            email: {
-              endsWith: "@organizations.test"
+            is: {
+              email: {
+                endsWith: "@organizations.test"
+              }
             }
           }
         },
         {
           organization: {
-            slug: {
-              contains: "organizations-test"
+            is: {
+              slug: {
+                contains: "organizations-test"
+              }
             }
           }
         }
@@ -101,8 +105,10 @@ async function cleanupOrganizationFixtures() {
   await prisma.authSession.deleteMany({
     where: {
       user: {
-        email: {
-          endsWith: "@organizations.test"
+        is: {
+          email: {
+            endsWith: "@organizations.test"
+          }
         }
       }
     }

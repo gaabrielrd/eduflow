@@ -128,15 +128,19 @@ async function cleanupAuthorizationFixtures() {
       OR: [
         {
           user: {
-            email: {
-              endsWith: "@authorization.test"
+            is: {
+              email: {
+                endsWith: "@authorization.test"
+              }
             }
           }
         },
         {
           organization: {
-            slug: {
-              contains: "authorization-test"
+            is: {
+              slug: {
+                contains: "authorization-test"
+              }
             }
           }
         }
@@ -155,8 +159,10 @@ async function cleanupAuthorizationFixtures() {
   await prisma.authSession.deleteMany({
     where: {
       user: {
-        email: {
-          endsWith: "@authorization.test"
+        is: {
+          email: {
+            endsWith: "@authorization.test"
+          }
         }
       }
     }
