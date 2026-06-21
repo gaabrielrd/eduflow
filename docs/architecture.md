@@ -53,6 +53,16 @@ O estado atual inclui:
 
 PostgreSQL e o banco principal planejado e o Prisma e a camada de acesso escolhida. Nesta fase, o Prisma esta instalado e configurado, mas o schema ainda nao possui entidades de dominio. Migrations reais devem ser adicionadas quando os primeiros modelos forem implementados.
 
+## Tenancy inicial
+
+A base inicial de identidade e tenancy do EduFlow deve assumir:
+
+- `User` pode pertencer a uma ou mais `Organization`
+- a relacao entre usuario e organizacao acontece por `Membership`
+- permissoes derivam do `role` do membership dentro da organizacao ativa
+- `Invitation` pertence sempre a uma organizacao e antecede o aceite de um usuario
+- delecoes relacionais ficam restritas no banco nesta fase para evitar cascade delete perigoso antes de existir regra clara de lifecycle
+
 ## Qualidade e CI
 
 A CI inicial roda em `pull_request` e em `push` para `main`. O workflow usa Node.js 22, pnpm 11.8.0 e executa:
