@@ -21,12 +21,41 @@ Este repositorio usa `pnpm` workspaces para separar aplicacoes, pacotes comparti
 
 - Node.js `>=22`
 - pnpm `11.8.0`
+- Docker Desktop ou Docker Engine com `docker compose`
 
 ## Como instalar
 
 ```bash
 pnpm install
 ```
+
+## Infra local
+
+O ambiente local de infraestrutura do EduFlow usa `PostgreSQL`, `Redis` e `MinIO` via Docker Compose.
+
+```bash
+docker compose up -d
+```
+
+Servicos expostos localmente:
+
+- PostgreSQL: `localhost:5432`
+- Redis: `localhost:6379`
+- MinIO API: `http://localhost:9000`
+- MinIO Console: `http://localhost:9001`
+
+Credenciais locais previstas no compose e no `.env.example`:
+
+- PostgreSQL: usuario `eduflow`, senha `eduflow`, database `eduflow`
+- MinIO: usuario `eduflow`, senha `eduflow123`
+
+Para derrubar o ambiente:
+
+```bash
+docker compose down
+```
+
+Os dados persistem entre reinicios porque o compose usa volumes nomeados. Depois de subir a infraestrutura, use o `DATABASE_URL` documentado no `.env.example` e rode a API localmente com Prisma apontando para `localhost:5432`.
 
 ## Scripts raiz
 
