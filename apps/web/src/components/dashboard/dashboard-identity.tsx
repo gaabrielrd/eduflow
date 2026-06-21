@@ -2,10 +2,12 @@
 
 import { Badge, Card, CardContent, CardHeader, CardTitle } from "@eduflow/ui";
 
-import { useAuth } from "@/hooks/use-auth";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { useSession } from "@/hooks/use-session";
 
 export function DashboardIdentity() {
-  const { activeOrganizationId, user } = useAuth();
+  const user = useCurrentUser();
+  const { activeOrganizationId } = useSession();
 
   return (
     <Card className="border-slate-900 bg-slate-950 text-white shadow-[0_18px_48px_rgba(15,23,42,0.18)]">

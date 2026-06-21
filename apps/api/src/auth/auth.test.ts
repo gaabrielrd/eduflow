@@ -105,7 +105,7 @@ test("POST /auth/login returns tokens for valid credentials and a generic error 
   );
 });
 
-test("GET /auth/me returns the authenticated user for a valid access token", async () => {
+test("GET /auth/me returns the authenticated session snapshot for a valid access token", async () => {
   const email = `me.${Date.now()}@auth.test`;
   const registerResponse = await request(app.getHttpServer())
     .post("/auth/register")
@@ -117,8 +117,10 @@ test("GET /auth/me returns the authenticated user for a valid access token", asy
     .set("Authorization", `Bearer ${registerResponse.body.accessToken}`)
     .expect(200);
 
-  assert.equal(meResponse.body.email, email);
-  assert.equal(meResponse.body.name, "Gabriel Roda");
+  assert.equal(meResponse.body.user.email, email);
+  assert.equal(meResponse.body.user.name, "Gabriel Roda");
+  assert.deepEqual(meResponse.body.organizations, []);
+  assert.equal(meResponse.body.activeOrganizationId, null);
 });
 
 test("GET /auth/me returns 401 for missing or invalid access tokens", async () => {

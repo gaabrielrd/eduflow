@@ -49,6 +49,9 @@ Para autenticacao local do MVP, a estrategia prevista e:
 - `refresh token` persistido por sessao em tabela propria
 - suporte a multiplas sessoes por usuario
 - `GET /auth/me` protegido por guard JWT
+- no frontend web, os tokens passam a ser persistidos em cookies `HttpOnly` no dominio do app, gravados por route handlers do Next.js
+- a web usa um BFF fino em `/api/auth/*` para login, refresh, logout, bootstrap da sessao e sincronizacao da organizacao ativa
+- o bootstrap da sessao web usa `GET /auth/me` enriquecido com `user`, `organizations` e `activeOrganizationId`
 
 Para autorizacao organizacional do MVP, a estrategia adotada e:
 
@@ -57,6 +60,7 @@ Para autorizacao organizacional do MVP, a estrategia adotada e:
 - `OrganizationContextGuard` resolve a organizacao atual via header `X-Organization-Id`
 - membership e `role` sempre sao validados no backend antes de liberar acesso organizacional
 - `RolesGuard` usa metadata declarada por `@Roles(...)` e consome o contexto organizacional ja resolvido, sem nova query de membership
+- o frontend persiste `activeOrganizationId` em cookie proprio e o reenvia para a API via header `X-Organization-Id`
 
 ## Packages
 

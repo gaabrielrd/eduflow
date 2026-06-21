@@ -5,29 +5,15 @@ import { useRouter } from "next/navigation";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { CreateOrganizationForm } from "@/components/auth/create-organization-form";
 import { RouteGuard } from "@/components/auth/route-guard";
-import { useAuth } from "@/hooks/use-auth";
-import { createOrganization } from "@/lib/auth/auth-service";
+import { useSession } from "@/hooks/use-session";
 import type { CreateOrganizationSchema } from "@/lib/auth/auth-schemas";
 
 export function CreateOrganizationScreen() {
   const router = useRouter();
-  const { accessToken, refreshToken, setActiveOrganizationId, user } = useAuth();
+  const { createOrganization } = useSession();
 
   async function handleSubmit(values: CreateOrganizationSchema) {
-    if (!user || !accessToken || !refreshToken) {
-      throw new Error("Sua sessao expirou. Entre novamente.");
-    }
-
-    const organization = await createOrganization(
-      {
-        accessToken,
-        refreshToken,
-        user
-      },
-      values
-    );
-
-    setActiveOrganizationId(organization.id);
+    await createOrganization(values);
     router.push("/app/dashboard");
   }
 

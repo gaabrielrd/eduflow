@@ -3,89 +3,135 @@
 import {
   createContext,
   useEffect,
+  useEffectEvent,
   useState,
   type ReactNode
 } from "react";
 
-import { ACTIVE_ORGANIZATION_STORAGE_KEY } from "@/lib/auth/auth-storage";
-import type { SessionSnapshot } from "@/lib/auth/auth-types";
+import {
+  createOrganization,
+  getSession,
+  loginUser,
+  logoutUser,
+  registerUser,
+  setOrganization
+} from "@/lib/auth/auth-service";
+import type {
+  CreateOrganizationPayload,
+  LoginPayload,
+  RegisterPayload,
+  SessionData
+} from "@/lib/auth/auth-types";
 
 type AuthContextValue = {
-  accessToken: string | null;
   activeOrganizationId: string | null;
-  clearSession: () => void;
-  isHydrated: boolean;
-  refreshToken: string | null;
-  setActiveOrganizationId: (organizationId: string | null) => void;
-  setSession: (session: SessionSnapshot) => void;
-  user: SessionSnapshot["user"] | null;
+  createOrganization: (payload: CreateOrganizationPayload) => Promise<SessionData>;
+  hasOrganization: boolean;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (payload: LoginPayload) => Promise<SessionData>;
+  logout: () => Promise<void>;
+  organizations: SessionData["organizations"];
+  refreshSession: () => Promise<SessionData | null>;
+  register: (payload: RegisterPayload) => Promise<SessionData>;
+  session: SessionData | null;
+  setActiveOrganizationId: (organizationId: string) => Promise<SessionData | null>;
+  user: SessionData["user"] | null;
 };
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
 type AuthProviderProps = {
   children: ReactNode;
+  initialSession: SessionData | null;
 };
 
-export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<SessionSnapshot["user"] | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [refreshToken, setRefreshToken] = useState<string | null>(null);
-  const [activeOrganizationId, setActiveOrganizationIdState] = useState<string | null>(null);
-  const [isHydrated, setIsHydrated] = useState(false);
+export function AuthProvider({ children, initialSession }: AuthProviderProps) {
+  const [session, setSession] = useState<SessionData | null>(initialSession);
+  const [isLoading, setIsLoading] = useState(initialSession === null);
+
+  const syncSession = useEffectEvent(async () => {
+    setIsLoading(true);
+
+    try {
+      const nextSession = await getSession();
+      setSession(nextSession);
+
+      return nextSession;
+    } catch {
+      setSession(null);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  });
 
   useEffect(() => {
-    const persistedOrganizationId = window.localStorage.getItem(
-      ACTIVE_ORGANIZATION_STORAGE_KEY
-    );
-
-    setActiveOrganizationIdState(persistedOrganizationId);
-    setIsHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isHydrated) {
+    if (initialSession) {
       return;
     }
 
-    if (activeOrganizationId) {
-      window.localStorage.setItem(
-        ACTIVE_ORGANIZATION_STORAGE_KEY,
-        activeOrganizationId
-      );
-      return;
-    }
+    void syncSession();
+  }, [initialSession, syncSession]);
 
-    window.localStorage.removeItem(ACTIVE_ORGANIZATION_STORAGE_KEY);
-  }, [activeOrganizationId, isHydrated]);
+  async function login(payload: LoginPayload) {
+    const nextSession = await loginUser(payload);
+    setSession(nextSession);
+    setIsLoading(false);
 
-  function setSession(session: SessionSnapshot) {
-    setUser(session.user);
-    setAccessToken(session.accessToken);
-    setRefreshToken(session.refreshToken);
+    return nextSession;
   }
 
-  function clearSession() {
-    setUser(null);
-    setAccessToken(null);
-    setRefreshToken(null);
+  async function register(payload: RegisterPayload) {
+    const nextSession = await registerUser(payload);
+    setSession(nextSession);
+    setIsLoading(false);
+
+    return nextSession;
   }
 
-  function setActiveOrganizationId(organizationId: string | null) {
-    setActiveOrganizationIdState(organizationId);
+  async function logout() {
+    await logoutUser();
+    setSession(null);
+    setIsLoading(false);
+  }
+
+  async function refreshSession() {
+    return syncSession();
+  }
+
+  async function handleCreateOrganization(payload: CreateOrganizationPayload) {
+    const nextSession = await createOrganization(payload);
+    setSession(nextSession);
+    setIsLoading(false);
+
+    return nextSession;
+  }
+
+  async function setActiveOrganizationId(organizationId: string) {
+    const nextSession = await setOrganization(organizationId);
+
+    setSession(nextSession);
+
+    return nextSession;
   }
 
   return (
     <AuthContext.Provider
       value={{
-        accessToken,
-        activeOrganizationId,
-        clearSession,
-        isHydrated,
-        refreshToken,
+        activeOrganizationId: session?.activeOrganizationId ?? null,
+        createOrganization: handleCreateOrganization,
+        hasOrganization: Boolean(session?.activeOrganizationId),
+        isAuthenticated: Boolean(session),
+        isLoading,
+        login,
+        logout,
+        organizations: session?.organizations ?? [],
+        refreshSession,
+        register,
+        session,
         setActiveOrganizationId,
-        setSession,
-        user
+        user: session?.user ?? null
       }}
     >
       {children}

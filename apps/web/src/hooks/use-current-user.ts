@@ -2,4 +2,6 @@
 
 import { useSession } from "@/hooks/use-session";
 
-export const useAuth = useSession;
+export function useCurrentUser() {
+  return useSession().user;
+}

@@ -184,6 +184,50 @@ export class AuthService {
     return { success: true };
   }
 
+  async getSessionSnapshot(
+    user: AuthenticatedUser,
+    requestedOrganizationId?: string
+  ) {
+    const memberships = await this.prisma.membership.findMany({
+      where: {
+        userId: user.id
+      },
+      select: {
+        role: true,
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
+        }
+      },
+      orderBy: {
+        organization: {
+          createdAt: "asc"
+        }
+      }
+    });
+
+    const organizations = memberships.map(({ organization, role }) => ({
+      ...organization,
+      role
+    }));
+
+    const activeOrganizationId =
+      organizations.find(
+        (organization) => organization.id === requestedOrganizationId
+      )?.id ??
+      organizations[0]?.id ??
+      null;
+
+    return {
+      user,
+      organizations,
+      activeOrganizationId
+    };
+  }
+
   private get publicUserSelect() {
     return {
       id: true,

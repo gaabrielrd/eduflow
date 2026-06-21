@@ -1,39 +1,40 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  resolveActiveOrganizationId,
-  resolvePostAuthDestination
-} from "@/lib/auth/auth-redirects";
-import type { OrganizationSummary } from "@/lib/auth/auth-types";
-
-const organizations: OrganizationSummary[] = [
-  {
-    id: "org-a",
-    name: "Org A",
-    role: "OWNER",
-    slug: "org-a"
-  },
-  {
-    id: "org-b",
-    name: "Org B",
-    role: "ADMIN",
-    slug: "org-b"
-  }
-];
+import { hasOrganizations, resolvePostAuthDestination } from "@/lib/auth/auth-redirects";
 
 describe("auth redirects", () => {
-  it("uses the persisted organization when it is still valid", () => {
-    expect(resolveActiveOrganizationId(organizations, "org-b")).toBe("org-b");
-  });
-
-  it("falls back to the first organization when the persisted one is missing", () => {
-    expect(resolveActiveOrganizationId(organizations, "org-missing")).toBe("org-a");
-  });
-
   it("sends users without organizations to onboarding", () => {
-    expect(resolvePostAuthDestination([], "org-a")).toEqual({
-      activeOrganizationId: null,
-      redirectTo: "/onboarding/create-organization"
-    });
+    expect(
+      resolvePostAuthDestination({
+        activeOrganizationId: null,
+        organizations: [],
+        user: {
+          email: "user@eduflow.dev",
+          id: "user-1",
+          name: "User"
+        }
+      })
+    ).toBe("/onboarding/create-organization");
+  });
+
+  it("recognizes a session with an active organization", () => {
+    expect(
+      hasOrganizations({
+        activeOrganizationId: "org-a",
+        organizations: [
+          {
+            id: "org-a",
+            name: "Org A",
+            role: "OWNER",
+            slug: "org-a"
+          }
+        ],
+        user: {
+          email: "user@eduflow.dev",
+          id: "user-1",
+          name: "User"
+        }
+      })
+    ).toBe(true);
   });
 });

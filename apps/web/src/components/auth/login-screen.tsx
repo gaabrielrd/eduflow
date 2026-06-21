@@ -5,23 +5,17 @@ import { useRouter } from "next/navigation";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { LoginForm } from "@/components/auth/login-form";
 import { RouteGuard } from "@/components/auth/route-guard";
-import { useAuth } from "@/hooks/use-auth";
+import { useSession } from "@/hooks/use-session";
 import { resolvePostAuthDestination } from "@/lib/auth/auth-redirects";
-import { loginUser, listOrganizations } from "@/lib/auth/auth-service";
 import type { LoginSchema } from "@/lib/auth/auth-schemas";
 
 export function LoginScreen() {
   const router = useRouter();
-  const { activeOrganizationId, setActiveOrganizationId, setSession } = useAuth();
+  const { login } = useSession();
 
   async function handleSubmit(values: LoginSchema) {
-    const authResponse = await loginUser(values);
-    const organizations = await listOrganizations(authResponse.accessToken);
-    const destination = resolvePostAuthDestination(organizations, activeOrganizationId);
-
-    setSession(authResponse);
-    setActiveOrganizationId(destination.activeOrganizationId);
-    router.push(destination.redirectTo);
+    const session = await login(values);
+    router.push(resolvePostAuthDestination(session));
   }
 
   return (

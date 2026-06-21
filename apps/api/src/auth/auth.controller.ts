@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Headers, Post, UseGuards } from "@nestjs/common";
 
 import { CurrentUser } from "./decorators/current-user.decorator.js";
 import { LoginDto } from "./dto/login.dto.js";
@@ -34,7 +34,10 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get("me")
-  me(@CurrentUser() user: AuthenticatedUser) {
-    return user;
+  me(
+    @CurrentUser() user: AuthenticatedUser,
+    @Headers("x-organization-id") organizationId?: string
+  ) {
+    return this.authService.getSessionSnapshot(user, organizationId);
   }
 }

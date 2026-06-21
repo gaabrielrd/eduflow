@@ -1,56 +1,109 @@
-import { apiRequest } from "@/lib/api/http-client";
+import { apiClient } from "@/lib/api/api-client";
 import type {
-  AuthResponse,
-  OrganizationSummary,
-  SessionSnapshot
+  CreateOrganizationPayload,
+  LoginPayload,
+  RegisterPayload,
+  SessionData,
+  SessionResponse
 } from "@/lib/auth/auth-types";
 
-type LoginPayload = {
-  email: string;
-  password: string;
-};
+async function authRouteRequest(
+  path: string,
+  method: "GET" | "POST",
+  body?: CreateOrganizationPayload | LoginPayload | RegisterPayload
+) {
+  const response = await apiClient<SessionResponse>({
+    body,
+    method,
+    onUnauthorized: async () => {
+      try {
+        await apiClient<SessionResponse>({
+          method: "POST",
+          path: "/api/auth/refresh",
+          retryOnUnauthorized: false
+        });
 
-type RegisterPayload = LoginPayload & {
-  name: string;
-};
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    path,
+    retryOnUnauthorized: path === "/api/auth/session"
+  });
 
-type CreateOrganizationPayload = {
-  name: string;
-  slug: string;
-};
+  return response.session;
+}
 
 export async function loginUser(payload: LoginPayload) {
-  return apiRequest<AuthResponse>({
-    method: "POST",
-    path: "/auth/login",
-    body: payload
-  });
+  const session = await authRouteRequest("/api/auth/login", "POST", payload);
+
+  if (!session) {
+    throw new Error("Nao foi possivel iniciar a sessao");
+  }
+
+  return session;
 }
 
 export async function registerUser(payload: RegisterPayload) {
-  return apiRequest<AuthResponse>({
+  const session = await authRouteRequest("/api/auth/register", "POST", payload);
+
+  if (!session) {
+    throw new Error("Nao foi possivel concluir o cadastro");
+  }
+
+  return session;
+}
+
+export async function getSession() {
+  return authRouteRequest("/api/auth/session", "GET");
+}
+
+export async function logoutUser() {
+  await apiClient<{ success: true }>({
     method: "POST",
-    path: "/auth/register",
-    body: payload
+    path: "/api/auth/logout",
+    retryOnUnauthorized: false
   });
 }
 
-export async function listOrganizations(accessToken: string) {
-  return apiRequest<OrganizationSummary[]>({
-    accessToken,
-    method: "GET",
-    path: "/organizations"
-  });
+export async function createOrganization(payload: CreateOrganizationPayload) {
+  const session = await authRouteRequest("/api/auth/organization", "POST", payload);
+
+  if (!session) {
+    throw new Error("Nao foi possivel atualizar a sessao");
+  }
+
+  return session;
 }
 
-export async function createOrganization(
-  session: SessionSnapshot,
-  payload: CreateOrganizationPayload
-) {
-  return apiRequest<OrganizationSummary>({
-    accessToken: session.accessToken,
-    method: "POST",
-    path: "/organizations",
-    body: payload
+export async function setOrganization(organizationId: string) {
+  const response = await apiClient<SessionResponse>({
+    body: { organizationId },
+    method: "PATCH",
+    onUnauthorized: async () => {
+      try {
+        await apiClient<SessionResponse>({
+          method: "POST",
+          path: "/api/auth/refresh",
+          retryOnUnauthorized: false
+        });
+
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    path: "/api/auth/organization"
   });
+
+  return response.session;
+}
+
+export function getPostAuthRedirect(session: SessionData) {
+  if (!session.activeOrganizationId) {
+    return "/onboarding/create-organization";
+  }
+
+  return "/app/dashboard";
 }

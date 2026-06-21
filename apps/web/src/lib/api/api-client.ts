@@ -13,23 +13,35 @@ export class ApiError extends Error {
 type JsonPrimitive = boolean | number | string | null;
 type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
 
-type RequestOptions = {
-  accessToken?: string | null;
+type ApiClientOptions = {
+  baseUrl?: string;
   body?: JsonValue;
+  headers?: HeadersInit;
   method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
-  organizationId?: string | null;
+  onUnauthorized?: () => Promise<boolean> | boolean;
   path: string;
+  retryOnUnauthorized?: boolean;
   signal?: AbortSignal;
 };
 
-function getApiBaseUrl() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+function trimTrailingSlashes(value: string) {
+  return value.replace(/\/+$/, "");
+}
 
-  if (!apiUrl) {
-    throw new Error("NEXT_PUBLIC_API_URL is not configured");
+function resolveBaseUrl(baseUrl?: string) {
+  if (!baseUrl) {
+    return "";
   }
 
-  return apiUrl.replace(/\/+$/, "");
+  return trimTrailingSlashes(baseUrl);
+}
+
+function joinUrl(baseUrl: string, path: string) {
+  if (!baseUrl) {
+    return path;
+  }
+
+  return `${baseUrl}${path}`;
 }
 
 function toErrorMessage(payload: unknown, statusCode: number) {
@@ -54,21 +66,20 @@ function toErrorMessage(payload: unknown, statusCode: number) {
   return [`Request failed with status ${statusCode}`];
 }
 
-export async function apiRequest<T>({
-  accessToken,
+async function executeRequest<T>({
+  baseUrl,
   body,
+  headers,
   method = "GET",
-  organizationId,
   path,
   signal
-}: RequestOptions): Promise<T> {
-  const response = await fetch(`${getApiBaseUrl()}${path}`, {
+}: Omit<ApiClientOptions, "onUnauthorized" | "retryOnUnauthorized">): Promise<T> {
+  const response = await fetch(joinUrl(resolveBaseUrl(baseUrl), path), {
     method,
     headers: {
       Accept: "application/json",
       ...(body ? { "Content-Type": "application/json" } : {}),
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      ...(organizationId ? { "X-Organization-Id": organizationId } : {})
+      ...headers
     },
     body: body ? JSON.stringify(body) : undefined,
     signal
@@ -89,4 +100,41 @@ export async function apiRequest<T>({
   }
 
   return payload as T;
+}
+
+export async function apiClient<T>({
+  onUnauthorized,
+  retryOnUnauthorized = true,
+  ...options
+}: ApiClientOptions): Promise<T> {
+  try {
+    return await executeRequest<T>(options);
+  } catch (error) {
+    if (
+      !retryOnUnauthorized ||
+      !(error instanceof ApiError) ||
+      error.statusCode !== 401 ||
+      !onUnauthorized
+    ) {
+      throw error;
+    }
+
+    const didRecover = await onUnauthorized();
+
+    if (!didRecover) {
+      throw error;
+    }
+
+    return executeRequest<T>(options);
+  }
+}
+
+export function getApiBaseUrl() {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+
+  if (!apiUrl) {
+    throw new Error("NEXT_PUBLIC_API_URL is not configured");
+  }
+
+  return trimTrailingSlashes(apiUrl);
 }

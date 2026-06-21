@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
-import { useAuth } from "@/hooks/use-auth";
+import { useSession } from "@/hooks/use-session";
 
 type GuardVariant =
   | "public-auth"
@@ -31,17 +31,14 @@ export function RouteGuard({
   variant
 }: RouteGuardProps) {
   const router = useRouter();
-  const { activeOrganizationId, isHydrated, user } = useAuth();
-
-  const hasSession = Boolean(user);
-  const hasOrganization = Boolean(activeOrganizationId);
+  const { hasOrganization, isAuthenticated, isLoading } = useSession();
 
   useEffect(() => {
-    if (!isHydrated) {
+    if (isLoading) {
       return;
     }
 
-    if (variant === "public-auth" && hasSession) {
+    if (variant === "public-auth" && isAuthenticated) {
       router.replace(hasOrganization ? "/app/dashboard" : "/onboarding/create-organization");
       return;
     }
@@ -50,7 +47,7 @@ export function RouteGuard({
       (variant === "session-only" ||
         variant === "session-with-organization" ||
         variant === "session-without-organization") &&
-      !hasSession
+      !isAuthenticated
     ) {
       router.replace("/login");
       return;
@@ -64,13 +61,13 @@ export function RouteGuard({
     if (variant === "session-without-organization" && hasOrganization) {
       router.replace("/app/dashboard");
     }
-  }, [hasOrganization, hasSession, isHydrated, router, variant]);
+  }, [hasOrganization, isAuthenticated, isLoading, router, variant]);
 
-  if (!isHydrated) {
+  if (isLoading) {
     return fallback;
   }
 
-  if (variant === "public-auth" && hasSession) {
+  if (variant === "public-auth" && isAuthenticated) {
     return fallback;
   }
 
@@ -78,7 +75,7 @@ export function RouteGuard({
     (variant === "session-only" ||
       variant === "session-with-organization" ||
       variant === "session-without-organization") &&
-    !hasSession
+    !isAuthenticated
   ) {
     return fallback;
   }

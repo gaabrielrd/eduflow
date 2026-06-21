@@ -4,12 +4,6 @@ export type AuthUser = {
   name: string;
 };
 
-export type AuthResponse = {
-  accessToken: string;
-  refreshToken: string;
-  user: AuthUser;
-};
-
 export type OrganizationSummary = {
   id: string;
   name: string;
@@ -17,8 +11,35 @@ export type OrganizationSummary = {
   slug: string;
 };
 
-export type SessionSnapshot = {
+export type AuthTokens = {
   accessToken: string;
   refreshToken: string;
+};
+
+export type AuthResponse = AuthTokens & {
   user: AuthUser;
+};
+
+export type SessionData = {
+  activeOrganizationId: string | null;
+  organizations: OrganizationSummary[];
+  user: AuthUser;
+};
+
+export type SessionResponse = {
+  session: SessionData | null;
+};
+
+export type LoginPayload = {
+  email: string;
+  password: string;
+};
+
+export type RegisterPayload = LoginPayload & {
+  name: string;
+};
+
+export type CreateOrganizationPayload = {
+  name: string;
+  slug: string;
 };

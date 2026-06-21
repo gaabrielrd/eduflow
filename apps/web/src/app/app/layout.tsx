@@ -9,7 +9,7 @@ type AppLayoutProps = {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   return (
-    <RouteGuard variant="session-only">
+    <RouteGuard variant="session-with-organization">
       <AppShell>{children}</AppShell>
     </RouteGuard>
   );
