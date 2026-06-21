@@ -40,6 +40,10 @@ pnpm test
 
 Os scripts da raiz usam `pnpm -r --if-present` para permitir bootstrap incremental sem exigir que todos os workspaces tenham a mesma maturidade desde o primeiro dia.
 
+## Qualidade
+
+O projeto possui uma pipeline inicial de qualidade em GitHub Actions que roda em `pull_request` e em `push` para `main`, cobrindo `pnpm install --frozen-lockfile`, `lint`, `typecheck`, `test` e `build`.
+
 ## Convencoes internas
 
 - Pacotes internos usam o namespace `@eduflow/*`
