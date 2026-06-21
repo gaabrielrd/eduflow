@@ -12,6 +12,7 @@
     "test": "node -e \"console.log('test placeholder for @eduflow/web')\""
   },
   "dependencies": {
+    "@eduflow/ui": "workspace:*",
     "next": "^16.2.9",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"

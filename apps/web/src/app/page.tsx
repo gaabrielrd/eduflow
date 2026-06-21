@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { SectionLabel } from "@/components/section-label";
+import { Button, Card, CardContent, CardHeader, CardTitle, PageHeader } from "@eduflow/ui";
 import { statusCards } from "@/lib/navigation";
 
 export default function HomePage() {
@@ -25,54 +25,38 @@ export default function HomePage() {
 
           <div className="grid gap-12 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.85fr)] lg:items-end">
             <div className="max-w-3xl">
-              <SectionLabel>Plataforma educacional</SectionLabel>
-              <h1 className="mt-5 max-w-4xl text-5xl font-semibold tracking-[-0.06em] text-slate-950 sm:text-6xl lg:text-7xl">
-                O workspace do EduFlow agora tem uma entrada web pronta para
-                produto.
-              </h1>
-              <p className="mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-                Esta sprint entrega a base de App Router, Tailwind, layout raiz
-                e rotas iniciais para a area publica e a futura area
-                autenticada.
-              </p>
+              <PageHeader
+                className="block"
+                description="Esta sprint entrega a base de App Router, Tailwind, layout raiz e rotas iniciais para a area publica e a futura area autenticada."
+                eyebrow="Plataforma educacional"
+                title="O workspace do EduFlow agora tem uma entrada web pronta para produto."
+              />
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  href="/app"
-                  className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-                >
-                  Abrir area do app
-                </Link>
-                <Link
-                  href="/app/dashboard"
-                  className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
-                >
-                  Ver dashboard
-                </Link>
-                <Link
-                  href="/status"
-                  className="rounded-full border border-transparent bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
-                >
-                  Ver status
-                </Link>
+                <Button asChild>
+                  <Link href="/app">Abrir area do app</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href="/app/dashboard">Ver dashboard</Link>
+                </Button>
+                <Button asChild variant="secondary">
+                  <Link href="/status">Ver status</Link>
+                </Button>
               </div>
             </div>
 
             <div className="grid gap-4">
               {statusCards.map((card) => (
-                <div
-                  key={card.title}
-                  className="rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 p-5"
-                >
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                    {card.eyebrow}
-                  </p>
-                  <h2 className="mt-3 text-xl font-semibold tracking-[-0.03em] text-slate-950">
-                    {card.title}
-                  </h2>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    {card.description}
-                  </p>
-                </div>
+                <Card key={card.title} className="border-slate-200/80 bg-slate-50/80 shadow-none">
+                  <CardHeader className="pb-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                      {card.eyebrow}
+                    </p>
+                    <CardTitle>{card.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm leading-6 text-slate-600">{card.description}</p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
