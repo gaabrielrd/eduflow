@@ -8,8 +8,8 @@ Este repositorio usa `pnpm` workspaces para separar aplicacoes, pacotes comparti
 
 ### Estrutura
 
-- `apps/web`: placeholder da aplicacao web em Next.js/React
-- `apps/api`: placeholder da API em NestJS/Node
+- `apps/web`: aplicacao web em Next.js, React, TypeScript e Tailwind CSS
+- `apps/api`: API em NestJS, TypeScript e Prisma
 - `packages/ui`: componentes e utilitarios visuais compartilhados
 - `packages/types`: tipos compartilhados do dominio e contratos internos
 - `packages/config`: constantes e helpers de configuracao compartilhaveis
@@ -40,9 +40,29 @@ pnpm test
 
 Os scripts da raiz usam `pnpm -r --if-present` para permitir bootstrap incremental sem exigir que todos os workspaces tenham a mesma maturidade desde o primeiro dia.
 
+### Scripts por app
+
+```bash
+pnpm web:dev
+pnpm web:build
+pnpm web:lint
+pnpm api:dev
+pnpm api:build
+pnpm api:lint
+pnpm api:prisma:generate
+```
+
 ## Qualidade
 
 O projeto possui uma pipeline inicial de qualidade em GitHub Actions que roda em `pull_request` e em `push` para `main`, cobrindo `pnpm install --frozen-lockfile`, `lint`, `typecheck`, `test` e `build`.
+
+## Documentacao
+
+- [Visao geral do monorepo](/E:/OneDrive/Dev/eduflow/docs/overview.md)
+- [Arquitetura tecnica](/E:/OneDrive/Dev/eduflow/docs/architecture.md)
+- [Setup local](/E:/OneDrive/Dev/eduflow/docs/setup.md)
+- [Roadmap do MVP](/E:/OneDrive/Dev/eduflow/docs/roadmap.md)
+- [ADRs](/E:/OneDrive/Dev/eduflow/docs/adr)
 
 ## Convencoes internas
 
@@ -51,8 +71,7 @@ O projeto possui uma pipeline inicial de qualidade em GitHub Actions que roda em
 - Regras de lint compartilhadas vivem em `@eduflow/eslint-config`
 - Comandos canonicos do web usam `pnpm --filter @eduflow/web <script>`
 - Comandos canonicos da API usam `pnpm --filter @eduflow/api <script>`
-- A documentacao geral do monorepo comeca em [docs/overview.md](/E:/OneDrive/Dev/eduflow/docs/overview.md)
 
 ## Produto
 
-O roadmap detalhado do MVP esta em [roadmap.md](/E:/OneDrive/Dev/eduflow/roadmap.md).
+O roadmap detalhado do MVP esta em [docs/roadmap.md](/E:/OneDrive/Dev/eduflow/docs/roadmap.md). O arquivo [roadmap.md](/E:/OneDrive/Dev/eduflow/roadmap.md) na raiz permanece por compatibilidade historica.
