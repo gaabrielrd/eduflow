@@ -18,6 +18,7 @@
     "api:lint": "pnpm --filter @eduflow/api lint",
     "api:typecheck": "pnpm --filter @eduflow/api typecheck",
     "api:prisma:generate": "pnpm --filter @eduflow/api prisma:generate",
+    "api:prisma:migrate:deploy": "pnpm --filter @eduflow/api prisma:migrate:deploy",
     "api:prisma:migrate:dev": "pnpm --filter @eduflow/api prisma:migrate:dev",
     "api:prisma:studio": "pnpm --filter @eduflow/api prisma:studio",
     "api:test": "pnpm --filter @eduflow/api test",
