@@ -69,75 +69,32 @@ async function createOrganizationForUser(params: {
 }
 
 async function cleanupOrganizationFixtures() {
-  const users = await prisma.user.findMany({
-    where: {
-      email: {
-        endsWith: "@organizations.test"
-      }
-    },
-    select: {
-      id: true
-    }
-  });
-  const organizations = await prisma.organization.findMany({
-    where: {
-      slug: {
-        contains: "organizations-test"
-      }
-    },
-    select: {
-      id: true
-    }
-  });
-  const userIds = users.map(({ id }) => id);
-  const organizationIds = organizations.map(({ id }) => id);
+  await prisma.$executeRaw`
+    DELETE FROM "Membership"
+    WHERE "userId" IN (
+      SELECT "id" FROM "User" WHERE "email" LIKE ${"%@organizations.test"}
+    )
+    OR "organizationId" IN (
+      SELECT "id" FROM "Organization" WHERE "slug" LIKE ${"%organizations-test%"}
+    )
+  `;
 
-  if (userIds.length > 0 || organizationIds.length > 0) {
-    await prisma.membership.deleteMany({
-      where: {
-        OR: [
-          {
-            userId: {
-              in: userIds
-            }
-          },
-          {
-            organizationId: {
-              in: organizationIds
-            }
-          }
-        ]
-      }
-    });
-  }
+  await prisma.$executeRaw`
+    DELETE FROM "Organization"
+    WHERE "slug" LIKE ${"%organizations-test%"}
+  `;
 
-  if (organizationIds.length > 0) {
-    await prisma.organization.deleteMany({
-      where: {
-        id: {
-          in: organizationIds
-        }
-      }
-    });
-  }
+  await prisma.$executeRaw`
+    DELETE FROM "AuthSession"
+    WHERE "userId" IN (
+      SELECT "id" FROM "User" WHERE "email" LIKE ${"%@organizations.test"}
+    )
+  `;
 
-  if (userIds.length > 0) {
-    await prisma.authSession.deleteMany({
-      where: {
-        userId: {
-          in: userIds
-        }
-      }
-    });
-  }
-
-  await prisma.user.deleteMany({
-    where: {
-      email: {
-        endsWith: "@organizations.test"
-      }
-    }
-  });
+  await prisma.$executeRaw`
+    DELETE FROM "User"
+    WHERE "email" LIKE ${"%@organizations.test"}
+  `;
 }
 
 before(async () => {

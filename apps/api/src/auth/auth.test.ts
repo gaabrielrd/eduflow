@@ -33,36 +33,17 @@ async function createAuthUserPayload(email: string) {
 }
 
 async function cleanupAuthFixtures() {
-  const users = await prisma.user.findMany({
-    where: {
-      email: {
-        endsWith: "@auth.test"
-      }
-    },
-    select: {
-      id: true
-    }
-  });
+  await prisma.$executeRaw`
+    DELETE FROM "AuthSession"
+    WHERE "userId" IN (
+      SELECT "id" FROM "User" WHERE "email" LIKE ${"%@auth.test"}
+    )
+  `;
 
-  if (users.length > 0) {
-    await (
-      prisma as PrismaService & { authSession: AuthSessionDelegate }
-    ).authSession.deleteMany({
-      where: {
-        userId: {
-          in: users.map(({ id }) => id)
-        }
-      }
-    });
-  }
-
-  await prisma.user.deleteMany({
-    where: {
-      email: {
-        endsWith: "@auth.test"
-      }
-    }
-  });
+  await prisma.$executeRaw`
+    DELETE FROM "User"
+    WHERE "email" LIKE ${"%@auth.test"}
+  `;
 }
 
 before(async () => {
