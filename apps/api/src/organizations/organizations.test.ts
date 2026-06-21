@@ -1,5 +1,6 @@
-import test, { after, before, beforeEach } from "node:test";
+import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 
 import { Test } from "@nestjs/testing";
 import type { INestApplication } from "@nestjs/common";
@@ -22,6 +23,10 @@ process.env.S3_SECRET_KEY ??= "eduflow123";
 
 let app: INestApplication;
 let prisma: PrismaService;
+
+function uniqueSuffix() {
+  return randomUUID().slice(0, 8);
+}
 
 async function createUserAndToken(email: string) {
   const response = await request(app.getHttpServer())
@@ -67,36 +72,6 @@ async function createOrganizationForUser(params: {
 
   return organization;
 }
-
-async function cleanupOrganizationFixtures() {
-  await prisma.$executeRaw`
-    DELETE FROM "Membership"
-    WHERE "userId" IN (
-      SELECT "id" FROM "User" WHERE "email" LIKE ${"%@organizations.test"}
-    )
-    OR "organizationId" IN (
-      SELECT "id" FROM "Organization" WHERE "slug" LIKE ${"%organizations-test%"}
-    )
-  `;
-
-  await prisma.$executeRaw`
-    DELETE FROM "Organization"
-    WHERE "slug" LIKE ${"%organizations-test%"}
-  `;
-
-  await prisma.$executeRaw`
-    DELETE FROM "AuthSession"
-    WHERE "userId" IN (
-      SELECT "id" FROM "User" WHERE "email" LIKE ${"%@organizations.test"}
-    )
-  `;
-
-  await prisma.$executeRaw`
-    DELETE FROM "User"
-    WHERE "email" LIKE ${"%@organizations.test"}
-  `;
-}
-
 before(async () => {
   const { AppModule } = (await import("../app.module.js")) as {
     AppModule: typeof AppModuleType;
@@ -112,30 +87,29 @@ before(async () => {
   prisma = app.get(PrismaService);
 });
 
-beforeEach(async () => {
-  await cleanupOrganizationFixtures();
-});
-
 after(async () => {
-  await cleanupOrganizationFixtures();
   await app.close();
 });
 
 test("POST /organizations creates an organization, normalizes slug and assigns OWNER membership", async () => {
   const email = `create.${Date.now()}@organizations.test`;
   const { user, accessToken } = await createUserAndToken(email);
+  const slugSuffix = uniqueSuffix();
 
   const response = await request(app.getHttpServer())
     .post("/organizations")
     .set("Authorization", `Bearer ${accessToken}`)
     .send({
       name: "EduFlow Demo",
-      slug: "  Organizations Test Demo__Org  "
+      slug: `  Organizations Test Demo__Org ${slugSuffix}  `
     })
     .expect(201);
 
   assert.equal(response.body.name, "EduFlow Demo");
-  assert.equal(response.body.slug, "organizations-test-demo-org");
+  assert.equal(
+    response.body.slug,
+    `organizations-test-demo-org-${slugSuffix}`
+  );
   assert.equal(response.body.role, Role.OWNER);
 
   const membership = await prisma.membership.findUnique({
@@ -158,13 +132,15 @@ test("POST /organizations rejects duplicated slug", async () => {
   const secondUser = await createUserAndToken(
     `dup-b.${Date.now()}@organizations.test`
   );
+  const slugSuffix = uniqueSuffix();
+  const duplicateSlug = `organizations-test-duplicate-${slugSuffix}`;
 
   await request(app.getHttpServer())
     .post("/organizations")
     .set("Authorization", `Bearer ${firstUser.accessToken}`)
     .send({
       name: "Org A",
-      slug: "organizations-test-duplicate"
+      slug: duplicateSlug
     })
     .expect(201);
 
@@ -173,7 +149,7 @@ test("POST /organizations rejects duplicated slug", async () => {
     .set("Authorization", `Bearer ${secondUser.accessToken}`)
     .send({
       name: "Org B",
-      slug: " Organizations Test Duplicate "
+      slug: ` Organizations Test Duplicate ${slugSuffix} `
     })
     .expect(409);
 
@@ -188,16 +164,19 @@ test("GET /organizations lists only organizations where the user has membership"
     `list-b.${Date.now()}@organizations.test`
   );
 
+  const primarySlug = `organizations-test-list-a-${uniqueSuffix()}`;
+  const secondarySlug = `organizations-test-list-b-${uniqueSuffix()}`;
+
   await createOrganizationForUser({
     userId: primaryUser.user.id,
     name: "List A",
-    slug: "organizations-test-list-a",
+    slug: primarySlug,
     role: Role.ADMIN
   });
   await createOrganizationForUser({
     userId: secondaryUser.user.id,
     name: "List B",
-    slug: "organizations-test-list-b"
+    slug: secondarySlug
   });
 
   const response = await request(app.getHttpServer())
@@ -206,7 +185,7 @@ test("GET /organizations lists only organizations where the user has membership"
     .expect(200);
 
   assert.equal(response.body.length, 1);
-  assert.equal(response.body[0].slug, "organizations-test-list-a");
+  assert.equal(response.body[0].slug, primarySlug);
   assert.equal(response.body[0].role, Role.ADMIN);
 });
 
@@ -234,7 +213,7 @@ test("GET /organizations/current returns 403 when the user has no membership in 
   const foreignOrganization = await createOrganizationForUser({
     userId: secondUser.user.id,
     name: "Foreign Org",
-    slug: "organizations-test-foreign"
+    slug: `organizations-test-foreign-${uniqueSuffix()}`
   });
 
   const response = await request(app.getHttpServer())
@@ -253,7 +232,7 @@ test("GET /organizations/current returns the selected organization for a valid m
   const organization = await createOrganizationForUser({
     userId: user.user.id,
     name: "Current Org",
-    slug: "organizations-test-current-ok",
+    slug: `organizations-test-current-ok-${uniqueSuffix()}`,
     role: Role.MANAGER
   });
 
@@ -264,7 +243,7 @@ test("GET /organizations/current returns the selected organization for a valid m
     .expect(200);
 
   assert.equal(response.body.id, organization.id);
-  assert.equal(response.body.slug, "organizations-test-current-ok");
+  assert.equal(response.body.slug, organization.slug);
   assert.equal(response.body.role, Role.MANAGER);
 });
 
@@ -276,16 +255,20 @@ test("PATCH /organizations/current updates name and slug for OWNER and ADMIN", a
     `patch-admin.${Date.now()}@organizations.test`
   );
 
+  const ownerSlug = `organizations-test-patch-owner-${uniqueSuffix()}`;
+  const adminSlug = `organizations-test-patch-admin-${uniqueSuffix()}`;
+  const updatedOwnerSlugSuffix = uniqueSuffix();
+
   const ownerOrganization = await createOrganizationForUser({
     userId: ownerUser.user.id,
     name: "Owner Org",
-    slug: "organizations-test-patch-owner",
+    slug: ownerSlug,
     role: Role.OWNER
   });
   const adminOrganization = await createOrganizationForUser({
     userId: adminUser.user.id,
     name: "Admin Org",
-    slug: "organizations-test-patch-admin",
+    slug: adminSlug,
     role: Role.ADMIN
   });
 
@@ -295,7 +278,7 @@ test("PATCH /organizations/current updates name and slug for OWNER and ADMIN", a
     .set("X-Organization-Id", ownerOrganization.id)
     .send({
       name: "Owner Org Updated",
-      slug: "Organizations Test Owner Org Updated"
+      slug: `Organizations Test Owner Org Updated ${updatedOwnerSlugSuffix}`
     })
     .expect(200);
 
@@ -311,10 +294,10 @@ test("PATCH /organizations/current updates name and slug for OWNER and ADMIN", a
   assert.equal(ownerResponse.body.name, "Owner Org Updated");
   assert.equal(
     ownerResponse.body.slug,
-    "organizations-test-owner-org-updated"
+    `organizations-test-owner-org-updated-${updatedOwnerSlugSuffix}`
   );
   assert.equal(adminResponse.body.name, "Admin Org Updated");
-  assert.equal(adminResponse.body.slug, "organizations-test-patch-admin");
+  assert.equal(adminResponse.body.slug, adminSlug);
 });
 
 test("PATCH /organizations/current returns 403 for roles without organization update permission", async () => {
@@ -324,7 +307,7 @@ test("PATCH /organizations/current returns 403 for roles without organization up
   const organization = await createOrganizationForUser({
     userId: user.user.id,
     name: "Forbidden Org",
-    slug: "organizations-test-patch-forbidden",
+    slug: `organizations-test-patch-forbidden-${uniqueSuffix()}`,
     role: Role.STUDENT
   });
 
@@ -351,10 +334,12 @@ test("GET /organizations/current/members returns only memberships from the curre
     `members-outsider.${Date.now()}@organizations.test`
   );
 
+  const currentOrganizationSlug = `organizations-test-members-current-${uniqueSuffix()}`;
+
   const currentOrganization = await createOrganizationForUser({
     userId: owner.user.id,
     name: "Members Org",
-    slug: "organizations-test-members-current",
+    slug: currentOrganizationSlug,
     role: Role.OWNER
   });
 
@@ -369,7 +354,7 @@ test("GET /organizations/current/members returns only memberships from the curre
   await createOrganizationForUser({
     userId: outsider.user.id,
     name: "Other Org",
-    slug: "organizations-test-members-other",
+    slug: `organizations-test-members-other-${uniqueSuffix()}`,
     role: Role.OWNER
   });
 

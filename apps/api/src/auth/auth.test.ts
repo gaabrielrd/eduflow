@@ -1,4 +1,4 @@
-import test, { after, before, beforeEach } from "node:test";
+import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
 
 import { Test } from "@nestjs/testing";
@@ -21,27 +21,12 @@ process.env.S3_SECRET_KEY ??= "eduflow123";
 
 let app: INestApplication;
 let prisma: PrismaService;
-
 async function createAuthUserPayload(email: string) {
   return {
     name: "Gabriel Roda",
     email,
     password: "strong-password"
   };
-}
-
-async function cleanupAuthFixtures() {
-  await prisma.$executeRaw`
-    DELETE FROM "AuthSession"
-    WHERE "userId" IN (
-      SELECT "id" FROM "User" WHERE "email" LIKE ${"%@auth.test"}
-    )
-  `;
-
-  await prisma.$executeRaw`
-    DELETE FROM "User"
-    WHERE "email" LIKE ${"%@auth.test"}
-  `;
 }
 
 before(async () => {
@@ -59,12 +44,7 @@ before(async () => {
   prisma = app.get(PrismaService);
 });
 
-beforeEach(async () => {
-  await cleanupAuthFixtures();
-});
-
 after(async () => {
-  await cleanupAuthFixtures();
   await app.close();
 });
 

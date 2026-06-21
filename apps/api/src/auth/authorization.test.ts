@@ -1,5 +1,6 @@
-import test, { after, before, beforeEach } from "node:test";
+import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 
 import {
   Controller,
@@ -78,6 +79,10 @@ class AuthorizationTestModule {}
 let app: INestApplication;
 let prisma: PrismaService;
 
+function uniqueSuffix() {
+  return randomUUID().slice(0, 8);
+}
+
 async function createUserAndToken(email: string) {
   const response = await request(app.getHttpServer())
     .post("/auth/register")
@@ -121,36 +126,6 @@ async function createOrganizationForUser(params: {
 
   return organization;
 }
-
-async function cleanupAuthorizationFixtures() {
-  await prisma.$executeRaw`
-    DELETE FROM "Membership"
-    WHERE "userId" IN (
-      SELECT "id" FROM "User" WHERE "email" LIKE ${"%@authorization.test"}
-    )
-    OR "organizationId" IN (
-      SELECT "id" FROM "Organization" WHERE "slug" LIKE ${"%authorization-test%"}
-    )
-  `;
-
-  await prisma.$executeRaw`
-    DELETE FROM "Organization"
-    WHERE "slug" LIKE ${"%authorization-test%"}
-  `;
-
-  await prisma.$executeRaw`
-    DELETE FROM "AuthSession"
-    WHERE "userId" IN (
-      SELECT "id" FROM "User" WHERE "email" LIKE ${"%@authorization.test"}
-    )
-  `;
-
-  await prisma.$executeRaw`
-    DELETE FROM "User"
-    WHERE "email" LIKE ${"%@authorization.test"}
-  `;
-}
-
 before(async () => {
   const { AppModule } = (await import("../app.module.js")) as {
     AppModule: typeof AppModuleType;
@@ -166,12 +141,7 @@ before(async () => {
   prisma = app.get(PrismaService);
 });
 
-beforeEach(async () => {
-  await cleanupAuthorizationFixtures();
-});
-
 after(async () => {
-  await cleanupAuthorizationFixtures();
   await app.close();
 });
 
@@ -195,7 +165,7 @@ test("OrganizationContextGuard resolves membership from X-Organization-Id", asyn
   const organization = await createOrganizationForUser({
     userId: user.user.id,
     name: "Authorization Context",
-    slug: "authorization-test-context",
+    slug: `authorization-test-context-${uniqueSuffix()}`,
     role: Role.MANAGER
   });
 
@@ -217,7 +187,7 @@ test("RolesGuard allows access for an allowed role and blocks access without con
   const organization = await createOrganizationForUser({
     userId: owner.user.id,
     name: "Authorization Owner",
-    slug: "authorization-test-owner",
+    slug: `authorization-test-owner-${uniqueSuffix()}`,
     role: Role.OWNER
   });
 
@@ -248,7 +218,7 @@ test("RolesGuard blocks access for an insufficient role", async () => {
   const organization = await createOrganizationForUser({
     userId: student.user.id,
     name: "Authorization Student",
-    slug: "authorization-test-student",
+    slug: `authorization-test-student-${uniqueSuffix()}`,
     role: Role.STUDENT
   });
 
