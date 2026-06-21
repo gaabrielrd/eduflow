@@ -1,0 +1,21 @@
+{
+  "name": "eduflow",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.8.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm -r --if-present dev",
+    "build": "pnpm -r --if-present build",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test"
+  },
+  "devDependencies": {
+    "@eduflow/eslint-config": "workspace:*",
+    "@eduflow/tsconfig": "workspace:*",
+    "typescript": "5.9.2"
+  }
+}

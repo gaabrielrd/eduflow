@@ -1,0 +1,21 @@
+{
+  "extends": "@eduflow/tsconfig/base.json",
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/web"
+    },
+    {
+      "path": "./apps/api"
+    },
+    {
+      "path": "./packages/config"
+    },
+    {
+      "path": "./packages/types"
+    },
+    {
+      "path": "./packages/ui"
+    }
+  ]
+}

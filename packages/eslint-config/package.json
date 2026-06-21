@@ -1,0 +1,13 @@
+{
+  "name": "@eduflow/eslint-config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./base": "./base.js"
+  },
+  "scripts": {
+    "lint": "node -e \"console.log('eslint config package ready')\"",
+    "test": "node -e \"console.log('test placeholder for @eduflow/eslint-config')\""
+  }
+}

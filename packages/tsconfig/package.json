@@ -1,0 +1,17 @@
+{
+  "name": "@eduflow/tsconfig",
+  "version": "0.1.0",
+  "private": true,
+  "files": [
+    "base.json",
+    "nextjs.json",
+    "node.json",
+    "package.tsconfig.json"
+  ],
+  "exports": {
+    "./base.json": "./base.json",
+    "./nextjs.json": "./nextjs.json",
+    "./node.json": "./node.json",
+    "./package.json": "./package.tsconfig.json"
+  }
+}

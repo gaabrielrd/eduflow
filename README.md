@@ -2,96 +2,51 @@
 
 Plataforma educacional modular para criacao, publicacao e acompanhamento de cursos digitais, com recursos de IA para acelerar a autoria de conteudo.
 
-## Visao
+## Monorepo base
 
-Construir o EduFlow como um produto demonstravel que evidencie capacidade senior em arquitetura de software, experiencia educacional, modelagem de dominio e execucao full stack.
+Este repositorio usa `pnpm` workspaces para separar aplicacoes, pacotes compartilhados e configuracoes reutilizaveis desde o inicio. A estrutura foi pensada para permitir o crescimento do EduFlow sem acoplamento excessivo entre frontend, backend, tipos e tooling.
 
-## Objetivo do MVP
+### Estrutura
 
-Entregar um MVP funcional e apresentavel que prove competencias em:
+- `apps/web`: placeholder da aplicacao web em Next.js/React
+- `apps/api`: placeholder da API em NestJS/Node
+- `packages/ui`: componentes e utilitarios visuais compartilhados
+- `packages/types`: tipos compartilhados do dominio e contratos internos
+- `packages/config`: constantes e helpers de configuracao compartilhaveis
+- `packages/eslint-config`: presets reutilizaveis de ESLint
+- `packages/tsconfig`: bases compartilhadas de TypeScript
+- `docs`: documentacao operacional e guias internos
 
-- arquitetura de produto educacional;
-- React/Next.js com TypeScript;
-- backend NestJS;
-- PostgreSQL e modelagem relacional;
-- multi-tenancy;
-- autenticacao e autorizacao;
-- editor de conteudo educacional;
-- publicacao e versionamento de cursos;
-- matricula, player e progresso;
-- quiz e avaliacao;
-- certificados;
-- relatorios;
-- IA aplicada a autoria;
-- acessibilidade;
-- documentacao tecnica.
+## Requisitos
 
-## Stack proposta
+- Node.js `>=22`
+- pnpm `11.8.0`
 
-### Frontend
+## Como instalar
 
-- Next.js
-- React
-- TypeScript
-- Tailwind CSS
-- TanStack Query
-- React Hook Form
-- Zod
-- Storybook
-- Vitest
-- Testing Library
-- Playwright
+```bash
+pnpm install
+```
 
-### Backend
+## Scripts raiz
 
-- NestJS
-- TypeScript
-- PostgreSQL
-- Prisma
-- Redis
-- BullMQ
-- JWT/Auth
-- S3-compatible storage, preferencialmente MinIO local no desenvolvimento
+```bash
+pnpm dev
+pnpm build
+pnpm lint
+pnpm typecheck
+pnpm test
+```
 
-### IA
+Os scripts da raiz usam `pnpm -r --if-present` para permitir bootstrap incremental sem exigir que todos os workspaces tenham a mesma maturidade desde o primeiro dia.
 
-- LLM API
-- Structured outputs
-- Jobs assincronos
-- Geracao de resumo
-- Geracao de objetivos de aprendizagem
-- Geracao de perguntas de quiz
+## Convencoes internas
 
-## Escopo P0
+- Pacotes internos usam o namespace `@eduflow/*`
+- Configuracoes TypeScript compartilhadas vivem em `@eduflow/tsconfig`
+- Regras de lint compartilhadas vivem em `@eduflow/eslint-config`
+- A documentacao geral do monorepo comeca em [docs/overview.md](/E:/OneDrive/Dev/eduflow/docs/overview.md)
 
-- Autenticacao
-- Organizacoes e memberships
-- Papeis e permissoes
-- CRUD de cursos
-- Modulos e aulas
-- Editor simples de aula
-- Upload e biblioteca de midia
-- Publicacao com `CourseVersion`
-- Matricula
-- Player do aluno
-- Progresso
-- Quiz
-- Certificados
-- Relatorios basicos
-- IA para autoria
-- Acessibilidade nos fluxos principais
-- Deploy de demo
-- Documentacao tecnica
-
-## Decisao arquitetural central
-
-Separar `Course` de `CourseVersion`.
-
-- `Course`: entidade editavel, usada na autoria.
-- `CourseVersion`: snapshot publicado e imutavel, usado por matriculas e player.
-
-Essa separacao evita que alteracoes em um curso impactem alunos ja matriculados em uma versao publicada.
-
-## Planejamento
+## Produto
 
 O roadmap detalhado do MVP esta em [roadmap.md](/E:/OneDrive/Dev/eduflow/roadmap.md).
