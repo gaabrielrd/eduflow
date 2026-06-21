@@ -11,7 +11,22 @@
     "build": "pnpm -r --if-present build",
     "lint": "pnpm -r --if-present lint",
     "typecheck": "pnpm -r --if-present typecheck",
-    "test": "pnpm -r --if-present test"
+    "test": "pnpm -r --if-present test",
+    "api:dev": "pnpm --filter @eduflow/api dev",
+    "api:build": "pnpm --filter @eduflow/api build",
+    "api:start": "pnpm --filter @eduflow/api start",
+    "api:lint": "pnpm --filter @eduflow/api lint",
+    "api:typecheck": "pnpm --filter @eduflow/api typecheck",
+    "api:prisma:generate": "pnpm --filter @eduflow/api prisma:generate",
+    "api:prisma:migrate:dev": "pnpm --filter @eduflow/api prisma:migrate:dev",
+    "api:prisma:studio": "pnpm --filter @eduflow/api prisma:studio",
+    "api:test": "pnpm --filter @eduflow/api test",
+    "web:dev": "pnpm --filter @eduflow/web dev",
+    "web:build": "pnpm --filter @eduflow/web build",
+    "web:start": "pnpm --filter @eduflow/web start",
+    "web:lint": "pnpm --filter @eduflow/web lint",
+    "web:typecheck": "pnpm --filter @eduflow/web typecheck",
+    "web:test": "pnpm --filter @eduflow/web test"
   },
   "devDependencies": {
     "@eduflow/eslint-config": "workspace:*",
@@ -20,6 +35,7 @@
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.9",
     "globals": "^17.6.0",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "typescript-eslint": "^8.61.1"
   }
 }

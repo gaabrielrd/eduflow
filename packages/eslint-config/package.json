@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     "./base": "./base.js",
-    "./next-web": "./next-web.js"
+    "./next-web": "./next-web.js",
+    "./node-api": "./node-api.js"
   },
   "scripts": {
     "lint": "node -e \"console.log('eslint config package ready')\"",

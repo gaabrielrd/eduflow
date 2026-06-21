@@ -46,6 +46,7 @@ Os scripts da raiz usam `pnpm -r --if-present` para permitir bootstrap increment
 - Configuracoes TypeScript compartilhadas vivem em `@eduflow/tsconfig`
 - Regras de lint compartilhadas vivem em `@eduflow/eslint-config`
 - Comandos canonicos do web usam `pnpm --filter @eduflow/web <script>`
+- Comandos canonicos da API usam `pnpm --filter @eduflow/api <script>`
 - A documentacao geral do monorepo comeca em [docs/overview.md](/E:/OneDrive/Dev/eduflow/docs/overview.md)
 
 ## Produto

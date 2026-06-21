@@ -1,3 +1,3 @@
 # @eduflow/api
 
-Workspace placeholder da API. Esta pasta existe para receber o bootstrap real de NestJS mantendo o monorepo organizado desde a fundacao tecnica.
+API backend do EduFlow baseada em NestJS, Prisma e validacao global. Esta base prepara configuracao de ambiente, healthcheck, acesso ao banco e padrao inicial de erros para a evolucao modular do produto.
