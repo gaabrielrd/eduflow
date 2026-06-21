@@ -9,6 +9,6 @@ export default [
     }
   },
   {
-    ignores: ["dist/**"]
+    ignores: [".next/**", "dist/**", "vendor/**"]
   }
 ];

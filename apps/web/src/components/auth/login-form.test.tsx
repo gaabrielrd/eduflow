@@ -7,7 +7,7 @@ import {
   render,
   screen,
   waitFor
-} from "@/test/testing-library-react";
+} from "@testing-library/react";
 
 function deferredPromise() {
   let resolvePromise: () => void = () => undefined;

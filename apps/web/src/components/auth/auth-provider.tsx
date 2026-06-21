@@ -3,7 +3,6 @@
 import {
   createContext,
   useEffect,
-  useEffectEvent,
   useState,
   type ReactNode
 } from "react";
@@ -50,29 +49,40 @@ export function AuthProvider({ children, initialSession }: AuthProviderProps) {
   const [session, setSession] = useState<SessionData | null>(initialSession);
   const [isLoading, setIsLoading] = useState(initialSession === null);
 
-  const syncSession = useEffectEvent(async () => {
-    setIsLoading(true);
-
-    try {
-      const nextSession = await getSession();
-      setSession(nextSession);
-
-      return nextSession;
-    } catch {
-      setSession(null);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  });
-
   useEffect(() => {
     if (initialSession) {
       return;
     }
 
-    void syncSession();
-  }, [initialSession, syncSession]);
+    let isMounted = true;
+
+    void getSession()
+      .then((nextSession) => {
+        if (!isMounted) {
+          return;
+        }
+
+        setSession(nextSession);
+      })
+      .catch(() => {
+        if (!isMounted) {
+          return;
+        }
+
+        setSession(null);
+      })
+      .finally(() => {
+        if (!isMounted) {
+          return;
+        }
+
+        setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [initialSession]);
 
   async function login(payload: LoginPayload) {
     const nextSession = await loginUser(payload);
@@ -97,7 +107,19 @@ export function AuthProvider({ children, initialSession }: AuthProviderProps) {
   }
 
   async function refreshSession() {
-    return syncSession();
+    setIsLoading(true);
+
+    try {
+      const nextSession = await getSession();
+      setSession(nextSession);
+
+      return nextSession;
+    } catch {
+      setSession(null);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   async function handleCreateOrganization(payload: CreateOrganizationPayload) {

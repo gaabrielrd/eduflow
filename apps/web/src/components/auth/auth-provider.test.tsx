@@ -9,7 +9,7 @@ import {
   render,
   screen,
   waitFor
-} from "@/test/testing-library-react";
+} from "@testing-library/react";
 
 vi.mock("@/lib/auth/auth-service", () => ({
   createOrganization: vi.fn(),
