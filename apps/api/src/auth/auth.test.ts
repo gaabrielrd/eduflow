@@ -7,7 +7,6 @@ import request from "supertest";
 
 import type { AppModule as AppModuleType } from "../app.module.js";
 import { PrismaService } from "../database/prisma.service.js";
-import { PrismaClient } from "../generated/prisma/client.js";
 
 process.env.NODE_ENV = "test";
 process.env.PORT = "4001";
@@ -22,7 +21,6 @@ process.env.S3_SECRET_KEY ??= "eduflow123";
 
 let app: INestApplication;
 let prisma: PrismaService;
-type AuthSessionDelegate = InstanceType<typeof PrismaClient>["authSession"];
 
 async function createAuthUserPayload(email: string) {
   return {
