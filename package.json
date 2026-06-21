@@ -16,6 +16,10 @@
   "devDependencies": {
     "@eduflow/eslint-config": "workspace:*",
     "@eduflow/tsconfig": "workspace:*",
+    "@eslint/eslintrc": "^3.3.5",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.9",
+    "globals": "^17.6.0",
     "typescript": "5.9.2"
   }
 }

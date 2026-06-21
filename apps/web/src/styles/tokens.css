@@ -1,0 +1,7 @@
+:root {
+  --font-sans:
+    "Inter", "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue",
+    sans-serif;
+  --color-canvas: #eef2ff;
+  --color-ink: #0f172a;
+}

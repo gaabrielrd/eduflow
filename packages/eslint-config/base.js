@@ -1,14 +1,17 @@
-const baseConfig = {
-  root: false,
-  env: {
-    es2022: true,
-    node: true
-  },
-  parserOptions: {
-    ecmaVersion: "latest",
-    sourceType: "module"
-  },
-  rules: {}
-};
+import globals from "globals";
+
+const baseConfig = [
+  {
+    files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        ...globals.node
+      }
+    },
+    rules: {}
+  }
+];
 
 export default baseConfig;

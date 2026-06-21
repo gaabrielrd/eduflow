@@ -1,3 +1,3 @@
 # @eduflow/web
 
-Workspace placeholder da aplicacao web. Esta pasta existe para ancorar o bootstrap real de Next.js sem misturar estrutura de produto com configuracoes compartilhadas.
+Aplicacao web do EduFlow baseada em Next.js App Router. Esta base prepara rotas publicas, shell da area autenticada futura, Tailwind CSS e aliases absolutos para evolucao incremental do produto.
