@@ -36,6 +36,9 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Prisma Generate
+        run pnpm run api:prisma:generate
+
       - name: Test
         run: pnpm test
 
