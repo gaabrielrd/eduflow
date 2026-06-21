@@ -1,11 +1,16 @@
 import type { ReactNode } from "react";
 
 import { AppShell } from "@/components/app-shell";
+import { RouteGuard } from "@/components/auth/route-guard";
 
 type AppLayoutProps = {
   children: ReactNode;
 };
 
 export default function AppLayout({ children }: AppLayoutProps) {
-  return <AppShell>{children}</AppShell>;
+  return (
+    <RouteGuard variant="session-only">
+      <AppShell>{children}</AppShell>
+    </RouteGuard>
+  );
 }

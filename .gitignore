@@ -2,11 +2,13 @@ node_modules/
 .pnpm-store/
 
 .next/
+apps/web/.next-build-check*/
 dist/
 coverage/
 .turbo/
 *.tsbuildinfo
 _tmp_*
+apps/web/vendor/
 
 .env
 .env.local

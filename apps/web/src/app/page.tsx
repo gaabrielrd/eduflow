@@ -33,10 +33,10 @@ export default function HomePage() {
               />
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button asChild>
-                  <Link href="/app">Abrir area do app</Link>
+                  <Link href="/register">Comecar cadastro</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href="/app/dashboard">Ver dashboard</Link>
+                  <Link href="/login">Fazer login</Link>
                 </Button>
                 <Button asChild variant="secondary">
                   <Link href="/status">Ver status</Link>
