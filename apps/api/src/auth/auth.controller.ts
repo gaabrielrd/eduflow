@@ -4,7 +4,7 @@ import { CurrentUser } from "./decorators/current-user.decorator.js";
 import { LoginDto } from "./dto/login.dto.js";
 import { RefreshTokenDto } from "./dto/refresh-token.dto.js";
 import { RegisterDto } from "./dto/register.dto.js";
-import { AccessTokenGuard } from "./guards/access-token.guard.js";
+import { JwtAuthGuard } from "./guards/jwt-auth.guard.js";
 import type { AuthenticatedUser } from "./types/authenticated-user.interface.js";
 import { AuthService } from "./auth.service.js";
 
@@ -32,7 +32,7 @@ export class AuthController {
     return this.authService.logout(dto.refreshToken);
   }
 
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(JwtAuthGuard)
   @Get("me")
   me(@CurrentUser() user: AuthenticatedUser) {
     return user;

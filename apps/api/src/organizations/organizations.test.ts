@@ -354,7 +354,7 @@ test("PATCH /organizations/current returns 403 for roles without organization up
     })
     .expect(403);
 
-  assert.equal(response.body.message, "Organization update is not allowed");
+  assert.equal(response.body.message, "Insufficient organization role");
 });
 
 test("GET /organizations/current/members returns only memberships from the current organization", async () => {

@@ -12,7 +12,7 @@ import type { AuthenticatedRequest } from "../types/authenticated-request.interf
 import type { AccessTokenPayload } from "../types/auth-token-payload.interface.js";
 
 @Injectable()
-export class AccessTokenGuard implements CanActivate {
+export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService

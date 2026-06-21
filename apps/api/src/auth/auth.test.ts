@@ -149,6 +149,27 @@ test("GET /auth/me returns the authenticated user for a valid access token", asy
   assert.equal(meResponse.body.name, "Gabriel Roda");
 });
 
+test("GET /auth/me returns 401 for missing or invalid access tokens", async () => {
+  const missingTokenResponse = await request(app.getHttpServer())
+    .get("/auth/me")
+    .expect(401);
+
+  assert.equal(
+    missingTokenResponse.body.message,
+    "Invalid authentication credentials"
+  );
+
+  const invalidTokenResponse = await request(app.getHttpServer())
+    .get("/auth/me")
+    .set("Authorization", "Bearer invalid-token")
+    .expect(401);
+
+  assert.equal(
+    invalidTokenResponse.body.message,
+    "Invalid authentication credentials"
+  );
+});
+
 test("POST /auth/refresh rotates tokens and POST /auth/logout invalidates the session", async () => {
   const email = `refresh.${Date.now()}@auth.test`;
   const registerResponse = await request(app.getHttpServer())

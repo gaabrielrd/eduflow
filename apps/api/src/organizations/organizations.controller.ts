@@ -1,17 +1,20 @@
 import { Body, Controller, Get, Patch, Post, UseGuards } from "@nestjs/common";
 
+import { CurrentOrganizationContext } from "../auth/decorators/current-organization-context.decorator.js";
 import { CurrentUser } from "../auth/decorators/current-user.decorator.js";
-import { AccessTokenGuard } from "../auth/guards/access-token.guard.js";
+import { Roles } from "../auth/decorators/roles.decorator.js";
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard.js";
+import { OrganizationContextGuard } from "../auth/guards/organization-context.guard.js";
+import { RolesGuard } from "../auth/guards/roles.guard.js";
 import type { AuthenticatedUser } from "../auth/types/authenticated-user.interface.js";
-import { CurrentOrganizationContext } from "./decorators/current-organization-context.decorator.js";
+import type { OrganizationContext } from "../auth/types/organization-context.interface.js";
+import { Role } from "../generated/prisma/enums.js";
 import { CreateOrganizationDto } from "./dto/create-organization.dto.js";
 import { UpdateCurrentOrganizationDto } from "./dto/update-current-organization.dto.js";
-import { OrganizationContextGuard } from "./guards/organization-context.guard.js";
 import { OrganizationsService } from "./organizations.service.js";
-import type { OrganizationContext } from "./types/organization-context.interface.js";
 
 @Controller("organizations")
-@UseGuards(AccessTokenGuard)
+@UseGuards(JwtAuthGuard)
 export class OrganizationsController {
   constructor(private readonly organizationsService: OrganizationsService) {}
 
@@ -37,7 +40,8 @@ export class OrganizationsController {
   }
 
   @Patch("current")
-  @UseGuards(OrganizationContextGuard)
+  @Roles(Role.OWNER, Role.ADMIN)
+  @UseGuards(OrganizationContextGuard, RolesGuard)
   updateCurrent(
     @CurrentOrganizationContext() context: OrganizationContext,
     @Body() dto: UpdateCurrentOrganizationDto

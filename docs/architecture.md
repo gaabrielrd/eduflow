@@ -40,6 +40,7 @@ O estado atual inclui:
 - filtro global de excecoes com `statusCode`, `message`, `error`, `path` e `timestamp`
 - `DatabaseModule` com `PrismaService`
 - `prisma/schema.prisma` inicial para PostgreSQL, ainda sem modelos de dominio
+- infraestrutura de autorizacao baseada em `JwtAuthGuard`, `CurrentUser`, `OrganizationContextGuard`, `Roles` e `RolesGuard`
 
 Para autenticacao local do MVP, a estrategia prevista e:
 
@@ -48,6 +49,14 @@ Para autenticacao local do MVP, a estrategia prevista e:
 - `refresh token` persistido por sessao em tabela propria
 - suporte a multiplas sessoes por usuario
 - `GET /auth/me` protegido por guard JWT
+
+Para autorizacao organizacional do MVP, a estrategia adotada e:
+
+- `JwtAuthGuard` valida `Bearer access token` e carrega o usuario atual
+- `CurrentUser` expõe o usuario autenticado nos controllers
+- `OrganizationContextGuard` resolve a organizacao atual via header `X-Organization-Id`
+- membership e `role` sempre sao validados no backend antes de liberar acesso organizacional
+- `RolesGuard` usa metadata declarada por `@Roles(...)` e consome o contexto organizacional ja resolvido, sem nova query de membership
 
 ## Packages
 
@@ -87,10 +96,8 @@ Os testes ainda sao comandos temporarios nos apps. A etapa existe desde ja para 
 
 Ainda nao existem:
 
-- autenticacao e autorizacao
 - modelos de dominio educacional
 - modelo `CourseVersion` no banco
-- multi-tenancy implementado
 - Redis, BullMQ e jobs assincronos
 - MinIO ou armazenamento S3-compatible
 - integracao real com LLM

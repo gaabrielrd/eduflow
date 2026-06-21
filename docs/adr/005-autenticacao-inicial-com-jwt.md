@@ -12,9 +12,9 @@ Como a web e a API estao separadas, a estrategia inicial precisa funcionar bem e
 
 ## Decisao
 
-Usar JWT como estrategia inicial de autenticacao da API. A implementacao futura deve definir access tokens, refresh tokens, rotacao, expiracao, armazenamento seguro no cliente e guards de autorizacao por papel e organizacao.
+Usar JWT como estrategia inicial de autenticacao da API. A implementacao deve usar `JwtAuthGuard` para validar access tokens, `CurrentUser` para expor o usuario autenticado, `OrganizationContextGuard` para resolver o tenant atual via header `X-Organization-Id` e `RolesGuard` para aplicar RBAC por membership com papéis declarados explicitamente nas rotas.
 
-Esta ADR nao define ainda o desenho final de sessoes, cookies ou refresh token. Ela registra apenas a direcao inicial para orientar as proximas sprints.
+Esta ADR nao define ainda o desenho final de cookies ou de troca de contexto por slug em rota. Para o MVP, o contexto organizacional oficial da API sera enviado por header e sempre revalidado no backend.
 
 ## Consequencias positivas
 

@@ -5,8 +5,8 @@ import {
   type ExecutionContext
 } from "@nestjs/common";
 
-import type { AuthenticatedRequest } from "../../auth/types/authenticated-request.interface.js";
 import { PrismaService } from "../../database/prisma.service.js";
+import type { AuthenticatedRequest } from "../types/authenticated-request.interface.js";
 
 const ORGANIZATION_ID_HEADER = "x-organization-id";
 

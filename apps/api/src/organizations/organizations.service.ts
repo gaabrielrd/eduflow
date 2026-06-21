@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Injectable
 } from "@nestjs/common";
 
@@ -11,7 +10,7 @@ import { Prisma } from "../generated/prisma/client.js";
 import { Role } from "../generated/prisma/enums.js";
 import type { CreateOrganizationDto } from "./dto/create-organization.dto.js";
 import type { UpdateCurrentOrganizationDto } from "./dto/update-current-organization.dto.js";
-import type { OrganizationContext } from "./types/organization-context.interface.js";
+import type { OrganizationContext } from "../auth/types/organization-context.interface.js";
 
 @Injectable()
 export class OrganizationsService {
@@ -107,8 +106,6 @@ export class OrganizationsService {
     context: OrganizationContext,
     dto: UpdateCurrentOrganizationDto
   ) {
-    this.assertOrganizationCanBeManaged(context.role);
-
     const data: {
       name?: string;
       slug?: string;
@@ -186,12 +183,6 @@ export class OrganizationsService {
     }
 
     return normalized;
-  }
-
-  private assertOrganizationCanBeManaged(role: Role) {
-    if (role !== Role.OWNER && role !== Role.ADMIN) {
-      throw new ForbiddenException("Organization update is not allowed");
-    }
   }
 
   private handleKnownPersistenceErrors(error: unknown): never {
