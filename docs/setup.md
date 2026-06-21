@@ -52,10 +52,12 @@ Copie os valores de referencia de `.env.example` para o ambiente local usado pel
 - `PORT`
 - `DATABASE_URL`
 - `REDIS_URL`
+- `JWT_SECRET`
+- `JWT_ACCESS_TOKEN_EXPIRES_IN`
+- `JWT_REFRESH_TOKEN_EXPIRES_IN`
 - `S3_ENDPOINT`
 - `S3_ACCESS_KEY`
 - `S3_SECRET_KEY`
-- `JWT_SECRET`
 - `LLM_API_KEY`
 
 Valores esperados para a infraestrutura local:
@@ -63,6 +65,9 @@ Valores esperados para a infraestrutura local:
 ```bash
 DATABASE_URL=postgresql://eduflow:eduflow@localhost:5432/eduflow
 REDIS_URL=redis://localhost:6379
+JWT_SECRET=change-me
+JWT_ACCESS_TOKEN_EXPIRES_IN=1h
+JWT_REFRESH_TOKEN_EXPIRES_IN=30d
 S3_ENDPOINT=http://localhost:9000
 S3_ACCESS_KEY=eduflow
 S3_SECRET_KEY=eduflow123
@@ -137,6 +142,8 @@ pnpm --filter @eduflow/api dev
 ```
 
 Com a infraestrutura Docker ativa e o `.env` preenchido com o `DATABASE_URL` acima, a API fica alinhada com o PostgreSQL local sem ajustes extras de formato.
+
+Para a sprint inicial de autenticacao, a API usa JWT com transporte `Bearer` em JSON. O default local previsto e `1h` para access token e `30d` para refresh token.
 
 ## Prisma
 

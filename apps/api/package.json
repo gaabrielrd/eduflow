@@ -13,15 +13,17 @@
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
     "prisma:studio": "prisma studio",
-    "test": "node -e \"console.log('test placeholder for @eduflow/api')\""
+    "test": "pnpm build && node --test dist/src/**/*.test.js"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.27",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.1.27",
+    "@nestjs/jwt": "^11.0.2",
     "@nestjs/platform-express": "^11.1.27",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "bcryptjs": "^3.0.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "pg": "^8.22.0",
@@ -31,10 +33,14 @@
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.23",
+    "@nestjs/testing": "^11.1.27",
     "@types/express": "^5.0.6",
     "@types/node": "^26.0.0",
+    "@types/supertest": "^7.2.0",
     "prisma": "^7.8.0",
+    "supertest": "^7.2.2",
     "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0"
+    "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.22.4"
   }
 }

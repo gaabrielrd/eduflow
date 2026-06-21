@@ -10,6 +10,9 @@ function parseEnv() {
     PORT: process.env.PORT,
     DATABASE_URL: process.env.DATABASE_URL,
     REDIS_URL: process.env.REDIS_URL,
+    JWT_SECRET: process.env.JWT_SECRET,
+    JWT_ACCESS_TOKEN_EXPIRES_IN: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
+    JWT_REFRESH_TOKEN_EXPIRES_IN: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN,
     S3_ENDPOINT: process.env.S3_ENDPOINT,
     S3_ACCESS_KEY: process.env.S3_ACCESS_KEY,
     S3_SECRET_KEY: process.env.S3_SECRET_KEY
@@ -26,6 +29,20 @@ export function getDatabaseUrl() {
 
 export function getRedisUrl() {
   return parseEnv().REDIS_URL;
+}
+
+export function getJwtConfig() {
+  const {
+    JWT_ACCESS_TOKEN_EXPIRES_IN,
+    JWT_REFRESH_TOKEN_EXPIRES_IN,
+    JWT_SECRET
+  } = parseEnv();
+
+  return {
+    secret: JWT_SECRET,
+    accessTokenExpiresIn: JWT_ACCESS_TOKEN_EXPIRES_IN,
+    refreshTokenExpiresIn: JWT_REFRESH_TOKEN_EXPIRES_IN
+  };
 }
 
 export function getS3Config() {

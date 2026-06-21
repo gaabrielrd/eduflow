@@ -1,0 +1,2 @@
+- O projeto utiliza componentes do shadcn, disponíveis em https://ui.shadcn.com/docs/components
+- Instruções para instalação de componentes e configuração estão disponíveis em https://ui.shadcn.com/docs/installation/next

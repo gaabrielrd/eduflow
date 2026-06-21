@@ -22,6 +22,7 @@ model User {
   passwordHash String
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
+  authSessions AuthSession[]
   memberships  Membership[]
 }
 
@@ -64,4 +65,18 @@ model Invitation {
 
   @@index([organizationId])
   @@index([organizationId, email])
+}
+
+model AuthSession {
+  id               String   @id @default(cuid())
+  userId           String
+  refreshTokenHash String
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId])
+  @@index([revokedAt])
 }

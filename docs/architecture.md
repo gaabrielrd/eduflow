@@ -41,6 +41,14 @@ O estado atual inclui:
 - `DatabaseModule` com `PrismaService`
 - `prisma/schema.prisma` inicial para PostgreSQL, ainda sem modelos de dominio
 
+Para autenticacao local do MVP, a estrategia prevista e:
+
+- JWT com `access token` e `refresh token`
+- transporte via `Bearer` tokens em JSON
+- `refresh token` persistido por sessao em tabela propria
+- suporte a multiplas sessoes por usuario
+- `GET /auth/me` protegido por guard JWT
+
 ## Packages
 
 - `packages/ui`: ponto de partida para componentes reutilizaveis.
