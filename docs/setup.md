@@ -120,6 +120,17 @@ pnpm api:typecheck
 pnpm api:test
 ```
 
+Para os testes de integracao da API, garanta antes:
+
+```bash
+docker compose up -d
+pnpm api:prisma:generate
+pnpm api:prisma:migrate:deploy
+pnpm api:test
+```
+
+A suite cobre fluxos criticos de autenticacao, organizacoes, autorizacao e isolamento multi-tenant usando PostgreSQL real com Prisma. Os testes limpam explicitamente as tabelas de `authSession`, `membership`, `invitation`, `organization` e `user` entre os casos para evitar dependencia de dados manuais e interferencia entre execucoes.
+
 Com a API ativa, o endpoint inicial e:
 
 ```bash

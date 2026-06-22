@@ -1,99 +1,40 @@
-import test, { after, before } from "node:test";
+import test, { after, before, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
 
-import { Test } from "@nestjs/testing";
 import type { INestApplication } from "@nestjs/common";
 import request from "supertest";
 
-import type { AppModule as AppModuleType } from "../app.module.js";
 import { PrismaService } from "../database/prisma.service.js";
 import { Role } from "../generated/prisma/enums.js";
-
-process.env.NODE_ENV = "test";
-process.env.PORT = "4001";
-process.env.DATABASE_URL ??= "postgresql://eduflow:eduflow@localhost:5432/eduflow";
-process.env.REDIS_URL ??= "redis://localhost:6379";
-process.env.JWT_SECRET ??= "test-secret";
-process.env.JWT_ACCESS_TOKEN_EXPIRES_IN ??= "1h";
-process.env.JWT_REFRESH_TOKEN_EXPIRES_IN ??= "30d";
-process.env.S3_ENDPOINT ??= "http://localhost:9000";
-process.env.S3_ACCESS_KEY ??= "eduflow";
-process.env.S3_SECRET_KEY ??= "eduflow123";
+import {
+  bootstrapTestApp,
+  closeTestApp,
+  createOrganizationForUser,
+  createUserAndToken,
+  resetDatabase,
+  uniqueSuffix
+} from "../testing/test-helpers.js";
 
 let app: INestApplication;
 let prisma: PrismaService;
 
-function uniqueSuffix() {
-  return randomUUID().slice(0, 8);
-}
-
-async function createUserAndToken(email: string) {
-  const response = await request(app.getHttpServer())
-    .post("/auth/register")
-    .send({
-      name: `User ${email}`,
-      email,
-      password: "strong-password"
-    })
-    .expect(201);
-
-  return {
-    user: response.body.user as { id: string; email: string; name: string },
-    accessToken: response.body.accessToken as string
-  };
-}
-
-async function createOrganizationForUser(params: {
-  userId: string;
-  name: string;
-  slug: string;
-  role?: Role;
-}) {
-  const organization = await prisma.organization.create({
-    data: {
-      name: params.name,
-      slug: params.slug
-    },
-    select: {
-      id: true,
-      name: true,
-      slug: true
-    }
-  });
-
-  await prisma.membership.create({
-    data: {
-      userId: params.userId,
-      organizationId: organization.id,
-      role: params.role ?? Role.OWNER
-    }
-  });
-
-  return organization;
-}
 before(async () => {
-  const { AppModule } = (await import("../app.module.js")) as {
-    AppModule: typeof AppModuleType;
-  };
+  const testContext = await bootstrapTestApp();
+  app = testContext.app;
+  prisma = testContext.prisma;
+});
 
-  const moduleRef = await Test.createTestingModule({
-    imports: [AppModule]
-  }).compile();
-
-  app = moduleRef.createNestApplication();
-  await app.init();
-
-  prisma = app.get(PrismaService);
+beforeEach(async () => {
+  await resetDatabase(prisma);
 });
 
 after(async () => {
-  await app.close();
+  await closeTestApp(app);
 });
 
 test("POST /organizations creates an organization, normalizes slug and assigns OWNER membership", async () => {
   const email = `create.${Date.now()}@organizations.test`;
-  const { user, accessToken } = await createUserAndToken(email);
+  const { user, accessToken } = await createUserAndToken(app, email);
   const slugSuffix = uniqueSuffix();
 
   const response = await request(app.getHttpServer())
@@ -127,9 +68,11 @@ test("POST /organizations creates an organization, normalizes slug and assigns O
 
 test("POST /organizations rejects duplicated slug", async () => {
   const firstUser = await createUserAndToken(
+    app,
     `dup-a.${Date.now()}@organizations.test`
   );
   const secondUser = await createUserAndToken(
+    app,
     `dup-b.${Date.now()}@organizations.test`
   );
   const slugSuffix = uniqueSuffix();
@@ -158,9 +101,11 @@ test("POST /organizations rejects duplicated slug", async () => {
 
 test("GET /organizations lists only organizations where the user has membership", async () => {
   const primaryUser = await createUserAndToken(
+    app,
     `list-a.${Date.now()}@organizations.test`
   );
   const secondaryUser = await createUserAndToken(
+    app,
     `list-b.${Date.now()}@organizations.test`
   );
 
@@ -168,12 +113,14 @@ test("GET /organizations lists only organizations where the user has membership"
   const secondarySlug = `organizations-test-list-b-${uniqueSuffix()}`;
 
   await createOrganizationForUser({
+    prisma,
     userId: primaryUser.user.id,
     name: "List A",
     slug: primarySlug,
     role: Role.ADMIN
   });
   await createOrganizationForUser({
+    prisma,
     userId: secondaryUser.user.id,
     name: "List B",
     slug: secondarySlug
@@ -191,6 +138,7 @@ test("GET /organizations lists only organizations where the user has membership"
 
 test("GET /organizations/current returns 403 without X-Organization-Id", async () => {
   const { accessToken } = await createUserAndToken(
+    app,
     `current-missing.${Date.now()}@organizations.test`
   );
 
@@ -204,13 +152,16 @@ test("GET /organizations/current returns 403 without X-Organization-Id", async (
 
 test("GET /organizations/current returns 403 when the user has no membership in the selected organization", async () => {
   const firstUser = await createUserAndToken(
+    app,
     `current-a.${Date.now()}@organizations.test`
   );
   const secondUser = await createUserAndToken(
+    app,
     `current-b.${Date.now()}@organizations.test`
   );
 
   const foreignOrganization = await createOrganizationForUser({
+    prisma,
     userId: secondUser.user.id,
     name: "Foreign Org",
     slug: `organizations-test-foreign-${uniqueSuffix()}`
@@ -227,9 +178,11 @@ test("GET /organizations/current returns 403 when the user has no membership in 
 
 test("GET /organizations/current returns the selected organization for a valid membership", async () => {
   const user = await createUserAndToken(
+    app,
     `current-ok.${Date.now()}@organizations.test`
   );
   const organization = await createOrganizationForUser({
+    prisma,
     userId: user.user.id,
     name: "Current Org",
     slug: `organizations-test-current-ok-${uniqueSuffix()}`,
@@ -249,9 +202,11 @@ test("GET /organizations/current returns the selected organization for a valid m
 
 test("PATCH /organizations/current updates name and slug for OWNER and ADMIN", async () => {
   const ownerUser = await createUserAndToken(
+    app,
     `patch-owner.${Date.now()}@organizations.test`
   );
   const adminUser = await createUserAndToken(
+    app,
     `patch-admin.${Date.now()}@organizations.test`
   );
 
@@ -260,12 +215,14 @@ test("PATCH /organizations/current updates name and slug for OWNER and ADMIN", a
   const updatedOwnerSlugSuffix = uniqueSuffix();
 
   const ownerOrganization = await createOrganizationForUser({
+    prisma,
     userId: ownerUser.user.id,
     name: "Owner Org",
     slug: ownerSlug,
     role: Role.OWNER
   });
   const adminOrganization = await createOrganizationForUser({
+    prisma,
     userId: adminUser.user.id,
     name: "Admin Org",
     slug: adminSlug,
@@ -302,9 +259,11 @@ test("PATCH /organizations/current updates name and slug for OWNER and ADMIN", a
 
 test("PATCH /organizations/current returns 403 for roles without organization update permission", async () => {
   const user = await createUserAndToken(
+    app,
     `patch-forbidden.${Date.now()}@organizations.test`
   );
   const organization = await createOrganizationForUser({
+    prisma,
     userId: user.user.id,
     name: "Forbidden Org",
     slug: `organizations-test-patch-forbidden-${uniqueSuffix()}`,
@@ -325,18 +284,22 @@ test("PATCH /organizations/current returns 403 for roles without organization up
 
 test("GET /organizations/current/members returns only memberships from the current organization", async () => {
   const owner = await createUserAndToken(
+    app,
     `members-owner.${Date.now()}@organizations.test`
   );
   const teammate = await createUserAndToken(
+    app,
     `members-team.${Date.now()}@organizations.test`
   );
   const outsider = await createUserAndToken(
+    app,
     `members-outsider.${Date.now()}@organizations.test`
   );
 
   const currentOrganizationSlug = `organizations-test-members-current-${uniqueSuffix()}`;
 
   const currentOrganization = await createOrganizationForUser({
+    prisma,
     userId: owner.user.id,
     name: "Members Org",
     slug: currentOrganizationSlug,
@@ -352,6 +315,7 @@ test("GET /organizations/current/members returns only memberships from the curre
   });
 
   await createOrganizationForUser({
+    prisma,
     userId: outsider.user.id,
     name: "Other Org",
     slug: `organizations-test-members-other-${uniqueSuffix()}`,
@@ -366,9 +330,9 @@ test("GET /organizations/current/members returns only memberships from the curre
 
   assert.equal(response.body.length, 2);
   assert.deepEqual(
-    response.body.map(
-      (member: { user: { email: string }; role: Role }) => member.user.email
-    ).sort(),
+    response.body
+      .map((member: { user: { email: string }; role: Role }) => member.user.email)
+      .sort(),
     [owner.user.email, teammate.user.email].sort()
   );
   assert.equal(
