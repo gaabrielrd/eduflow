@@ -37,3 +37,19 @@ export const LessonContentType = {
 } as const
 
 export type LessonContentType = (typeof LessonContentType)[keyof typeof LessonContentType]
+
+
+export const CourseModuleStatus = {
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type CourseModuleStatus = (typeof CourseModuleStatus)[keyof typeof CourseModuleStatus]
+
+
+export const LessonStatus = {
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type LessonStatus = (typeof LessonStatus)[keyof typeof LessonStatus]

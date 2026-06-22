@@ -28,6 +28,16 @@ enum LessonContentType {
   FILE
 }
 
+enum CourseModuleStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum LessonStatus {
+  ACTIVE
+  ARCHIVED
+}
+
 model User {
   id             String       @id @default(cuid())
   name           String
@@ -116,14 +126,15 @@ model Course {
 }
 
 model CourseModule {
-  id          String    @id @default(cuid())
+  id          String             @id @default(cuid())
   courseId    String
   title       String
   description String?
   position    Int
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  course      Course    @relation(fields: [courseId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  status      CourseModuleStatus @default(ACTIVE)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  course      Course             @relation(fields: [courseId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   lessons     Lesson[]
 
   @@unique([courseId, position])
@@ -140,6 +151,7 @@ model Lesson {
   position                 Int
   estimatedDurationMinutes Int?
   isPreview                Boolean           @default(false)
+  status                   LessonStatus      @default(ACTIVE)
   createdAt                DateTime          @default(now())
   updatedAt                DateTime          @updatedAt
   module                   CourseModule      @relation(fields: [moduleId], references: [id], onDelete: Restrict, onUpdate: Cascade)

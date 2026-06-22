@@ -1126,6 +1126,7 @@ export const CourseModuleScalarFieldEnum = {
   title: 'title',
   description: 'description',
   position: 'position',
+  status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1143,6 +1144,7 @@ export const LessonScalarFieldEnum = {
   position: 'position',
   estimatedDurationMinutes: 'estimatedDurationMinutes',
   isPreview: 'isPreview',
+  status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1267,6 +1269,20 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'CourseModuleStatus'
+ */
+export type EnumCourseModuleStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CourseModuleStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'CourseModuleStatus[]'
+ */
+export type ListEnumCourseModuleStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CourseModuleStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'LessonContentType'
  */
 export type EnumLessonContentTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LessonContentType'>
@@ -1298,6 +1314,20 @@ export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'LessonStatus'
+ */
+export type EnumLessonStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LessonStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'LessonStatus[]'
+ */
+export type ListEnumLessonStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LessonStatus[]'>
     
 
 

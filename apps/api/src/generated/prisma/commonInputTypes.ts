@@ -180,6 +180,13 @@ export type IntFilter<$PrismaModel = never> = {
   not?: Prisma.NestedIntFilter<$PrismaModel> | number
 }
 
+export type EnumCourseModuleStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.CourseModuleStatus | Prisma.EnumCourseModuleStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CourseModuleStatus[] | Prisma.ListEnumCourseModuleStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CourseModuleStatus[] | Prisma.ListEnumCourseModuleStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCourseModuleStatusFilter<$PrismaModel> | $Enums.CourseModuleStatus
+}
+
 export type IntWithAggregatesFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
@@ -194,6 +201,16 @@ export type IntWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedIntFilter<$PrismaModel>
   _max?: Prisma.NestedIntFilter<$PrismaModel>
+}
+
+export type EnumCourseModuleStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CourseModuleStatus | Prisma.EnumCourseModuleStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CourseModuleStatus[] | Prisma.ListEnumCourseModuleStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CourseModuleStatus[] | Prisma.ListEnumCourseModuleStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCourseModuleStatusWithAggregatesFilter<$PrismaModel> | $Enums.CourseModuleStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCourseModuleStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCourseModuleStatusFilter<$PrismaModel>
 }
 
 export type EnumLessonContentTypeFilter<$PrismaModel = never> = {
@@ -241,6 +258,13 @@ export type IntNullableFilter<$PrismaModel = never> = {
 export type BoolFilter<$PrismaModel = never> = {
   equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
   not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
+}
+
+export type EnumLessonStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.LessonStatus | Prisma.EnumLessonStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.LessonStatus[] | Prisma.ListEnumLessonStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LessonStatus[] | Prisma.ListEnumLessonStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLessonStatusFilter<$PrismaModel> | $Enums.LessonStatus
 }
 
 export type EnumLessonContentTypeWithAggregatesFilter<$PrismaModel = never> = {
@@ -302,6 +326,16 @@ export type BoolWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedBoolFilter<$PrismaModel>
   _max?: Prisma.NestedBoolFilter<$PrismaModel>
+}
+
+export type EnumLessonStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LessonStatus | Prisma.EnumLessonStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.LessonStatus[] | Prisma.ListEnumLessonStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LessonStatus[] | Prisma.ListEnumLessonStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLessonStatusWithAggregatesFilter<$PrismaModel> | $Enums.LessonStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLessonStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLessonStatusFilter<$PrismaModel>
 }
 
 export type NestedStringFilter<$PrismaModel = never> = {
@@ -472,6 +506,13 @@ export type NestedEnumCourseStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumCourseStatusFilter<$PrismaModel>
 }
 
+export type NestedEnumCourseModuleStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.CourseModuleStatus | Prisma.EnumCourseModuleStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CourseModuleStatus[] | Prisma.ListEnumCourseModuleStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CourseModuleStatus[] | Prisma.ListEnumCourseModuleStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCourseModuleStatusFilter<$PrismaModel> | $Enums.CourseModuleStatus
+}
+
 export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
@@ -499,6 +540,16 @@ export type NestedFloatFilter<$PrismaModel = never> = {
   not?: Prisma.NestedFloatFilter<$PrismaModel> | number
 }
 
+export type NestedEnumCourseModuleStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.CourseModuleStatus | Prisma.EnumCourseModuleStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.CourseModuleStatus[] | Prisma.ListEnumCourseModuleStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CourseModuleStatus[] | Prisma.ListEnumCourseModuleStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCourseModuleStatusWithAggregatesFilter<$PrismaModel> | $Enums.CourseModuleStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumCourseModuleStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumCourseModuleStatusFilter<$PrismaModel>
+}
+
 export type NestedEnumLessonContentTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.LessonContentType | Prisma.EnumLessonContentTypeFieldRefInput<$PrismaModel>
   in?: $Enums.LessonContentType[] | Prisma.ListEnumLessonContentTypeFieldRefInput<$PrismaModel>
@@ -509,6 +560,13 @@ export type NestedEnumLessonContentTypeFilter<$PrismaModel = never> = {
 export type NestedBoolFilter<$PrismaModel = never> = {
   equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
   not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
+}
+
+export type NestedEnumLessonStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.LessonStatus | Prisma.EnumLessonStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.LessonStatus[] | Prisma.ListEnumLessonStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LessonStatus[] | Prisma.ListEnumLessonStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLessonStatusFilter<$PrismaModel> | $Enums.LessonStatus
 }
 
 export type NestedEnumLessonContentTypeWithAggregatesFilter<$PrismaModel = never> = {
@@ -578,6 +636,16 @@ export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedBoolFilter<$PrismaModel>
   _max?: Prisma.NestedBoolFilter<$PrismaModel>
+}
+
+export type NestedEnumLessonStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LessonStatus | Prisma.EnumLessonStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.LessonStatus[] | Prisma.ListEnumLessonStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LessonStatus[] | Prisma.ListEnumLessonStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLessonStatusWithAggregatesFilter<$PrismaModel> | $Enums.LessonStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLessonStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLessonStatusFilter<$PrismaModel>
 }
 
 

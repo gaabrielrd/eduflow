@@ -161,6 +161,7 @@ export const CourseModuleScalarFieldEnum = {
   title: 'title',
   description: 'description',
   position: 'position',
+  status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -178,6 +179,7 @@ export const LessonScalarFieldEnum = {
   position: 'position',
   estimatedDurationMinutes: 'estimatedDurationMinutes',
   isPreview: 'isPreview',
+  status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
