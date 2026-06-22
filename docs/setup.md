@@ -97,6 +97,20 @@ pnpm web:typecheck
 pnpm web:test
 ```
 
+Para subir a vitrine tecnica do design system localmente:
+
+```bash
+pnpm storybook
+```
+
+Para gerar a build estatica do Storybook:
+
+```bash
+pnpm build-storybook
+```
+
+Os comandos acima delegam para `packages/ui`, onde o Storybook inicial dos componentes compartilhados esta hospedado.
+
 Com o servidor local ativo, as rotas iniciais da web sao:
 
 - `http://localhost:3000/`

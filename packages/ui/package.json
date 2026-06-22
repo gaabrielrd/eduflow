@@ -13,6 +13,8 @@
   "scripts": {
     "build": "node ../../node_modules/typescript/bin/tsc -p tsconfig.json",
     "lint": "node -e \"console.log('lint placeholder for @eduflow/ui')\"",
+    "storybook": "storybook dev -p 6006 -c .storybook",
+    "build-storybook": "storybook build -c .storybook",
     "typecheck": "node ../../node_modules/typescript/bin/tsc -p tsconfig.json --noEmit",
     "test": "vitest run --environment jsdom --globals tests"
   },
@@ -21,6 +23,11 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@storybook/addon-docs": "^8.6.18",
+    "@storybook/addon-interactions": "^8.6.18",
+    "@storybook/react": "^8.6.18",
+    "@storybook/react-vite": "^8.6.18",
+    "@tailwindcss/vite": "^4.3.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@testing-library/jest-dom": "^6.9.1",
@@ -29,6 +36,8 @@
     "jsdom": "^29.1.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "storybook": "^8.6.18",
+    "tailwindcss": "^4.3.1",
     "vitest": "^4.1.9"
   },
   "dependencies": {

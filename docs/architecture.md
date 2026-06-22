@@ -79,6 +79,16 @@ Para membros e convites no MVP, a estrategia atual passa a assumir:
 - `packages/eslint-config`: presets flat config para lint de web e API.
 - `packages/tsconfig`: bases TypeScript compartilhadas para apps e pacotes.
 
+## Storybook do design system
+
+O Storybook inicial do EduFlow vive em `packages/ui`, e nao em `apps/web`, para reforcar que a vitrine tecnica do design system pertence ao pacote de componentes compartilhados e nao ao app consumidor.
+
+As convencoes iniciais sao:
+
+- stories ficam proximas aos componentes compartilhados em `packages/ui/src`
+- o Storybook documenta primitives e patterns reutilizaveis, nao telas ou fluxos de rota
+- o tema atual reutiliza temporariamente `apps/web/src/styles/tokens.css` ate existir uma camada compartilhada formal para design tokens
+
 ## Banco de dados
 
 PostgreSQL e o banco principal planejado e o Prisma e a camada de acesso escolhida. Nesta fase, o Prisma esta instalado e configurado, mas o schema ainda nao possui entidades de dominio. Migrations reais devem ser adicionadas quando os primeiros modelos forem implementados.

@@ -10,21 +10,21 @@ type InvitationPageProps = {
 
 export default async function InvitationPage({ params }: InvitationPageProps) {
   const { token } = await params;
+  let invitation: PublicInvitation | null = null;
+  let errorStatus: number | undefined;
 
   try {
-    const invitation = await apiClient<PublicInvitation>({
+    invitation = await apiClient<PublicInvitation>({
       baseUrl: getApiBaseUrl(),
       method: "GET",
       path: `/invitations/${token}`,
       retryOnUnauthorized: false
     });
-
-    return <InvitationScreen invitation={invitation} token={token} />;
   } catch (error) {
     if (error instanceof ApiError) {
-      return <InvitationScreen errorStatus={error.statusCode} invitation={null} token={token} />;
+      errorStatus = error.statusCode;
     }
-
-    return <InvitationScreen invitation={null} token={token} />;
   }
+
+  return <InvitationScreen errorStatus={errorStatus} invitation={invitation} token={token} />;
 }

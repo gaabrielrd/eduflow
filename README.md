@@ -81,6 +81,22 @@ pnpm api:lint
 pnpm api:prisma:generate
 ```
 
+### Storybook do design system
+
+O Storybook inicial do EduFlow vive em `packages/ui`, ao lado dos componentes compartilhados do design system.
+
+```bash
+pnpm storybook
+pnpm build-storybook
+```
+
+Se preferir executar direto no workspace:
+
+```bash
+pnpm --filter @eduflow/ui storybook
+pnpm --filter @eduflow/ui build-storybook
+```
+
 ## Qualidade
 
 O projeto possui uma pipeline inicial de qualidade em GitHub Actions que roda em `pull_request` e em `push` para `main`, cobrindo `pnpm install --frozen-lockfile`, `lint`, `typecheck`, `test` e `build`.
@@ -100,6 +116,7 @@ O projeto possui uma pipeline inicial de qualidade em GitHub Actions que roda em
 - Regras de lint compartilhadas vivem em `@eduflow/eslint-config`
 - Comandos canonicos do web usam `pnpm --filter @eduflow/web <script>`
 - Comandos canonicos da API usam `pnpm --filter @eduflow/api <script>`
+- Stories de componentes compartilhados devem ficar proximas aos componentes em `packages/ui`
 
 ## Produto
 
