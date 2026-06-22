@@ -92,6 +92,8 @@ As convencoes iniciais sao:
 - estados assincros compartilhados como loading, error, empty e skeleton devem ser documentados primeiro no Storybook e reutilizados pelas telas do `apps/web`
 - erro de campo permanece acoplado ao formulario e ao proprio input; erro de pagina deve usar pattern contextual como `ErrorState`
 
+O guia operacional de interface e experiencia desta base vive em `docs/ui.md`. Ele e a referencia primaria para layout, formularios, estados assincronos, modais e acessibilidade minima no frontend.
+
 ## Banco de dados
 
 PostgreSQL e o banco principal planejado e o Prisma e a camada de acesso escolhida. Nesta fase, o schema Prisma ja cobre identidade, tenancy e a estrutura inicial de autoria de cursos, com `Course`, `CourseModule` e `Lesson`. A decisao de publicacao continua separando a entidade editavel `Course` do futuro `CourseVersion`, que entrara em sprint posterior para snapshots publicados e imutaveis.
