@@ -9,12 +9,12 @@ import {
 
 import { AtLeastOneOfValidator } from "../../common/validators/at-least-one-of.validator.js";
 
-export class UpdateCurrentOrganizationDto {
+export class UpdateCourseDto {
   @IsOptional()
   @IsString()
   @MinLength(2)
   @MaxLength(120)
-  name?: string;
+  title?: string;
 
   @IsOptional()
   @IsString()
@@ -25,6 +25,11 @@ export class UpdateCurrentOrganizationDto {
   })
   slug?: string;
 
-  @Validate(AtLeastOneOfValidator, [["name", "slug"]])
+  @IsOptional()
+  @IsString()
+  @MaxLength(5000)
+  description?: string;
+
+  @Validate(AtLeastOneOfValidator, [["title", "slug", "description"]])
   private readonly atLeastOneField!: string;
 }

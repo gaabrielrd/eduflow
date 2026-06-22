@@ -1,9 +1,10 @@
 import { randomUUID } from "node:crypto";
 
-import type { DynamicModule, INestApplication, Type } from "@nestjs/common";
+import { ValidationPipe, type DynamicModule, type INestApplication, type Type } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
 
+import { AllExceptionsFilter } from "../common/filters/all-exceptions.filter.js";
 import { PrismaService } from "../database/prisma.service.js";
 import { Role } from "../generated/prisma/enums.js";
 
@@ -35,6 +36,14 @@ export async function bootstrapTestApp(
   }).compile();
 
   const app = moduleRef.createNestApplication();
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true
+    })
+  );
+  app.useGlobalFilters(new AllExceptionsFilter());
   await app.init();
 
   return {
@@ -46,6 +55,9 @@ export async function bootstrapTestApp(
 export async function resetDatabase(prisma: PrismaService) {
   await prisma.$transaction([
     prisma.authSession.deleteMany(),
+    prisma.lesson.deleteMany(),
+    prisma.courseModule.deleteMany(),
+    prisma.course.deleteMany(),
     prisma.membership.deleteMany(),
     prisma.invitation.deleteMany(),
     prisma.organization.deleteMany(),
