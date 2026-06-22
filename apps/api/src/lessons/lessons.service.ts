@@ -5,6 +5,8 @@ import {
 } from "@nestjs/common";
 
 import type { OrganizationContext } from "../auth/types/organization-context.interface.js";
+import type { ReorderItemsDto } from "../common/dto/reorder-items.dto.js";
+import { buildReorderedActiveItems } from "../common/utils/reorder.util.js";
 import { PrismaService } from "../database/prisma.service.js";
 import { Prisma } from "../generated/prisma/client.js";
 import {
@@ -105,6 +107,64 @@ export class LessonsService {
     });
   }
 
+  async reorderLessons(
+    context: OrganizationContext,
+    moduleId: string,
+    dto: ReorderItemsDto
+  ) {
+    await this.ensureModuleExistsForReorder(context, moduleId);
+
+    const lessons = await this.prisma.lesson.findMany({
+      where: {
+        moduleId
+      },
+      select: lessonSelect,
+      orderBy: [{ position: "asc" }, { id: "asc" }]
+    });
+
+    const activeLessons = lessons.filter(
+      (lesson) => lesson.status !== LessonStatus.ARCHIVED
+    );
+    const archivedLessons = lessons.filter(
+      (lesson) => lesson.status === LessonStatus.ARCHIVED
+    );
+    const reorderedActiveLessons = buildReorderedActiveItems({
+      items: dto.items,
+      activeItems: activeLessons,
+      notFoundMessage: "Lesson not found"
+    });
+    const finalLessons = [...reorderedActiveLessons, ...archivedLessons];
+
+    await this.prisma.$transaction(async (tx) => {
+      for (let index = 0; index < finalLessons.length; index += 1) {
+        await tx.lesson.update({
+          where: {
+            id: finalLessons[index]!.id
+          },
+          data: {
+            position: -(index + 1)
+          }
+        });
+      }
+
+      for (let index = 0; index < finalLessons.length; index += 1) {
+        await tx.lesson.update({
+          where: {
+            id: finalLessons[index]!.id
+          },
+          data: {
+            position: index + 1
+          }
+        });
+      }
+    });
+
+    return reorderedActiveLessons.map((lesson, index) => ({
+      ...lesson,
+      position: index + 1
+    }));
+  }
+
   async archiveLesson(context: OrganizationContext, lessonId: string) {
     const lesson = await this.ensureLessonExists(context, lessonId);
 
@@ -133,6 +193,29 @@ export class LessonsService {
         status: {
           not: CourseModuleStatus.ARCHIVED
         },
+        course: {
+          organizationId: context.organizationId
+        }
+      },
+      select: {
+        id: true
+      }
+    });
+
+    if (!module) {
+      throw new NotFoundException("Module not found");
+    }
+
+    return module;
+  }
+
+  private async ensureModuleExistsForReorder(
+    context: OrganizationContext,
+    moduleId: string
+  ) {
+    const module = await this.prisma.courseModule.findFirst({
+      where: {
+        id: moduleId,
         course: {
           organizationId: context.organizationId
         }

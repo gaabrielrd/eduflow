@@ -14,6 +14,7 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard.js";
 import { OrganizationContextGuard } from "../auth/guards/organization-context.guard.js";
 import { RolesGuard } from "../auth/guards/roles.guard.js";
 import type { OrganizationContext } from "../auth/types/organization-context.interface.js";
+import { ReorderItemsDto } from "../common/dto/reorder-items.dto.js";
 import { Role } from "../generated/prisma/enums.js";
 import { CreateLessonDto } from "./dto/create-lesson.dto.js";
 import { UpdateLessonDto } from "./dto/update-lesson.dto.js";
@@ -33,6 +34,17 @@ export class LessonsController {
     @Body() dto: CreateLessonDto
   ) {
     return this.lessonsService.createLesson(context, moduleId, dto);
+  }
+
+  @Post("modules/:moduleId/lessons/reorder")
+  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  @UseGuards(RolesGuard)
+  reorder(
+    @CurrentOrganizationContext() context: OrganizationContext,
+    @Param("moduleId") moduleId: string,
+    @Body() dto: ReorderItemsDto
+  ) {
+    return this.lessonsService.reorderLessons(context, moduleId, dto);
   }
 
   @Patch("lessons/:lessonId")

@@ -5,6 +5,8 @@ import {
 } from "@nestjs/common";
 
 import type { OrganizationContext } from "../auth/types/organization-context.interface.js";
+import type { ReorderItemsDto } from "../common/dto/reorder-items.dto.js";
+import { buildReorderedActiveItems } from "../common/utils/reorder.util.js";
 import { PrismaService } from "../database/prisma.service.js";
 import { Prisma } from "../generated/prisma/client.js";
 import { CourseModuleStatus, LessonStatus } from "../generated/prisma/enums.js";
@@ -77,6 +79,64 @@ export class CourseModulesService {
       data,
       select: courseModuleSelect
     });
+  }
+
+  async reorderModules(
+    context: OrganizationContext,
+    courseId: string,
+    dto: ReorderItemsDto
+  ) {
+    await this.ensureCourseExists(context, courseId);
+
+    const modules = await this.prisma.courseModule.findMany({
+      where: {
+        courseId
+      },
+      select: courseModuleSelect,
+      orderBy: [{ position: "asc" }, { id: "asc" }]
+    });
+
+    const activeModules = modules.filter(
+      (module) => module.status !== CourseModuleStatus.ARCHIVED
+    );
+    const archivedModules = modules.filter(
+      (module) => module.status === CourseModuleStatus.ARCHIVED
+    );
+    const reorderedActiveModules = buildReorderedActiveItems({
+      items: dto.items,
+      activeItems: activeModules,
+      notFoundMessage: "Module not found"
+    });
+    const finalModules = [...reorderedActiveModules, ...archivedModules];
+
+    await this.prisma.$transaction(async (tx) => {
+      for (let index = 0; index < finalModules.length; index += 1) {
+        await tx.courseModule.update({
+          where: {
+            id: finalModules[index]!.id
+          },
+          data: {
+            position: -(index + 1)
+          }
+        });
+      }
+
+      for (let index = 0; index < finalModules.length; index += 1) {
+        await tx.courseModule.update({
+          where: {
+            id: finalModules[index]!.id
+          },
+          data: {
+            position: index + 1
+          }
+        });
+      }
+    });
+
+    return reorderedActiveModules.map((module, index) => ({
+      ...module,
+      position: index + 1
+    }));
   }
 
   async archiveModule(

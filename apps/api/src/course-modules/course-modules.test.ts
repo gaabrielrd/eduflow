@@ -125,6 +125,91 @@ test("POST /courses/:courseId/modules creates a module and appends position", as
   assert.equal(response.body.status, CourseModuleStatus.ACTIVE);
 });
 
+test("POST /courses/:courseId/modules/reorder reorders active modules and compacts archived modules after them", async () => {
+  const manager = await createUserAndToken(app, `module-reorder.${Date.now()}@modules.test`);
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: manager.user.id,
+    name: "Module Reorder Org",
+    slug: `module-reorder-org-${uniqueSuffix()}`,
+    role: Role.MANAGER
+  });
+  const course = await createCourseForOrganization({
+    organizationId: organization.id,
+    createdById: manager.user.id
+  });
+  const moduleA = await createModuleForCourse({
+    courseId: course.id,
+    title: "Module A",
+    position: 1
+  });
+  const moduleB = await createModuleForCourse({
+    courseId: course.id,
+    title: "Module B",
+    position: 2
+  });
+  const moduleC = await createModuleForCourse({
+    courseId: course.id,
+    title: "Module C",
+    position: 3
+  });
+  const archivedModule = await createModuleForCourse({
+    courseId: course.id,
+    title: "Archived Module",
+    position: 4,
+    status: CourseModuleStatus.ARCHIVED
+  });
+
+  const response = await request(app.getHttpServer())
+    .post(`/courses/${course.id}/modules/reorder`)
+    .set("Authorization", `Bearer ${manager.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .send({
+      items: [
+        { id: moduleC.id, position: 1 },
+        { id: moduleA.id, position: 2 }
+      ]
+    })
+    .expect(201);
+
+  assert.deepEqual(
+    response.body.map((item: { id: string; position: number }) => ({
+      id: item.id,
+      position: item.position
+    })),
+    [
+      { id: moduleC.id, position: 1 },
+      { id: moduleA.id, position: 2 },
+      { id: moduleB.id, position: 3 }
+    ]
+  );
+
+  const persistedModules = await prisma.courseModule.findMany({
+    where: {
+      courseId: course.id
+    },
+    orderBy: [{ position: "asc" }, { id: "asc" }]
+  });
+
+  assert.deepEqual(
+    persistedModules.map((item) => ({
+      id: item.id,
+      position: item.position,
+      status: item.status
+    })),
+    [
+      { id: moduleC.id, position: 1, status: CourseModuleStatus.ACTIVE },
+      { id: moduleA.id, position: 2, status: CourseModuleStatus.ACTIVE },
+      { id: moduleB.id, position: 3, status: CourseModuleStatus.ACTIVE },
+      {
+        id: archivedModule.id,
+        position: 4,
+        status: CourseModuleStatus.ARCHIVED
+      }
+    ]
+  );
+});
+
 test("PATCH /courses/:courseId/modules/:moduleId updates title and description", async () => {
   const admin = await createUserAndToken(app, `module-update.${Date.now()}@modules.test`);
   const organization = await createOrganizationForUser({
@@ -319,4 +404,131 @@ test("module endpoints require authoring roles and validate payloads", async () 
   assert.match(invalidCreateResponse.body.message, /title must be longer than or equal to 2 characters/);
   assert.equal(missingContextResponse.body.message, "Organization context is required");
   assert.equal(invalidUpdateResponse.body.message, "Insufficient organization role");
+});
+
+test("module reorder rejects invalid payload semantics and non-authoring roles", async () => {
+  const owner = await createUserAndToken(app, `module-reorder-owner.${Date.now()}@modules.test`);
+  const student = await createUserAndToken(app, `module-reorder-student.${Date.now()}@modules.test`);
+  const outsider = await createUserAndToken(app, `module-reorder-outsider.${Date.now()}@modules.test`);
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: owner.user.id,
+    name: "Module Reorder Validation Org",
+    slug: `module-reorder-validation-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const studentOrganization = await createOrganizationForUser({
+    prisma,
+    userId: student.user.id,
+    name: "Module Reorder Student Org",
+    slug: `module-reorder-student-org-${uniqueSuffix()}`,
+    role: Role.STUDENT
+  });
+  const outsiderOrganization = await createOrganizationForUser({
+    prisma,
+    userId: outsider.user.id,
+    name: "Module Reorder Outsider Org",
+    slug: `module-reorder-outsider-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const course = await createCourseForOrganization({
+    organizationId: organization.id,
+    createdById: owner.user.id
+  });
+  const moduleA = await createModuleForCourse({
+    courseId: course.id,
+    position: 1
+  });
+  const moduleB = await createModuleForCourse({
+    courseId: course.id,
+    position: 2
+  });
+  const outsiderCourse = await createCourseForOrganization({
+    organizationId: outsiderOrganization.id,
+    createdById: outsider.user.id
+  });
+  const foreignModule = await createModuleForCourse({
+    courseId: outsiderCourse.id,
+    position: 1
+  });
+
+  const duplicateIdResponse = await request(app.getHttpServer())
+    .post(`/courses/${course.id}/modules/reorder`)
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .send({
+      items: [
+        { id: moduleA.id, position: 1 },
+        { id: moduleA.id, position: 2 }
+      ]
+    })
+    .expect(400);
+
+  const duplicatePositionResponse = await request(app.getHttpServer())
+    .post(`/courses/${course.id}/modules/reorder`)
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .send({
+      items: [
+        { id: moduleA.id, position: 1 },
+        { id: moduleB.id, position: 1 }
+      ]
+    })
+    .expect(400);
+
+  const outOfRangeResponse = await request(app.getHttpServer())
+    .post(`/courses/${course.id}/modules/reorder`)
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .send({
+      items: [{ id: moduleA.id, position: 3 }]
+    })
+    .expect(400);
+
+  const foreignItemResponse = await request(app.getHttpServer())
+    .post(`/courses/${course.id}/modules/reorder`)
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .send({
+      items: [{ id: foreignModule.id, position: 1 }]
+    })
+    .expect(404);
+
+  const missingItemResponse = await request(app.getHttpServer())
+    .post(`/courses/${course.id}/modules/reorder`)
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .send({
+      items: [{ id: "missing-module", position: 1 }]
+    })
+    .expect(404);
+
+  const crossOrgParentResponse = await request(app.getHttpServer())
+    .post(`/courses/${outsiderCourse.id}/modules/reorder`)
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .send({
+      items: [{ id: foreignModule.id, position: 1 }]
+    })
+    .expect(404);
+
+  const forbiddenResponse = await request(app.getHttpServer())
+    .post(`/courses/${course.id}/modules/reorder`)
+    .set("Authorization", `Bearer ${student.accessToken}`)
+    .set("X-Organization-Id", studentOrganization.id)
+    .send({
+      items: [{ id: moduleA.id, position: 1 }]
+    })
+    .expect(403);
+
+  assert.equal(duplicateIdResponse.body.message, "duplicate item ids are not allowed");
+  assert.equal(
+    duplicatePositionResponse.body.message,
+    "duplicate target positions are not allowed"
+  );
+  assert.equal(outOfRangeResponse.body.message, "target position is out of range");
+  assert.equal(foreignItemResponse.body.message, "Module not found");
+  assert.equal(missingItemResponse.body.message, "Module not found");
+  assert.equal(crossOrgParentResponse.body.message, "Course not found");
+  assert.equal(forbiddenResponse.body.message, "Insufficient organization role");
 });
