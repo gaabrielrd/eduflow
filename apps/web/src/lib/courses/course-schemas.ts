@@ -27,5 +27,23 @@ export const createCourseSchema = z.object({
 
 export const updateCourseSchema = createCourseSchema;
 
+export const moduleTitleSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(2, "Informe o titulo do modulo")
+    .max(120, "Use no maximo 120 caracteres")
+});
+
+export const lessonTitleSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(2, "Informe o titulo da aula")
+    .max(120, "Use no maximo 120 caracteres")
+});
+
 export type CreateCourseSchema = z.infer<typeof createCourseSchema>;
 export type UpdateCourseSchema = z.infer<typeof updateCourseSchema>;
+export type ModuleTitleSchema = z.infer<typeof moduleTitleSchema>;
+export type LessonTitleSchema = z.infer<typeof lessonTitleSchema>;

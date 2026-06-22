@@ -118,6 +118,11 @@ export function getBreadcrumbItems(pathname: string): BreadcrumbItem[] {
     items.push({ label: "Configuracoes" });
   }
 
+  if (/^\/app\/courses\/[^/]+\/curriculum$/.test(normalized)) {
+    items.push({ label: "Curso" });
+    items.push({ label: "Curriculo" });
+  }
+
   if (normalized === "/app/settings/members") {
     items.push({ label: "Members" });
   }

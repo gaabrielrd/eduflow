@@ -40,12 +40,10 @@ export function CourseDetailsScreen({ courseId }: { courseId: string }) {
   const canManageCourses = authoringRoles.has(activeOrganization?.role ?? "");
 
   const loadCourse = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
-
     try {
       const nextCourse = await getCourseById(courseId);
       setCourse(nextCourse);
+      setErrorMessage(null);
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -58,8 +56,24 @@ export function CourseDetailsScreen({ courseId }: { courseId: string }) {
   }, [courseId]);
 
   useEffect(() => {
-    void loadCourse();
+    let cancelled = false;
+
+    queueMicrotask(() => {
+      if (!cancelled) {
+        void loadCourse();
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [loadCourse]);
+
+  function handleRetryLoadCourse() {
+    setIsLoading(true);
+    setErrorMessage(null);
+    void loadCourse();
+  }
 
   const breadcrumbItems = useMemo(
     () =>
@@ -87,7 +101,7 @@ export function CourseDetailsScreen({ courseId }: { courseId: string }) {
   if (errorMessage || !course) {
     return (
       <ErrorState
-        action={<Button onClick={() => void loadCourse()}>Tentar novamente</Button>}
+        action={<Button onClick={handleRetryLoadCourse}>Tentar novamente</Button>}
         description={errorMessage ?? "Nao foi possivel localizar o curso solicitado."}
         title="Nao foi possivel carregar o curso"
       />
@@ -98,11 +112,16 @@ export function CourseDetailsScreen({ courseId }: { courseId: string }) {
     <section className="space-y-8">
       <PageHeader
         actions={
-          canManageCourses ? (
-            <Button asChild variant="secondary">
-              <Link href={`/app/courses/${course.id}/settings`}>Editar campos basicos</Link>
+          <div className="flex flex-wrap gap-3">
+            <Button asChild variant="outline">
+              <Link href={`/app/courses/${course.id}/curriculum`}>Ver curriculo</Link>
             </Button>
-          ) : null
+            {canManageCourses ? (
+              <Button asChild variant="secondary">
+                <Link href={`/app/courses/${course.id}/settings`}>Editar campos basicos</Link>
+              </Button>
+            ) : null}
+          </div>
         }
         description={
           course.description?.trim() ||

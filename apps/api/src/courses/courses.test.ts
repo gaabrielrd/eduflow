@@ -5,7 +5,13 @@ import type { INestApplication } from "@nestjs/common";
 import request from "supertest";
 
 import { PrismaService } from "../database/prisma.service.js";
-import { CourseStatus, Role } from "../generated/prisma/enums.js";
+import {
+  CourseModuleStatus,
+  CourseStatus,
+  LessonContentType,
+  LessonStatus,
+  Role
+} from "../generated/prisma/enums.js";
 import {
   bootstrapTestApp,
   closeTestApp,
@@ -214,6 +220,111 @@ test("GET /courses/:id returns course details, including archived courses, for c
 
   assert.equal(response.body.id, course.id);
   assert.equal(response.body.status, CourseStatus.ARCHIVED);
+});
+
+test("GET /courses/:id/curriculum returns active modules and lessons in display order", async () => {
+  const member = await createUserAndToken(app, `course-curriculum.${Date.now()}@courses.test`);
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: member.user.id,
+    name: "Course Curriculum Org",
+    slug: `course-curriculum-org-${uniqueSuffix()}`,
+    role: Role.STUDENT
+  });
+
+  const course = await prisma.course.create({
+    data: {
+      organizationId: organization.id,
+      title: "Curriculum Course",
+      slug: `curriculum-course-${uniqueSuffix()}`,
+      status: CourseStatus.DRAFT,
+      createdById: member.user.id
+    }
+  });
+
+  const moduleA = await prisma.courseModule.create({
+    data: {
+      courseId: course.id,
+      title: "Module A",
+      position: 1,
+      status: CourseModuleStatus.ACTIVE
+    }
+  });
+  const moduleB = await prisma.courseModule.create({
+    data: {
+      courseId: course.id,
+      title: "Module B",
+      position: 2,
+      status: CourseModuleStatus.ACTIVE
+    }
+  });
+  await prisma.courseModule.create({
+    data: {
+      courseId: course.id,
+      title: "Archived Module",
+      position: 3,
+      status: CourseModuleStatus.ARCHIVED
+    }
+  });
+
+  await prisma.lesson.create({
+    data: {
+      moduleId: moduleA.id,
+      title: "Lesson A1",
+      contentType: LessonContentType.TEXT,
+      contentJson: { type: "doc", content: [] },
+      position: 1,
+      status: LessonStatus.ACTIVE
+    }
+  });
+  await prisma.lesson.create({
+    data: {
+      moduleId: moduleA.id,
+      title: "Archived Lesson",
+      contentType: LessonContentType.TEXT,
+      contentJson: { type: "doc", content: [] },
+      position: 2,
+      status: LessonStatus.ARCHIVED
+    }
+  });
+  await prisma.lesson.create({
+    data: {
+      moduleId: moduleB.id,
+      title: "Lesson B1",
+      contentType: LessonContentType.TEXT,
+      contentJson: { type: "doc", content: [] },
+      position: 1,
+      status: LessonStatus.ACTIVE
+    }
+  });
+
+  const response = await request(app.getHttpServer())
+    .get(`/courses/${course.id}/curriculum`)
+    .set("Authorization", `Bearer ${member.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(200);
+
+  assert.equal(response.body.id, course.id);
+  assert.equal(response.body.modules.length, 2);
+  assert.deepEqual(
+    response.body.modules.map((item: { title: string; position: number }) => ({
+      title: item.title,
+      position: item.position
+    })),
+    [
+      { title: "Module A", position: 1 },
+      { title: "Module B", position: 2 }
+    ]
+  );
+  assert.deepEqual(
+    response.body.modules[0].lessons.map(
+      (item: { title: string; position: number }) => ({
+        title: item.title,
+        position: item.position
+      })
+    ),
+    [{ title: "Lesson A1", position: 1 }]
+  );
 });
 
 test("PATCH /courses/:id updates title, description, and slug for authoring roles", async () => {

@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { createCourseSchema } from "@/lib/courses/course-schemas";
+import {
+  createCourseSchema,
+  lessonTitleSchema,
+  moduleTitleSchema
+} from "@/lib/courses/course-schemas";
 
 describe("course schemas", () => {
   it("accepts a valid course payload", () => {
@@ -35,5 +39,17 @@ describe("course schemas", () => {
     if (result.success) {
       expect(result.data.description).toBe("");
     }
+  });
+
+  it("validates module and lesson titles", () => {
+    const validModule = moduleTitleSchema.safeParse({
+      title: "Modulo de introducao"
+    });
+    const invalidLesson = lessonTitleSchema.safeParse({
+      title: "A"
+    });
+
+    expect(validModule.success).toBe(true);
+    expect(invalidLesson.success).toBe(false);
   });
 });

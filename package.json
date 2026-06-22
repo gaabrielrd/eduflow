@@ -10,7 +10,7 @@
     "dev": "pnpm -r --if-present dev",
     "build": "pnpm -r --if-present build",
     "build-storybook": "pnpm --filter @eduflow/ui build-storybook",
-    "lint": "pnpm -r --if-present lint",
+    "lint": "node scripts/run-lint.mjs",
     "storybook": "pnpm --filter @eduflow/ui storybook",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",

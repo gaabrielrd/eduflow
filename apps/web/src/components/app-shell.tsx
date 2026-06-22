@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  useEffect,
   useMemo,
   useState,
   type ReactNode
@@ -230,10 +229,6 @@ export function AppShell({ children }: AppShellProps) {
   );
   const activeItem = getActiveNavigationItem(pathname);
   const breadcrumbItems = overrideBreadcrumbs ?? getBreadcrumbItems(pathname);
-
-  useEffect(() => {
-    setOverrideBreadcrumbs(null);
-  }, [pathname]);
 
   return (
     <BreadcrumbProvider value={{ setOverrideItems: setOverrideBreadcrumbs }}>

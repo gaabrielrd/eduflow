@@ -51,12 +51,10 @@ export function CoursesListScreen() {
   const canManageCourses = authoringRoles.has(activeOrganization?.role ?? "");
 
   const loadCourses = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
-
     try {
       const nextCourses = await listCourses();
       setCourses(nextCourses);
+      setErrorMessage(null);
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -69,8 +67,24 @@ export function CoursesListScreen() {
   }, []);
 
   useEffect(() => {
-    void loadCourses();
+    let cancelled = false;
+
+    queueMicrotask(() => {
+      if (!cancelled) {
+        void loadCourses();
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [loadCourses]);
+
+  function handleRetryLoadCourses() {
+    setIsLoading(true);
+    setErrorMessage(null);
+    void loadCourses();
+  }
 
   if (isLoading) {
     return (
@@ -84,7 +98,7 @@ export function CoursesListScreen() {
   if (errorMessage) {
     return (
       <ErrorState
-        action={<Button onClick={() => void loadCourses()}>Tentar novamente</Button>}
+        action={<Button onClick={handleRetryLoadCourses}>Tentar novamente</Button>}
         description={errorMessage}
         title="Nao foi possivel carregar os cursos"
       />

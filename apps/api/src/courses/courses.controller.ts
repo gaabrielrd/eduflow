@@ -51,6 +51,14 @@ export class CoursesController {
     return this.coursesService.getCourseById(context, id);
   }
 
+  @Get(":id/curriculum")
+  getCurriculum(
+    @CurrentOrganizationContext() context: OrganizationContext,
+    @Param("id") id: string
+  ) {
+    return this.coursesService.getCourseCurriculum(context, id);
+  }
+
   @Patch(":id")
   @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
   @UseGuards(RolesGuard)

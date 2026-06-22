@@ -9,7 +9,13 @@ import type { AuthenticatedUser } from "../auth/types/authenticated-user.interfa
 import type { OrganizationContext } from "../auth/types/organization-context.interface.js";
 import { PrismaService } from "../database/prisma.service.js";
 import { Prisma } from "../generated/prisma/client.js";
-import { CourseStatus } from "../generated/prisma/enums.js";
+import {
+  CourseModuleStatus,
+  CourseStatus,
+  LessonStatus
+} from "../generated/prisma/enums.js";
+import { courseModuleSelect } from "../course-modules/course-modules.service.js";
+import { lessonSelect } from "../lessons/lessons.service.js";
 import type { CreateCourseDto } from "./dto/create-course.dto.js";
 import type { UpdateCourseDto } from "./dto/update-course.dto.js";
 
@@ -23,6 +29,30 @@ const courseSelect = {
   createdById: true,
   createdAt: true,
   updatedAt: true
+} satisfies Prisma.CourseSelect;
+
+const courseCurriculumSelect = {
+  ...courseSelect,
+  modules: {
+    where: {
+      status: {
+        not: CourseModuleStatus.ARCHIVED
+      }
+    },
+    select: {
+      ...courseModuleSelect,
+      lessons: {
+        where: {
+          status: {
+            not: LessonStatus.ARCHIVED
+          }
+        },
+        select: lessonSelect,
+        orderBy: [{ position: "asc" }, { id: "asc" }]
+      }
+    },
+    orderBy: [{ position: "asc" }, { id: "asc" }]
+  }
 } satisfies Prisma.CourseSelect;
 
 @Injectable()
@@ -71,6 +101,22 @@ export class CoursesService {
         organizationId: context.organizationId
       },
       select: courseSelect
+    });
+
+    if (!course) {
+      throw new NotFoundException("Course not found");
+    }
+
+    return course;
+  }
+
+  async getCourseCurriculum(context: OrganizationContext, id: string) {
+    const course = await this.prisma.course.findFirst({
+      where: {
+        id,
+        organizationId: context.organizationId
+      },
+      select: courseCurriculumSelect
     });
 
     if (!course) {

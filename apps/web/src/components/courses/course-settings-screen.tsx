@@ -17,12 +17,10 @@ export function CourseSettingsScreen({ courseId }: { courseId: string }) {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const loadCourse = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
-
     try {
       const nextCourse = await getCourseById(courseId);
       setCourse(nextCourse);
+      setErrorMessage(null);
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -35,8 +33,24 @@ export function CourseSettingsScreen({ courseId }: { courseId: string }) {
   }, [courseId]);
 
   useEffect(() => {
-    void loadCourse();
+    let cancelled = false;
+
+    queueMicrotask(() => {
+      if (!cancelled) {
+        void loadCourse();
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [loadCourse]);
+
+  function handleRetryLoadCourse() {
+    setIsLoading(true);
+    setErrorMessage(null);
+    void loadCourse();
+  }
 
   const breadcrumbItems = useMemo(
     () =>
@@ -87,7 +101,7 @@ export function CourseSettingsScreen({ courseId }: { courseId: string }) {
   if (errorMessage || !course) {
     return (
       <ErrorState
-        action={<Button onClick={() => void loadCourse()}>Tentar novamente</Button>}
+        action={<Button onClick={handleRetryLoadCourse}>Tentar novamente</Button>}
         description={errorMessage ?? "Nao foi possivel localizar o curso solicitado."}
         title="Nao foi possivel carregar as configuracoes"
       />

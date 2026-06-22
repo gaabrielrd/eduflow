@@ -16,7 +16,7 @@ import {
 import type { CreateLessonDto } from "./dto/create-lesson.dto.js";
 import type { UpdateLessonDto } from "./dto/update-lesson.dto.js";
 
-const lessonSelect = {
+export const lessonSelect = {
   id: true,
   moduleId: true,
   title: true,
