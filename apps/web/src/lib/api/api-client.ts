@@ -129,6 +129,14 @@ export async function apiClient<T>({
   }
 }
 
+function normalizeApiUrl(apiUrl: string) {
+  if (/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(apiUrl)) {
+    return apiUrl;
+  }
+
+  return `http://${apiUrl}`;
+}
+
 export function getApiBaseUrl() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
 
@@ -136,5 +144,5 @@ export function getApiBaseUrl() {
     throw new Error("NEXT_PUBLIC_API_URL is not configured");
   }
 
-  return trimTrailingSlashes(apiUrl);
+  return trimTrailingSlashes(normalizeApiUrl(apiUrl));
 }
