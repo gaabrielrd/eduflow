@@ -72,7 +72,7 @@ const baseCurriculum: CourseCurriculum = {
       id: "module-1",
       lessons: [
         {
-          contentJson: { content: [], type: "doc" },
+          contentJson: { version: 1, blocks: [] },
           contentType: "TEXT",
           createdAt: "2026-06-22T12:00:00.000Z",
           description: null,
@@ -308,7 +308,7 @@ describe("CourseCurriculumScreen", () => {
   it("creates a lesson with the default text draft payload", async () => {
     getCourseCurriculumMock.mockResolvedValue(baseCurriculum);
     createLessonMock.mockResolvedValue({
-      contentJson: { content: [], type: "doc" },
+      contentJson: { version: 1, blocks: [] },
       contentType: "TEXT",
       createdAt: "2026-06-22T13:00:00.000Z",
       description: null,
@@ -335,8 +335,8 @@ describe("CourseCurriculumScreen", () => {
     await waitFor(() => {
       expect(createLessonMock).toHaveBeenCalledWith("module-1", {
         contentJson: {
-          content: [],
-          type: "doc"
+          version: 1,
+          blocks: []
         },
         contentType: "TEXT",
         title: "Nova aula"

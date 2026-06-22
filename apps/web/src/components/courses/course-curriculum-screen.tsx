@@ -442,8 +442,8 @@ export function CourseCurriculumScreen({ courseId }: { courseId: string }) {
 
     const nextLesson = await createLesson(moduleForLessonCreate.id, {
       contentJson: {
-        content: [],
-        type: "doc"
+        version: 1,
+        blocks: []
       },
       contentType: "TEXT",
       title: values.title

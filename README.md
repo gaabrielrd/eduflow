@@ -11,7 +11,7 @@ Este repositorio usa `pnpm` workspaces para separar aplicacoes, pacotes comparti
 - `apps/web`: aplicacao web em Next.js, React, TypeScript e Tailwind CSS
 - `apps/api`: API em NestJS, TypeScript e Prisma
 - `packages/ui`: componentes e utilitarios visuais compartilhados
-- `packages/types`: tipos compartilhados do dominio e contratos internos
+- `packages/types`: tipos compartilhados do dominio e contratos internos, incluindo o schema versionado de conteudo editavel
 - `packages/config`: constantes e helpers de configuracao compartilhaveis
 - `packages/eslint-config`: presets reutilizaveis de ESLint
 - `packages/tsconfig`: bases compartilhadas de TypeScript

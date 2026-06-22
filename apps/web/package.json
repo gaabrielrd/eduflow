@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@eduflow/types": "workspace:*",
     "@eduflow/ui": "workspace:*",
     "next": "^16.2.9",
     "react": "^19.2.7",

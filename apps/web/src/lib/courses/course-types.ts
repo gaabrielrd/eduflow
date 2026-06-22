@@ -1,4 +1,4 @@
-import type { JsonValue } from "@/lib/api/api-client";
+import type { ContentDocument } from "@eduflow/types";
 
 export type CourseStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 export type ModuleStatus = "ACTIVE" | "ARCHIVED";
@@ -31,7 +31,7 @@ export type LessonNode = {
   title: string;
   description: string | null;
   contentType: LessonContentType;
-  contentJson: JsonValue;
+  contentJson: ContentDocument;
   position: number;
   estimatedDurationMinutes: number | null;
   isPreview: boolean;
@@ -66,7 +66,7 @@ export type CreateLessonPayload = {
   title: string;
   description?: string;
   contentType: LessonContentType;
-  contentJson: JsonValue;
+  contentJson: ContentDocument;
   estimatedDurationMinutes?: number;
   isPreview?: boolean;
 };

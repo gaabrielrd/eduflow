@@ -74,7 +74,7 @@ Para membros e convites no MVP, a estrategia atual passa a assumir:
 ## Packages
 
 - `packages/ui`: ponto de partida para componentes reutilizaveis.
-- `packages/types`: tipos compartilhados entre apps e futuros jobs.
+- `packages/types`: tipos compartilhados entre apps e futuros jobs, incluindo o contrato versionado de conteudo editavel usado por editor e renderer.
 - `packages/config`: constantes e helpers compartilhaveis sem segredos.
 - `packages/eslint-config`: presets flat config para lint de web e API.
 - `packages/tsconfig`: bases TypeScript compartilhadas para apps e pacotes.
