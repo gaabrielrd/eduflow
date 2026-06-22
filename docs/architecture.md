@@ -39,7 +39,7 @@ O estado atual inclui:
 - `ValidationPipe` global
 - filtro global de excecoes com `statusCode`, `message`, `error`, `path` e `timestamp`
 - `DatabaseModule` com `PrismaService`
-- `prisma/schema.prisma` inicial para PostgreSQL, ainda sem modelos de dominio
+- `prisma/schema.prisma` com identidade, tenancy inicial e os primeiros modelos de autoria de cursos (`Course`, `CourseModule`, `Lesson`)
 - infraestrutura de autorizacao baseada em `JwtAuthGuard`, `CurrentUser`, `OrganizationContextGuard`, `Roles` e `RolesGuard`
 
 Para autenticacao local do MVP, a estrategia prevista e:
@@ -94,7 +94,7 @@ As convencoes iniciais sao:
 
 ## Banco de dados
 
-PostgreSQL e o banco principal planejado e o Prisma e a camada de acesso escolhida. Nesta fase, o Prisma esta instalado e configurado, mas o schema ainda nao possui entidades de dominio. Migrations reais devem ser adicionadas quando os primeiros modelos forem implementados.
+PostgreSQL e o banco principal planejado e o Prisma e a camada de acesso escolhida. Nesta fase, o schema Prisma ja cobre identidade, tenancy e a estrutura inicial de autoria de cursos, com `Course`, `CourseModule` e `Lesson`. A decisao de publicacao continua separando a entidade editavel `Course` do futuro `CourseVersion`, que entrara em sprint posterior para snapshots publicados e imutaveis.
 
 ## Tenancy inicial
 
@@ -122,7 +122,6 @@ Os testes ainda sao comandos temporarios nos apps. A etapa existe desde ja para 
 
 Ainda nao existem:
 
-- modelos de dominio educacional
 - modelo `CourseVersion` no banco
 - Redis, BullMQ e jobs assincronos
 - MinIO ou armazenamento S3-compatible

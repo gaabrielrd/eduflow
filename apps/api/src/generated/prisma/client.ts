@@ -66,3 +66,18 @@ export type Invitation = Prisma.InvitationModel
  * 
  */
 export type AuthSession = Prisma.AuthSessionModel
+/**
+ * Model Course
+ * 
+ */
+export type Course = Prisma.CourseModel
+/**
+ * Model CourseModule
+ * 
+ */
+export type CourseModule = Prisma.CourseModuleModel
+/**
+ * Model Lesson
+ * 
+ */
+export type Lesson = Prisma.LessonModel

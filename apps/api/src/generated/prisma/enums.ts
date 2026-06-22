@@ -18,3 +18,22 @@ export const Role = {
 } as const
 
 export type Role = (typeof Role)[keyof typeof Role]
+
+
+export const CourseStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type CourseStatus = (typeof CourseStatus)[keyof typeof CourseStatus]
+
+
+export const LessonContentType = {
+  TEXT: 'TEXT',
+  VIDEO: 'VIDEO',
+  QUIZ: 'QUIZ',
+  FILE: 'FILE'
+} as const
+
+export type LessonContentType = (typeof LessonContentType)[keyof typeof LessonContentType]
