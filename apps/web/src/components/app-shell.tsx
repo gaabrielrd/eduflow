@@ -40,6 +40,9 @@ type AppShellProps = {
   children: ReactNode;
 };
 
+const focusLinkClassName =
+  "rounded-md outline-none transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+
 function MenuIcon() {
   return (
     <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 16 16" fill="none">
@@ -76,43 +79,48 @@ function NavigationList({
 }) {
   return (
     <nav aria-label="Navegacao principal" className="space-y-2">
-      {authNavigationItems.map((item) => {
-        const isActive = isNavigationItemActive(pathname, item.href);
+      <ul className="space-y-2">
+        {authNavigationItems.map((item) => {
+          const isActive = isNavigationItemActive(pathname, item.href);
 
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={[
-              "flex items-center justify-between rounded-xl border px-4 py-3 text-sm transition",
-              isActive
-                ? "border-primary/35 bg-primary/12 text-foreground"
-                : "border-border/70 text-muted-foreground hover:border-input hover:bg-accent hover:text-foreground"
-            ].join(" ")}
-            onClick={onNavigate}
-          >
-            <span className="flex items-center gap-3">
-              <span
+          return (
+            <li key={item.href}>
+              <Link
+                aria-current={isActive ? "page" : undefined}
+                href={item.href}
                 className={[
-                  "inline-flex h-8 w-8 items-center justify-center rounded-lg text-[11px] font-semibold uppercase tracking-[0.18em]",
-                  isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                  focusLinkClassName,
+                  "flex items-center justify-between rounded-xl border px-4 py-3 text-sm",
+                  isActive
+                    ? "border-primary/35 bg-primary/12 text-foreground"
+                    : "border-border/70 text-muted-foreground hover:border-input hover:bg-accent hover:text-foreground"
                 ].join(" ")}
+                onClick={onNavigate}
               >
-                {item.shortLabel}
-              </span>
-              <span>{item.label}</span>
-            </span>
-            <span
-              className={[
-                "text-xs uppercase tracking-[0.18em]",
-                isActive ? "text-primary" : "text-muted-foreground/70"
-              ].join(" ")}
-            >
-              go
-            </span>
-          </Link>
-        );
-      })}
+                <span className="flex items-center gap-3">
+                  <span
+                    className={[
+                      "inline-flex h-8 w-8 items-center justify-center rounded-lg text-[11px] font-semibold uppercase tracking-[0.18em]",
+                      isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                    ].join(" ")}
+                  >
+                    {item.shortLabel}
+                  </span>
+                  <span>{item.label}</span>
+                </span>
+                <span
+                  className={[
+                    "text-xs uppercase tracking-[0.18em]",
+                    isActive ? "text-primary" : "text-muted-foreground/70"
+                  ].join(" ")}
+                >
+                  go
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </nav>
   );
 }
@@ -202,21 +210,27 @@ function Breadcrumbs({
 }: {
   items: BreadcrumbItem[];
 }) {
-
   return (
     <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-muted-foreground">
-      {items.map((item, index) => (
-        <div key={`${item.label}-${index}`} className="flex items-center gap-2">
-          {index > 0 ? <ChevronRightIcon /> : null}
-          {item.href ? (
-            <Link href={item.href} className="transition hover:text-foreground">
-              {item.label}
-            </Link>
-          ) : (
-            <span className="text-foreground">{item.label}</span>
-          )}
-        </div>
-      ))}
+      <ol className="flex flex-wrap items-center gap-2">
+        {items.map((item, index) => (
+          <li key={`${item.label}-${index}`} className="flex items-center gap-2">
+            {index > 0 ? <ChevronRightIcon /> : null}
+            {item.href ? (
+              <Link
+                href={item.href}
+                className={`${focusLinkClassName} hover:text-foreground`}
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <span aria-current="page" className="text-foreground">
+                {item.label}
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
     </nav>
   );
 }
@@ -233,9 +247,15 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <BreadcrumbProvider value={{ setOverrideItems: setOverrideBreadcrumbs }}>
       <div className="min-h-screen bg-background px-4 py-4 sm:px-6 lg:px-8">
+        <a
+          className="sr-only absolute left-6 top-6 z-50 rounded-md bg-card px-4 py-2 text-sm text-card-foreground shadow-lg outline-none focus:not-sr-only focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          href="#main-content"
+        >
+          Pular para o conteudo principal
+        </a>
         <div className="mx-auto grid min-h-[calc(100svh-2rem)] max-w-7xl gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
           <aside className="hidden rounded-[1.75rem] border border-border bg-card p-6 text-card-foreground shadow-lg lg:block">
-            <Link href="/app/dashboard" className="block">
+            <Link href="/app/dashboard" className={`block ${focusLinkClassName}`}>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
                 EduFlow
               </p>

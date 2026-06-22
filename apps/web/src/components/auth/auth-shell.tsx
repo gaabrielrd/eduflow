@@ -22,7 +22,7 @@ export function AuthShell({
           <div className="relative flex items-center justify-between gap-4">
             <Link
               href="/"
-              className="text-xs font-semibold uppercase tracking-[0.32em] text-muted-foreground"
+              className="rounded-md text-xs font-semibold uppercase tracking-[0.32em] text-muted-foreground outline-none transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               EduFlow
             </Link>
@@ -61,13 +61,19 @@ export function AuthShell({
           </div>
 
           <div className="relative flex flex-wrap gap-3 text-sm text-muted-foreground">
-            <Link href="/login" className="transition hover:text-foreground">
+            <Link
+              href="/login"
+              className="rounded-md outline-none transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
               Login
             </Link>
             <span aria-hidden="true" className="text-muted-foreground/70">
               /
             </span>
-            <Link href="/register" className="transition hover:text-foreground">
+            <Link
+              href="/register"
+              className="rounded-md outline-none transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
               Cadastro
             </Link>
           </div>

@@ -112,14 +112,17 @@ export function RegisterForm({
           {secondaryActionText}{" "}
           {onSecondaryAction ? (
             <button
-              className="font-semibold text-foreground underline-offset-4 hover:underline"
+              className="rounded-md font-semibold text-foreground underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
               type="button"
               onClick={onSecondaryAction}
             >
               {secondaryActionLabel}
             </button>
-      ) : (
-            <Link className="font-semibold text-foreground underline-offset-4 hover:underline" href="/login">
+          ) : (
+            <Link
+              className="rounded-md font-semibold text-foreground underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+              href="/login"
+            >
               {secondaryActionLabel}
             </Link>
           )}

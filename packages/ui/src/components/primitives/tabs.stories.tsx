@@ -5,7 +5,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 const meta = {
   title: "Primitives/Tabs",
   component: Tabs,
-  tags: ["autodocs"]
+  tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "Tabs para alternancia entre paineis relacionados. Teclado: Tab leva ao conjunto de abas e setas horizontais alternam a aba ativa mantendo o foco no trigger selecionado."
+      }
+    }
+  }
 } satisfies Meta<typeof Tabs>;
 
 export default meta;

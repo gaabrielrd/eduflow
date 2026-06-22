@@ -14,7 +14,15 @@ import {
 const meta = {
   title: "Primitives/Select",
   component: Select,
-  tags: ["autodocs"]
+  tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "Select composto sobre Radix. Deve ser renderizado com label visivel no consumidor. Teclado: Tab leva ao trigger, Enter ou Space abre a lista, setas navegam entre opcoes e Escape fecha o menu."
+      }
+    }
+  }
 } satisfies Meta<typeof Select>;
 
 export default meta;
@@ -23,9 +31,12 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   render: () => (
-    <div className="w-72">
+    <div className="grid w-72 gap-2">
+      <label className="text-sm font-semibold text-foreground" htmlFor="storybook-role-select">
+        Perfil de acesso
+      </label>
       <Select defaultValue="admin">
-        <SelectTrigger>
+        <SelectTrigger id="storybook-role-select">
           <SelectValue placeholder="Selecione um perfil" />
         </SelectTrigger>
         <SelectContent>
@@ -42,6 +53,30 @@ export const Default: Story = {
           </SelectGroup>
         </SelectContent>
       </Select>
+      <p className="text-sm text-muted-foreground">
+        Use setas para navegar e Enter para confirmar a opcao destacada.
+      </p>
+    </div>
+  )
+};
+
+export const Disabled: Story = {
+  render: () => (
+    <div className="grid w-72 gap-2">
+      <label className="text-sm font-semibold text-foreground" htmlFor="storybook-disabled-role-select">
+        Organizacao ativa
+      </label>
+      <Select defaultValue="viewer" disabled>
+        <SelectTrigger id="storybook-disabled-role-select">
+          <SelectValue placeholder="Selecione uma organizacao" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="viewer">Workspace principal</SelectItem>
+        </SelectContent>
+      </Select>
+      <p className="text-sm text-muted-foreground">
+        Exemplo de bloqueio temporario enquanto o contexto do usuario e recarregado.
+      </p>
     </div>
   )
 };

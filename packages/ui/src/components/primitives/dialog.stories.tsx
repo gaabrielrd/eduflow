@@ -14,7 +14,15 @@ import {
 const meta = {
   title: "Primitives/Dialog",
   component: Dialog,
-  tags: ["autodocs"]
+  tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "Dialog modal com foco gerenciado pelo Radix. Teclado: Enter ou Space no trigger abre, Tab percorre o conteudo, Shift+Tab retorna, e Escape fecha devolvendo o foco ao trigger."
+      }
+    }
+  }
 } satisfies Meta<typeof Dialog>;
 
 export default meta;

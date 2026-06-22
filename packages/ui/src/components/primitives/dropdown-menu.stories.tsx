@@ -15,7 +15,15 @@ import {
 const meta = {
   title: "Primitives/DropdownMenu",
   component: DropdownMenu,
-  tags: ["autodocs"]
+  tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "Menu contextual sobre Radix. Teclado: Enter, Space ou seta para baixo no trigger abre o menu; setas navegam entre itens; Enter ou Space aciona o item; Escape fecha."
+      }
+    }
+  }
 } satisfies Meta<typeof DropdownMenu>;
 
 export default meta;

@@ -28,4 +28,30 @@ describe("Dropdown", () => {
 
     expect(onSelect).toHaveBeenCalledTimes(1);
   });
+
+  it("opens by keyboard and closes with Escape", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <Dropdown>
+        <DropdownTrigger asChild>
+          <Button>Acoes</Button>
+        </DropdownTrigger>
+        <DropdownContent>
+          <DropdownItem>Editar</DropdownItem>
+        </DropdownContent>
+      </Dropdown>
+    );
+
+    const trigger = screen.getByRole("button", { name: "Acoes" });
+
+    trigger.focus();
+    await user.keyboard("{Enter}");
+
+    expect(await screen.findByRole("menuitem", { name: "Editar" })).toBeInTheDocument();
+
+    await user.keyboard("{Escape}");
+
+    expect(trigger).toHaveFocus();
+  });
 });
