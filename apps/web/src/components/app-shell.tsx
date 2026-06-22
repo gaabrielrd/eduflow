@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode
+} from "react";
 
 import {
   Button,
@@ -23,7 +28,9 @@ import {
   SelectValue
 } from "@eduflow/ui";
 import { useSession } from "@/hooks/use-session";
+import { BreadcrumbProvider } from "@/components/breadcrumb-context";
 import {
+  type BreadcrumbItem,
   authNavigationItems,
   getBreadcrumbItems,
   getActiveNavigationItem,
@@ -191,8 +198,11 @@ function UserMenu() {
   );
 }
 
-function Breadcrumbs({ pathname }: { pathname: string }) {
-  const items = getBreadcrumbItems(pathname);
+function Breadcrumbs({
+  items
+}: {
+  items: BreadcrumbItem[];
+}) {
 
   return (
     <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -215,96 +225,106 @@ function Breadcrumbs({ pathname }: { pathname: string }) {
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [overrideBreadcrumbs, setOverrideBreadcrumbs] = useState<BreadcrumbItem[] | null>(
+    null
+  );
   const activeItem = getActiveNavigationItem(pathname);
+  const breadcrumbItems = overrideBreadcrumbs ?? getBreadcrumbItems(pathname);
+
+  useEffect(() => {
+    setOverrideBreadcrumbs(null);
+  }, [pathname]);
 
   return (
-    <div className="min-h-screen bg-background px-4 py-4 sm:px-6 lg:px-8">
-      <div className="mx-auto grid min-h-[calc(100svh-2rem)] max-w-7xl gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="hidden rounded-[1.75rem] border border-border bg-card p-6 text-card-foreground shadow-lg lg:block">
-          <Link href="/app/dashboard" className="block">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-              EduFlow
+    <BreadcrumbProvider value={{ setOverrideItems: setOverrideBreadcrumbs }}>
+      <div className="min-h-screen bg-background px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto grid min-h-[calc(100svh-2rem)] max-w-7xl gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
+          <aside className="hidden rounded-[1.75rem] border border-border bg-card p-6 text-card-foreground shadow-lg lg:block">
+            <Link href="/app/dashboard" className="block">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+                EduFlow
+              </p>
+              <h1 className="mt-3 text-2xl font-semibold tracking-[-0.05em]">
+                Workspace
+              </h1>
+            </Link>
+
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">
+              Navegue entre as areas principais do produto e troque o contexto da organizacao ativa.
             </p>
-            <h1 className="mt-3 text-2xl font-semibold tracking-[-0.05em]">
-              Workspace
-            </h1>
-          </Link>
 
-          <p className="mt-4 text-sm leading-6 text-muted-foreground">
-            Navegue entre as areas principais do produto e troque o contexto da organizacao ativa.
-          </p>
+            <div className="mt-8">
+              <OrganizationMenu />
+            </div>
 
-          <div className="mt-8">
-            <OrganizationMenu />
-          </div>
+            <div className="mt-8">
+              <NavigationList pathname={pathname} />
+            </div>
+          </aside>
 
-          <div className="mt-8">
-            <NavigationList pathname={pathname} />
-          </div>
-        </aside>
+          <div className="rounded-[1.75rem] border border-border bg-card/88 shadow-lg backdrop-blur">
+            <header className="border-b border-border px-5 py-4 sm:px-6 lg:px-8">
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between gap-3 lg:hidden">
+                  <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="h-10 rounded-xl px-3">
+                        <MenuIcon />
+                        Menu
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="w-[calc(100vw-2rem)] max-w-sm p-0">
+                      <DialogTitle className="sr-only">Navegacao principal</DialogTitle>
+                      <div className="border-b border-border px-5 py-5">
+                        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+                          EduFlow
+                        </p>
+                        <h2 className="mt-3 text-xl font-semibold tracking-[-0.04em] text-card-foreground">
+                          Workspace
+                        </h2>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                          Acesso rapido ao dashboard, conteudo e configuracoes.
+                        </p>
+                      </div>
+                      <div className="space-y-5 px-5 py-5">
+                        <OrganizationMenu />
+                        <NavigationList pathname={pathname} onNavigate={() => setMobileOpen(false)} />
+                      </div>
+                    </DialogContent>
+                  </Dialog>
 
-        <div className="rounded-[1.75rem] border border-border bg-card/88 shadow-lg backdrop-blur">
-          <header className="border-b border-border px-5 py-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between gap-3 lg:hidden">
-                <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="h-10 rounded-xl px-3">
-                      <MenuIcon />
-                      Menu
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="w-[calc(100vw-2rem)] max-w-sm p-0">
-                    <DialogTitle className="sr-only">Navegacao principal</DialogTitle>
-                    <div className="border-b border-border px-5 py-5">
-                      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                        EduFlow
-                      </p>
-                      <h2 className="mt-3 text-xl font-semibold tracking-[-0.04em] text-card-foreground">
-                        Workspace
-                      </h2>
-                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                        Acesso rapido ao dashboard, conteudo e configuracoes.
-                      </p>
-                    </div>
-                    <div className="space-y-5 px-5 py-5">
-                      <OrganizationMenu />
-                      <NavigationList pathname={pathname} onNavigate={() => setMobileOpen(false)} />
-                    </div>
-                  </DialogContent>
-                </Dialog>
-
-                <UserMenu />
-              </div>
-
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="space-y-2">
-                  <Breadcrumbs pathname={pathname} />
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                      Shell autenticado
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {activeItem
-                        ? `${activeItem.label} dentro do workspace autenticado`
-                        : "Area autenticada do EduFlow"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="hidden items-center gap-3 lg:flex">
-                  <OrganizationMenu />
                   <UserMenu />
                 </div>
-              </div>
-            </div>
-          </header>
 
-          <main className="px-5 py-6 sm:px-6 lg:px-8" id="main-content">
-            {children}
-          </main>
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="space-y-2">
+                    <Breadcrumbs items={breadcrumbItems} />
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                        Shell autenticado
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {activeItem
+                          ? `${activeItem.label} dentro do workspace autenticado`
+                          : "Area autenticada do EduFlow"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="hidden items-center gap-3 lg:flex">
+                    <OrganizationMenu />
+                    <UserMenu />
+                  </div>
+                </div>
+              </div>
+            </header>
+
+            <main className="px-5 py-6 sm:px-6 lg:px-8" id="main-content">
+              {children}
+            </main>
+          </div>
         </div>
       </div>
-    </div>
+    </BreadcrumbProvider>
   );
 }
