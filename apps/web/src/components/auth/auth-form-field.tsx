@@ -17,17 +17,17 @@ export function AuthFormField({
 }: AuthFormFieldProps) {
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-semibold text-slate-900" htmlFor={htmlFor}>
+      <label className="block text-sm font-semibold text-card-foreground" htmlFor={htmlFor}>
         {label}
       </label>
       {children}
       {hint ? (
-        <p className="text-sm text-slate-500" id={`${htmlFor}-hint`}>
+        <p className="text-sm text-muted-foreground" id={`${htmlFor}-hint`}>
           {hint}
         </p>
       ) : null}
       {error ? (
-        <p className="text-sm font-medium text-rose-600" id={`${htmlFor}-error`} role="alert">
+        <p className="text-sm font-medium text-destructive" id={`${htmlFor}-error`} role="alert">
           {error}
         </p>
       ) : null}

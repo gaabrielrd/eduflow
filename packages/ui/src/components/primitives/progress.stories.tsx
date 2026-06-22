@@ -21,15 +21,15 @@ export const Stages: Story = {
   render: () => (
     <div className="grid w-full min-w-80 gap-5">
       <div className="space-y-2">
-        <p className="text-sm font-medium text-slate-700">Rascunho</p>
+        <p className="text-sm font-medium text-foreground">Rascunho</p>
         <Progress value={18} />
       </div>
       <div className="space-y-2">
-        <p className="text-sm font-medium text-slate-700">Revisao</p>
+        <p className="text-sm font-medium text-foreground">Revisao</p>
         <Progress value={52} />
       </div>
       <div className="space-y-2">
-        <p className="text-sm font-medium text-slate-700">Publicado</p>
+        <p className="text-sm font-medium text-foreground">Publicado</p>
         <Progress value={100} />
       </div>
     </div>

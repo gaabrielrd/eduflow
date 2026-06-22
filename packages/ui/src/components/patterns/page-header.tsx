@@ -25,15 +25,15 @@ export function PageHeader({
     >
       <div className="max-w-3xl">
         {eyebrow ? (
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
             {eyebrow}
           </p>
         ) : null}
-        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">
+        <h1 className="mt-3 text-3xl font-semibold tracking-tighter text-foreground sm:text-4xl">
           {title}
         </h1>
         {description ? (
-          <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
+          <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">
             {description}
           </p>
         ) : null}

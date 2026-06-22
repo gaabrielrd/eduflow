@@ -54,15 +54,15 @@ export default function DashboardPage() {
         {dashboardTiles.map((tile) => (
           <Card key={tile.label}>
             <CardHeader className="pb-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
                 {tile.label}
               </p>
-              <p className="text-4xl font-semibold tracking-[-0.06em] text-slate-950">
+              <p className="text-4xl font-semibold tracking-[-0.06em] text-foreground">
                 {tile.value}
               </p>
             </CardHeader>
             <CardContent>
-              <p className="text-sm leading-6 text-slate-600">{tile.detail}</p>
+              <p className="text-sm leading-6 text-muted-foreground">{tile.detail}</p>
             </CardContent>
           </Card>
         ))}
@@ -77,12 +77,12 @@ export default function DashboardPage() {
         <TabsContent value="overview">
           <Card>
             <CardHeader>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
                 Publicacao media
               </p>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-center justify-between text-sm text-slate-600">
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
                 <span>Fluxo editorial preenchido</span>
                 <span>42%</span>
               </div>
@@ -94,7 +94,7 @@ export default function DashboardPage() {
         <TabsContent value="pipeline">
           <Card>
             <CardHeader>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
                 Etapas futuras
               </p>
             </CardHeader>

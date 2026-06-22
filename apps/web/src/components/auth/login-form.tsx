@@ -55,7 +55,7 @@ export function LoginForm({
     <>
       <CardHeader className="space-y-2">
         <CardTitle className="text-2xl tracking-[-0.05em]">Entrar no EduFlow</CardTitle>
-        <p className="text-sm leading-6 text-slate-600">
+        <p className="text-sm leading-6 text-muted-foreground">
           Use seu email e sua senha para continuar para a area autenticada.
         </p>
       </CardHeader>
@@ -86,7 +86,7 @@ export function LoginForm({
           </AuthFormField>
 
           {errors.root?.message ? (
-            <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">
+            <p className="rounded-2xl border border-destructive/35 bg-destructive/12 px-4 py-3 text-sm text-destructive" role="alert">
               {errors.root.message}
             </p>
           ) : null}
@@ -96,18 +96,18 @@ export function LoginForm({
           </Button>
         </form>
 
-        <p className="mt-6 text-sm text-slate-600">
+        <p className="mt-6 text-sm text-muted-foreground">
           {secondaryActionText}{" "}
           {onSecondaryAction ? (
             <button
-              className="font-semibold text-slate-950 underline-offset-4 hover:underline"
+              className="font-semibold text-foreground underline-offset-4 hover:underline"
               type="button"
               onClick={onSecondaryAction}
             >
               {secondaryActionLabel}
             </button>
       ) : (
-            <Link className="font-semibold text-slate-950 underline-offset-4 hover:underline" href="/register">
+            <Link className="font-semibold text-foreground underline-offset-4 hover:underline" href="/register">
               {secondaryActionLabel}
             </Link>
           )}
@@ -121,7 +121,7 @@ export function LoginForm({
   }
 
   return (
-    <Card className="border-white/70 bg-white/92 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+    <Card className="border-border bg-card shadow-lg">
       {content}
     </Card>
   );

@@ -20,7 +20,7 @@ export const DropdownMenuContent = forwardRef<
   <DropdownMenuPrimitive.Portal>
     <DropdownMenuPrimitive.Content
       className={cn(
-        "z-50 min-w-48 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1.5 shadow-[0_16px_48px_rgba(15,23,42,0.16)] outline-none",
+        "z-dropdown min-w-48 overflow-hidden rounded-lg border border-border bg-card p-1.5 text-card-foreground shadow-lg outline-none",
         className
       )}
       ref={ref}
@@ -40,7 +40,7 @@ export const DropdownMenuItem = forwardRef<
 >(({ className, inset, ...props }, ref) => (
   <DropdownMenuPrimitive.Item
     className={cn(
-      "relative flex cursor-default select-none items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none transition focus:bg-slate-100 focus:text-slate-950 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-default select-none items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground outline-none transition focus:bg-accent focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       inset && "pl-8",
       className
     )}
@@ -58,7 +58,7 @@ export const DropdownMenuCheckboxItem = forwardRef<
   <DropdownMenuPrimitive.CheckboxItem
     checked={checked}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-xl py-2 pl-8 pr-3 text-sm text-slate-700 outline-none transition focus:bg-slate-100 focus:text-slate-950 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-default select-none items-center rounded-md py-2 pl-8 pr-3 text-sm text-muted-foreground outline-none transition focus:bg-accent focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
     ref={ref}
@@ -92,7 +92,7 @@ export const DropdownMenuLabel = forwardRef<
 >(({ className, inset, ...props }, ref) => (
   <DropdownMenuPrimitive.Label
     className={cn(
-      "px-3 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500",
+      "px-3 py-2 text-xs font-semibold uppercase tracking-eyebrow text-muted-foreground",
       inset && "pl-8",
       className
     )}
@@ -108,7 +108,7 @@ export const DropdownMenuSeparator = forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.Separator
-    className={cn("-mx-1 my-1 h-px bg-slate-200", className)}
+    className={cn("-mx-1 my-1 h-px bg-border", className)}
     ref={ref}
     {...props}
   />
@@ -122,7 +122,7 @@ export function DropdownMenuShortcut({
 }: HTMLAttributes<HTMLSpanElement>) {
   return (
     <span
-      className={cn("ml-auto text-xs uppercase tracking-[0.18em] text-slate-400", className)}
+      className={cn("ml-auto text-xs uppercase tracking-[0.18em] text-muted-foreground/70", className)}
       {...props}
     />
   );

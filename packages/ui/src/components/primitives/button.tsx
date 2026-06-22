@@ -9,25 +9,23 @@ import {
 import { cn } from "../../lib/cn";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default:
-          "bg-slate-950 text-white hover:bg-slate-800 disabled:bg-slate-950",
-        secondary:
-          "bg-slate-100 text-slate-900 hover:bg-slate-200 disabled:bg-slate-100",
+        default: "bg-primary text-primary-foreground hover:brightness-110 disabled:bg-primary",
+        secondary: "bg-muted text-foreground hover:bg-accent disabled:bg-muted",
         outline:
-          "border border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:text-slate-950",
-        ghost: "text-slate-700 hover:bg-slate-100 hover:text-slate-950",
+          "border border-border bg-transparent text-foreground hover:border-input hover:bg-accent",
+        ghost: "text-muted-foreground hover:bg-accent hover:text-foreground",
         destructive:
-          "bg-rose-600 text-white hover:bg-rose-500 disabled:bg-rose-600"
+          "bg-destructive text-destructive-foreground hover:brightness-105 disabled:bg-destructive"
       },
       size: {
         sm: "h-9 px-4 text-sm",
         default: "h-11 px-5 text-sm",
         lg: "h-12 px-6 text-base",
-        icon: "h-10 w-10 rounded-full p-0"
+        icon: "h-10 w-10 rounded-md p-0"
       }
     },
     defaultVariants: {

@@ -27,12 +27,12 @@ export default function AppHomePage() {
           </CardHeader>
         </Card>
 
-        <Card className="border-slate-900 bg-slate-950 text-white shadow-[0_12px_40px_rgba(15,23,42,0.18)]">
+        <Card className="border-border bg-background text-foreground shadow-lg">
           <CardHeader>
-            <CardTitle className="text-white">Area em construcao</CardTitle>
+            <CardTitle className="text-foreground">Area em construcao</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm leading-6 text-slate-300">
+            <p className="text-sm leading-6 text-muted-foreground">
               Use a navegacao lateral para acessar o placeholder do dashboard e a rota tecnica de
               status.
             </p>

@@ -6,7 +6,7 @@ export const Table = forwardRef<HTMLTableElement, TableHTMLAttributes<HTMLTableE
   ({ className, ...props }, ref) => (
     <div className="w-full overflow-x-auto">
       <table
-        className={cn("w-full caption-bottom text-sm text-slate-700", className)}
+        className={cn("w-full caption-bottom text-sm text-muted-foreground", className)}
         ref={ref}
         {...props}
       />
@@ -20,7 +20,7 @@ export const TableHeader = forwardRef<
   HTMLTableSectionElement,
   HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead className={cn("[&_tr]:border-b [&_tr]:border-slate-200", className)} ref={ref} {...props} />
+  <thead className={cn("[&_tr]:border-b [&_tr]:border-border", className)} ref={ref} {...props} />
 ));
 
 TableHeader.displayName = "TableHeader";
@@ -30,7 +30,7 @@ export const TableBody = forwardRef<
   HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
   <tbody
-    className={cn("[&_tr:last-child]:border-0 [&_tr]:border-b [&_tr]:border-slate-100", className)}
+    className={cn("[&_tr:last-child]:border-0 [&_tr]:border-b [&_tr]:border-border/70", className)}
     ref={ref}
     {...props}
   />
@@ -42,7 +42,7 @@ export const TableFooter = forwardRef<
   HTMLTableSectionElement,
   HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <tfoot className={cn("border-t border-slate-200 bg-slate-50/70 font-medium", className)} ref={ref} {...props} />
+  <tfoot className={cn("border-t border-border bg-muted/30 font-medium text-foreground", className)} ref={ref} {...props} />
 ));
 
 TableFooter.displayName = "TableFooter";
@@ -51,7 +51,7 @@ export const TableRow = forwardRef<
   HTMLTableRowElement,
   HTMLAttributes<HTMLTableRowElement>
 >(({ className, ...props }, ref) => (
-  <tr className={cn("transition-colors hover:bg-slate-50", className)} ref={ref} {...props} />
+  <tr className={cn("transition-colors hover:bg-accent/70", className)} ref={ref} {...props} />
 ));
 
 TableRow.displayName = "TableRow";
@@ -62,7 +62,7 @@ export const TableHead = forwardRef<
 >(({ className, ...props }, ref) => (
   <th
     className={cn(
-      "h-12 px-4 text-left text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 align-middle",
+      "h-12 px-4 text-left text-xs font-semibold uppercase tracking-eyebrow text-muted-foreground align-middle",
       className
     )}
     ref={ref}
@@ -85,5 +85,5 @@ export function TableCaption({
   className,
   ...props
 }: HTMLAttributes<HTMLElement>) {
-  return <caption className={cn("mt-4 text-sm text-slate-500", className)} {...props} />;
+  return <caption className={cn("mt-4 text-sm text-muted-foreground", className)} {...props} />;
 }

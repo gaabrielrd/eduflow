@@ -213,7 +213,7 @@ export function MembersSettingsScreen() {
       />
 
       {errorMessage ? (
-        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        <p className="rounded-2xl border border-destructive/35 bg-destructive/12 px-4 py-3 text-sm text-destructive">
           {errorMessage}
         </p>
       ) : null}
@@ -224,7 +224,7 @@ export function MembersSettingsScreen() {
             <CardTitle className="text-xl tracking-[-0.04em]">
               Convidar membro
             </CardTitle>
-            <p className="text-sm leading-6 text-slate-600">
+            <p className="text-sm leading-6 text-muted-foreground">
               O link fica disponivel para copiar e compartilhar manualmente neste MVP.
             </p>
           </CardHeader>
@@ -271,7 +271,7 @@ export function MembersSettingsScreen() {
               </AuthFormField>
 
               {errors.root?.message ? (
-                <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">
+                <p className="rounded-2xl border border-destructive/35 bg-destructive/12 px-4 py-3 text-sm text-destructive" role="alert">
                   {errors.root.message}
                 </p>
               ) : null}
@@ -282,11 +282,11 @@ export function MembersSettingsScreen() {
             </form>
 
             {createdInvitation ? (
-              <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-4">
-                <p className="text-sm font-semibold text-emerald-900">
+              <div className="rounded-[1.5rem] border border-success/35 bg-success/12 p-4">
+                <p className="text-sm font-semibold text-success">
                   Convite criado para {createdInvitation.email}
                 </p>
-                <p className="mt-2 break-all text-sm text-emerald-800">
+                <p className="mt-2 break-all text-sm text-success">
                   {`${typeof window === "undefined" ? "" : window.location.origin}${createdInvitation.inviteUrl}`}
                 </p>
                 <Button
@@ -307,7 +307,7 @@ export function MembersSettingsScreen() {
             <CardTitle className="text-xl tracking-[-0.04em]">
               Membros atuais
             </CardTitle>
-            <p className="text-sm leading-6 text-slate-600">
+            <p className="text-sm leading-6 text-muted-foreground">
               Lista basica da organizacao ativa para administracao do MVP.
             </p>
           </CardHeader>
@@ -350,7 +350,7 @@ export function MembersSettingsScreen() {
           <CardTitle className="text-xl tracking-[-0.04em]">
             Convites emitidos
           </CardTitle>
-          <p className="text-sm leading-6 text-slate-600">
+          <p className="text-sm leading-6 text-muted-foreground">
             Convites expostos sem envio de email automatico nesta primeira versao.
           </p>
         </CardHeader>

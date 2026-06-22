@@ -48,12 +48,12 @@ export function CreateOrganizationForm({
   }
 
   return (
-    <Card className="border-white/70 bg-white/92 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+    <Card className="border-border bg-card shadow-lg">
       <CardHeader className="space-y-2">
         <CardTitle className="text-2xl tracking-[-0.05em]">
           Criar organizacao inicial
         </CardTitle>
-        <p className="text-sm leading-6 text-slate-600">
+        <p className="text-sm leading-6 text-muted-foreground">
           Defina o nome da sua organizacao e um identificador curto para continuar.
         </p>
       </CardHeader>
@@ -92,7 +92,7 @@ export function CreateOrganizationForm({
           </AuthFormField>
 
           {errors.root?.message ? (
-            <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">
+            <p className="rounded-2xl border border-destructive/35 bg-destructive/12 px-4 py-3 text-sm text-destructive" role="alert">
               {errors.root.message}
             </p>
           ) : null}

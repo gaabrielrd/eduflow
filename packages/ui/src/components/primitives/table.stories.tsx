@@ -38,19 +38,19 @@ export const Default: Story = {
       </TableHeader>
       <TableBody>
         <TableRow>
-          <TableCell className="font-medium text-slate-950">Onboarding</TableCell>
+          <TableCell className="font-medium text-foreground">Onboarding</TableCell>
           <TableCell>Ativa</TableCell>
           <TableCell>4</TableCell>
           <TableCell className="text-right">182</TableCell>
         </TableRow>
         <TableRow>
-          <TableCell className="font-medium text-slate-950">Academia de vendas</TableCell>
+          <TableCell className="font-medium text-foreground">Academia de vendas</TableCell>
           <TableCell>Em revisao</TableCell>
           <TableCell>2</TableCell>
           <TableCell className="text-right">96</TableCell>
         </TableRow>
         <TableRow>
-          <TableCell className="font-medium text-slate-950">Boas praticas LGPD</TableCell>
+          <TableCell className="font-medium text-foreground">Boas praticas LGPD</TableCell>
           <TableCell>Rascunho</TableCell>
           <TableCell>1</TableCell>
           <TableCell className="text-right">41</TableCell>

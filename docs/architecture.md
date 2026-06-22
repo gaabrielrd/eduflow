@@ -87,7 +87,8 @@ As convencoes iniciais sao:
 
 - stories ficam proximas aos componentes compartilhados em `packages/ui/src`
 - o Storybook documenta primitives e patterns reutilizaveis, nao telas ou fluxos de rota
-- o tema atual reutiliza temporariamente `apps/web/src/styles/tokens.css` ate existir uma camada compartilhada formal para design tokens
+- os design tokens iniciais vivem em `packages/ui/src/styles/tokens.css` e sao consumidos por `apps/web` e pelo Storybook via Tailwind v4 em modo CSS-first
+- o contrato visual compartilhado passa a privilegiar classes semanticas como `bg-background`, `text-foreground`, `border-border` e `ring-ring`
 
 ## Banco de dados
 

@@ -85,6 +85,8 @@ pnpm api:prisma:generate
 
 O Storybook inicial do EduFlow vive em `packages/ui`, ao lado dos componentes compartilhados do design system.
 
+Os tokens visuais iniciais do produto ficam centralizados em `packages/ui/src/styles/tokens.css` e alimentam tanto o Storybook quanto o `apps/web`.
+
 ```bash
 pnpm storybook
 pnpm build-storybook

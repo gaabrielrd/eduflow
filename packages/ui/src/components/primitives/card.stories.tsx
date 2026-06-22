@@ -34,7 +34,7 @@ export const Default: Story = {
           Acompanhe o status das entregas e mantenha o contexto centralizado.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm text-slate-600">
+      <CardContent className="space-y-3 text-sm text-muted-foreground">
         <p>12 pessoas ativas</p>
         <p>3 fluxos aguardando revisao</p>
       </CardContent>

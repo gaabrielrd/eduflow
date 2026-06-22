@@ -17,7 +17,7 @@ export const DialogOverlay = forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     className={cn(
-      "fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out",
+      "fixed inset-0 z-overlay bg-background/72 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out",
       className
     )}
     ref={ref}
@@ -35,14 +35,14 @@ export const DialogContent = forwardRef<
     <DialogOverlay />
     <DialogPrimitive.Content
       className={cn(
-        "fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-[1.75rem] border border-white/70 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.18)] outline-none focus-visible:ring-2 focus-visible:ring-sky-500",
+        "fixed left-1/2 top-1/2 z-dialog w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl border border-border bg-card p-5 shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         className
       )}
       ref={ref}
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white">
+      <DialogPrimitive.Close className="absolute right-3 top-3 rounded-md p-2 text-muted-foreground transition hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card">
         <span className="sr-only">Close</span>
         <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 16 16" fill="none">
           <path
@@ -77,7 +77,7 @@ export const DialogTitle = forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
-    className={cn("text-xl font-semibold tracking-[-0.04em] text-slate-950", className)}
+    className={cn("text-xl font-semibold tracking-tighter text-card-foreground", className)}
     ref={ref}
     {...props}
   />
@@ -90,7 +90,7 @@ export const DialogDescription = forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
-    className={cn("text-sm leading-6 text-slate-600", className)}
+    className={cn("text-sm leading-6 text-muted-foreground", className)}
     ref={ref}
     {...props}
   />

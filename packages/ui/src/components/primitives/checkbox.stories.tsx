@@ -18,7 +18,7 @@ export const Default: Story = {
     const [checked, setChecked] = useState(false);
 
     return (
-      <label className="flex items-center gap-3 text-sm text-slate-700">
+      <label className="flex items-center gap-3 text-sm text-foreground">
         <Checkbox
           checked={checked}
           onCheckedChange={(nextChecked) => setChecked(nextChecked === true)}
@@ -31,7 +31,7 @@ export const Default: Story = {
 
 export const States: Story = {
   render: () => (
-    <div className="flex flex-col gap-4 text-sm text-slate-700">
+    <div className="flex flex-col gap-4 text-sm text-foreground">
       <label className="flex items-center gap-3">
         <Checkbox checked />
         Permissao concedida

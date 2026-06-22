@@ -1,19 +1,20 @@
 @import "tailwindcss";
-@import "../../../apps/web/src/styles/tokens.css";
+@import "../src/styles/tokens.css";
 
 @source "../src";
 
 html {
   background:
-    radial-gradient(circle at top, rgba(84, 153, 255, 0.16), transparent 30%),
-    linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
-  color: var(--color-ink);
+    radial-gradient(circle at top, rgba(120, 166, 255, 0.2), transparent 32%),
+    linear-gradient(180deg, #161d2c 0%, var(--background) 100%);
+  color: var(--foreground);
   font-family: var(--font-sans);
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  background: transparent;
   color: inherit;
   font-family: inherit;
 }

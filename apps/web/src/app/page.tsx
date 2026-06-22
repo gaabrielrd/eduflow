@@ -7,18 +7,18 @@ export default function HomePage() {
   return (
     <main className="min-h-screen">
       <section className="relative overflow-hidden px-6 py-10 sm:px-10 lg:px-14">
-        <div className="mx-auto flex min-h-[calc(100svh-5rem)] max-w-6xl flex-col justify-between gap-12 rounded-[2rem] border border-white/60 bg-white/72 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:p-14">
-          <div className="flex items-center justify-between gap-4 text-sm text-slate-600">
+        <div className="mx-auto flex min-h-[calc(100svh-5rem)] max-w-6xl flex-col justify-between gap-12 rounded-[2rem] border border-border bg-card/88 p-8 shadow-lg backdrop-blur sm:p-10 lg:p-14">
+          <div className="flex items-center justify-between gap-4 text-sm text-muted-foreground">
             <div>
-              <p className="font-semibold uppercase tracking-[0.28em] text-slate-500">
+              <p className="font-semibold uppercase tracking-[0.28em] text-muted-foreground">
                 EduFlow
               </p>
-              <p className="mt-2 max-w-md text-sm leading-6 text-slate-600">
+              <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
                 Base da plataforma educacional modular pronta para crescer com
                 autoria, operacao e experiencia do aluno.
               </p>
             </div>
-            <div className="hidden rounded-full border border-slate-200 bg-slate-950 px-4 py-2 text-xs font-medium uppercase tracking-[0.24em] text-white md:block">
+            <div className="hidden rounded-full border border-border bg-background px-4 py-2 text-xs font-medium uppercase tracking-[0.24em] text-foreground md:block">
               Web online
             </div>
           </div>
@@ -46,15 +46,15 @@ export default function HomePage() {
 
             <div className="grid gap-4">
               {statusCards.map((card) => (
-                <Card key={card.title} className="border-slate-200/80 bg-slate-50/80 shadow-none">
+                <Card key={card.title} className="border-border/80 bg-muted/45 shadow-none">
                   <CardHeader className="pb-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
                       {card.eyebrow}
                     </p>
                     <CardTitle>{card.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm leading-6 text-slate-600">{card.description}</p>
+                    <p className="text-sm leading-6 text-muted-foreground">{card.description}</p>
                   </CardContent>
                 </Card>
               ))}

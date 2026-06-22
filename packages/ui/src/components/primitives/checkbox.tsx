@@ -13,13 +13,13 @@ export const Checkbox = forwardRef<
   return (
     <CheckboxPrimitive.Root
       className={cn(
-        "peer h-5 w-5 shrink-0 rounded-md border border-slate-300 bg-white shadow-sm outline-none transition focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-slate-950 data-[state=checked]:bg-slate-950",
+        "peer h-5 w-5 shrink-0 rounded-sm border border-input bg-card shadow-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-primary data-[state=checked]:bg-primary",
         className
       )}
       ref={ref}
       {...props}
     >
-      <CheckboxPrimitive.Indicator className="flex items-center justify-center text-white">
+      <CheckboxPrimitive.Indicator className="flex items-center justify-center text-primary-foreground">
         <svg
           aria-hidden="true"
           className="h-3.5 w-3.5"

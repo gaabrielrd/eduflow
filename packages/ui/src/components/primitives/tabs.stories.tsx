@@ -21,17 +21,17 @@ export const Default: Story = {
         <TabsTrigger value="metrics">Metricas</TabsTrigger>
       </TabsList>
       <TabsContent value="overview">
-        <div className="rounded-[1.5rem] border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground shadow-md">
           Visao geral da trilha, com objetivo, publico e progresso de setup.
         </div>
       </TabsContent>
       <TabsContent value="content">
-        <div className="rounded-[1.5rem] border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground shadow-md">
           Modulos, aulas e recursos associados a esta experiencia de aprendizado.
         </div>
       </TabsContent>
       <TabsContent value="metrics">
-        <div className="rounded-[1.5rem] border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground shadow-md">
           Taxa de conclusao, engajamento e principais gargalos de navegacao.
         </div>
       </TabsContent>

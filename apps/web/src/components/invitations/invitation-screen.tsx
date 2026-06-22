@@ -74,7 +74,7 @@ export function InvitationScreen({
 
   if (!invitation) {
     return (
-      <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#e2e8f0_100%)] px-4 py-8">
+      <main className="min-h-screen bg-background px-4 py-8">
         <div className="mx-auto max-w-2xl">
           <Card>
             <CardHeader>
@@ -83,13 +83,13 @@ export function InvitationScreen({
                 Este link nao esta mais disponivel
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm leading-6 text-slate-600">
+            <CardContent className="space-y-4 text-sm leading-6 text-muted-foreground">
               <p>
                 {errorStatus === 404
                   ? "O token informado nao corresponde a nenhum convite ativo conhecido."
                   : "Nao foi possivel carregar os detalhes do convite agora."}
               </p>
-              <Link className="font-semibold text-slate-950 underline-offset-4 hover:underline" href="/">
+              <Link className="font-semibold text-foreground underline-offset-4 hover:underline" href="/">
                 Voltar para a home
               </Link>
             </CardContent>
@@ -107,67 +107,67 @@ export function InvitationScreen({
         onAuthenticated={handleAuthenticated}
       />
 
-      <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#e2e8f0_100%)] px-4 py-8 sm:px-6 lg:px-8">
+      <main className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl">
-          <Card className="overflow-hidden border-white/70 bg-white/92 shadow-[0_24px_80px_rgba(15,23,42,0.12)]">
-            <CardHeader className="space-y-4 bg-slate-950 text-white">
+          <Card className="overflow-hidden border-border bg-card shadow-lg">
+            <CardHeader className="space-y-4 bg-background text-foreground">
               <Badge variant={invitation.status === "pending" ? "success" : "secondary"}>
                 Convite {invitation.status}
               </Badge>
               <CardTitle className="text-3xl tracking-[-0.05em]">
                 Convite para entrar em {invitation.organization.name}
               </CardTitle>
-              <p className="max-w-2xl text-sm leading-6 text-slate-300">
+              <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
                 Este convite libera o perfil <strong>{invitation.role}</strong> para o email{" "}
                 <strong>{invitation.email}</strong>.
               </p>
             </CardHeader>
             <CardContent className="space-y-6 p-6 sm:p-8">
-              <div className="grid gap-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 sm:grid-cols-2">
+              <div className="grid gap-4 rounded-[1.5rem] border border-border bg-muted/45 p-5 sm:grid-cols-2">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
                     Organizacao
                   </p>
-                  <p className="mt-2 text-sm font-medium text-slate-950">
+                  <p className="mt-2 text-sm font-medium text-foreground">
                     {invitation.organization.name}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
                     Expira em
                   </p>
-                  <p className="mt-2 text-sm font-medium text-slate-950">
+                  <p className="mt-2 text-sm font-medium text-foreground">
                     {formatDate(invitation.expiresAt)}
                   </p>
                 </div>
               </div>
 
               {errorMessage ? (
-                <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                <p className="rounded-2xl border border-destructive/35 bg-destructive/12 px-4 py-3 text-sm text-destructive">
                   {errorMessage}
                 </p>
               ) : null}
 
               {invitation.status === "expired" ? (
-                <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                <p className="rounded-2xl border border-warning/35 bg-warning/12 px-4 py-3 text-sm text-warning">
                   Este convite expirou. Peça um novo link para um owner ou admin da organizacao.
                 </p>
               ) : null}
 
               {invitation.status === "accepted" ? (
-                <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                <p className="rounded-2xl border border-success/35 bg-success/12 px-4 py-3 text-sm text-success">
                   Este convite ja foi aceito anteriormente.
                 </p>
               ) : null}
 
               {!isAuthenticated && invitation.status === "pending" ? (
-                <p className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+                <p className="rounded-2xl border border-primary/35 bg-primary/12 px-4 py-3 text-sm text-primary">
                   Entre ou crie sua conta para continuar sem sair desta pagina.
                 </p>
               ) : null}
 
               {isAuthenticated && invitation.status === "pending" && !isEmailMatch ? (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-800">
+                <div className="rounded-2xl border border-destructive/35 bg-destructive/12 px-4 py-4 text-sm text-destructive">
                   <p>
                     A sessao atual usa <strong>{session?.user.email}</strong>, mas o convite foi emitido para{" "}
                     <strong>{invitation.email}</strong>.
@@ -188,7 +188,7 @@ export function InvitationScreen({
                   Aceitar convite
                 </Button>
                 <Link
-                  className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-300 px-5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  className="inline-flex h-11 items-center justify-center rounded-2xl border border-border px-5 text-sm font-medium text-foreground transition hover:bg-accent"
                   href="/"
                 >
                   Voltar

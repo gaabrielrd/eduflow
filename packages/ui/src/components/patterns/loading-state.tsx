@@ -17,7 +17,7 @@ export function LoadingState({
   return (
     <div
       className={cn(
-        "rounded-[1.75rem] border border-slate-200 bg-white/80 p-8 text-center shadow-sm",
+        "rounded-xl border border-border bg-card/88 p-8 text-center shadow-md",
         className
       )}
       {...props}
@@ -25,12 +25,12 @@ export function LoadingState({
       <div className="mx-auto flex max-w-xl flex-col items-center">
         <span
           aria-hidden="true"
-          className="inline-block h-10 w-10 animate-spin rounded-full border-[3px] border-slate-300 border-r-slate-950"
+          className="inline-block h-10 w-10 animate-spin rounded-full border-[3px] border-muted border-r-primary"
         />
-        <h2 className="mt-5 text-xl font-semibold tracking-[-0.03em] text-slate-950">
+        <h2 className="mt-5 text-xl font-semibold tracking-tight text-card-foreground">
           {title}
         </h2>
-        <p className="mt-3 text-sm leading-6 text-slate-600">{description}</p>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">{description}</p>
       </div>
     </div>
   );

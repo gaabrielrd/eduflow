@@ -21,13 +21,13 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "rounded-[1.75rem] border border-dashed border-slate-300 bg-white/80 p-8 text-center shadow-sm",
+        "rounded-xl border border-dashed border-border bg-card/88 p-8 text-center shadow-md",
         className
       )}
       {...props}
     >
       <div className="mx-auto flex max-w-xl flex-col items-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+        <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-muted text-muted-foreground">
           {icon ?? (
             <svg aria-hidden="true" className="h-6 w-6" viewBox="0 0 24 24" fill="none">
               <path
@@ -40,11 +40,11 @@ export function EmptyState({
             </svg>
           )}
         </div>
-        <h2 className="mt-5 text-xl font-semibold tracking-[-0.03em] text-slate-950">
+        <h2 className="mt-5 text-xl font-semibold tracking-tight text-card-foreground">
           {title}
         </h2>
         {description ? (
-          <p className="mt-3 text-sm leading-6 text-slate-600">{description}</p>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">{description}</p>
         ) : null}
         {action ? <div className="mt-6 flex flex-wrap justify-center gap-3">{action}</div> : null}
       </div>

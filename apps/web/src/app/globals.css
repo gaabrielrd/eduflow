@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "../styles/tokens.css";
+@import "../../../../packages/ui/src/styles/tokens.css";
 @source "../../../../packages/ui/src";
 
 * {
@@ -8,9 +8,9 @@
 
 html {
   background:
-    radial-gradient(circle at top, rgba(84, 153, 255, 0.2), transparent 32%),
-    linear-gradient(180deg, var(--color-canvas) 0%, #f5f7fb 100%);
-  color: var(--color-ink);
+    radial-gradient(circle at top, rgba(120, 166, 255, 0.18), transparent 34%),
+    linear-gradient(180deg, #161d2c 0%, var(--background) 100%);
+  color: var(--foreground);
 }
 
 body {

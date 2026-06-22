@@ -16,7 +16,7 @@ export const SelectTrigger = forwardRef<
 >(({ className, children, ...props }, ref) => (
   <SelectPrimitive.Trigger
     className={cn(
-      "flex h-11 w-full items-center justify-between rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      "flex h-11 w-full items-center justify-between rounded-md border border-input bg-card px-4 py-2 text-sm text-card-foreground shadow-sm outline-none transition placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
       className
     )}
     ref={ref}
@@ -24,7 +24,7 @@ export const SelectTrigger = forwardRef<
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <svg aria-hidden="true" className="h-4 w-4 text-slate-500" viewBox="0 0 16 16" fill="none">
+      <svg aria-hidden="true" className="h-4 w-4 text-muted-foreground" viewBox="0 0 16 16" fill="none">
         <path
           d="M4 6L8 10L12 6"
           stroke="currentColor"
@@ -46,7 +46,7 @@ export const SelectContent = forwardRef<
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       className={cn(
-        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-950 shadow-[0_16px_48px_rgba(15,23,42,0.16)]",
+        "relative z-dropdown max-h-96 min-w-[8rem] overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-lg",
         className
       )}
       position={position}
@@ -73,7 +73,7 @@ export const SelectLabel = forwardRef<
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
-    className={cn("px-3 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500", className)}
+    className={cn("px-3 py-2 text-xs font-semibold uppercase tracking-eyebrow text-muted-foreground", className)}
     ref={ref}
     {...props}
   />
@@ -87,7 +87,7 @@ export const SelectItem = forwardRef<
 >(({ className, children, ...props }, ref) => (
   <SelectPrimitive.Item
     className={cn(
-      "relative flex w-full cursor-default select-none items-center rounded-xl py-2 pl-8 pr-3 text-sm text-slate-700 outline-none transition focus:bg-slate-100 focus:text-slate-950 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex w-full cursor-default select-none items-center rounded-md py-2 pl-8 pr-3 text-sm text-muted-foreground outline-none transition focus:bg-accent focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
     ref={ref}
@@ -117,7 +117,7 @@ export const SelectSeparator = forwardRef<
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Separator
-    className={cn("-mx-1 my-1 h-px bg-slate-200", className)}
+    className={cn("-mx-1 my-1 h-px bg-border", className)}
     ref={ref}
     {...props}
   />
