@@ -1,5 +1,5 @@
 import { Badge, Button, Card, CardContent, PageHeader } from "@eduflow/ui";
-import { appRoutes } from "@/lib/navigation";
+import { authNavigationItems } from "@/lib/navigation";
 
 const runtimeItems = [
   { label: "Status", value: "Web online" },
@@ -39,7 +39,7 @@ export default function StatusPage() {
             Links uteis
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            {appRoutes.map((route) => (
+            {authNavigationItems.map((route) => (
               <Button asChild key={route.href} size="sm" variant="outline">
                 <a href={route.href}>{route.label}</a>
               </Button>

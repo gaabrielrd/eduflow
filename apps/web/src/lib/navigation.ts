@@ -1,10 +1,47 @@
-export const appRoutes = [
-  { href: "/", label: "Home" },
-  { href: "/app", label: "App" },
-  { href: "/app/dashboard", label: "Dashboard" },
-  { href: "/app/settings/members", label: "Members" },
-  { href: "/status", label: "Status" }
-] as const;
+export type AppNavItem = {
+  href: string;
+  label: string;
+  shortLabel: string;
+  section: "dashboard" | "courses" | "media" | "reports" | "settings";
+};
+
+export type BreadcrumbItem = {
+  href?: string;
+  label: string;
+};
+
+export const authNavigationItems: AppNavItem[] = [
+  {
+    href: "/app/dashboard",
+    label: "Dashboard",
+    shortLabel: "DS",
+    section: "dashboard"
+  },
+  {
+    href: "/app/courses",
+    label: "Cursos",
+    shortLabel: "CR",
+    section: "courses"
+  },
+  {
+    href: "/app/media",
+    label: "Midia",
+    shortLabel: "MD",
+    section: "media"
+  },
+  {
+    href: "/app/reports",
+    label: "Relatorios",
+    shortLabel: "RP",
+    section: "reports"
+  },
+  {
+    href: "/app/settings",
+    label: "Configuracoes",
+    shortLabel: "CF",
+    section: "settings"
+  }
+];
 
 export const statusCards = [
   {
@@ -26,3 +63,51 @@ export const statusCards = [
       "A interface placeholder usa utilitarios leves, tokens basicos e sem dependencia visual pesada."
   }
 ] as const;
+
+function normalizePathname(pathname: string) {
+  if (pathname === "/app") {
+    return "/app/dashboard";
+  }
+
+  return pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname;
+}
+
+export function getActiveNavigationItem(pathname: string) {
+  const normalized = normalizePathname(pathname);
+
+  return authNavigationItems.find((item) => {
+    if (normalized === item.href) {
+      return true;
+    }
+
+    return normalized.startsWith(`${item.href}/`);
+  });
+}
+
+export function isNavigationItemActive(pathname: string, href: string) {
+  const normalized = normalizePathname(pathname);
+
+  return normalized === href || normalized.startsWith(`${href}/`);
+}
+
+export function getBreadcrumbItems(pathname: string): BreadcrumbItem[] {
+  const normalized = normalizePathname(pathname);
+  const activeItem = getActiveNavigationItem(normalized);
+
+  const items: BreadcrumbItem[] = [{ href: "/app/dashboard", label: "App" }];
+
+  if (!activeItem) {
+    return items;
+  }
+
+  items.push({
+    href: activeItem.href,
+    label: activeItem.label
+  });
+
+  if (normalized === "/app/settings/members") {
+    items.push({ label: "Members" });
+  }
+
+  return items;
+}
