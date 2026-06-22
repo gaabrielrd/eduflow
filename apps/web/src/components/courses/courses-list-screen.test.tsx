@@ -93,6 +93,44 @@ describe("CoursesListScreen", () => {
     expect(screen.getByRole("link", { name: "Criar primeiro curso" })).toBeTruthy();
   });
 
+  it("shows the viewer empty state without authoring CTA for non-authoring roles", async () => {
+    useSessionMock.mockReturnValue({
+      activeOrganizationId: "org-1",
+      createOrganization: vi.fn(),
+      hasOrganization: true,
+      isAuthenticated: true,
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      organizations: [
+        {
+          id: "org-1",
+          name: "EduFlow Studio",
+          role: "STUDENT",
+          slug: "eduflow-studio"
+        }
+      ],
+      refreshSession: vi.fn(),
+      register: vi.fn(),
+      session: null,
+      setActiveOrganizationId: vi.fn(),
+      user: {
+        email: "student@eduflow.dev",
+        id: "user-2",
+        name: "Student"
+      }
+    });
+    listCoursesMock.mockResolvedValue([]);
+
+    render(createElement(CoursesListScreen));
+
+    expect(await screen.findByText("Nenhum curso encontrado")).toBeTruthy();
+    expect(
+      screen.getByText("Ainda nao existe nenhum curso disponivel para esta organizacao.")
+    ).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Criar primeiro curso" })).toBeNull();
+  });
+
   it("renders courses and the authoring action for authoring roles", async () => {
     listCoursesMock.mockResolvedValue([
       {

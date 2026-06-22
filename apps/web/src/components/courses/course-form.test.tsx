@@ -41,6 +41,38 @@ describe("CourseForm", () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  it("submits trimmed course values when the form is valid", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      createElement(CourseForm, {
+        onSubmit,
+        submitLabel: "Criar curso",
+        title: "Dados basicos"
+      })
+    );
+
+    fireEvent.input(screen.getByLabelText("Nome do curso"), {
+      target: { value: "  Curso de onboarding  " }
+    });
+    fireEvent.input(screen.getByLabelText("Identificador"), {
+      target: { value: "  curso_onboarding  " }
+    });
+    fireEvent.input(screen.getByLabelText("Descricao"), {
+      target: { value: "  Primeiros passos no produto.  " }
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Criar curso" }));
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledWith({
+        description: "Primeiros passos no produto.",
+        slug: "curso_onboarding",
+        title: "Curso de onboarding"
+      });
+    });
+  });
+
   it("shows API errors returned by the submit handler", async () => {
     const onSubmit = vi
       .fn()

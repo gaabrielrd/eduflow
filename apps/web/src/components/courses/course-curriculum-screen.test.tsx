@@ -152,6 +152,46 @@ describe("CourseCurriculumScreen", () => {
     expect(screen.getByRole("button", { name: "Criar primeiro modulo" })).toBeTruthy();
   });
 
+  it("shows the viewer empty state without authoring actions when the course has no modules", async () => {
+    useSessionMock.mockReturnValue({
+      activeOrganizationId: "org-1",
+      createOrganization: vi.fn(),
+      hasOrganization: true,
+      isAuthenticated: true,
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      organizations: [
+        {
+          id: "org-1",
+          name: "EduFlow Studio",
+          role: "STUDENT",
+          slug: "eduflow-studio"
+        }
+      ],
+      refreshSession: vi.fn(),
+      register: vi.fn(),
+      session: null,
+      setActiveOrganizationId: vi.fn(),
+      user: {
+        email: "student@eduflow.dev",
+        id: "user-2",
+        name: "Student"
+      }
+    });
+    getCourseCurriculumMock.mockResolvedValue({
+      ...baseCurriculum,
+      modules: []
+    });
+
+    render(createElement(CourseCurriculumScreen, { courseId: "course-1" }));
+
+    expect(await screen.findByText("Nenhum modulo criado ainda")).toBeTruthy();
+    expect(screen.getByText("Este curso ainda nao possui modulos visiveis.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Criar primeiro modulo" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Criar modulo" })).toBeNull();
+  });
+
   it("hides authoring actions for non-authoring roles", async () => {
     useSessionMock.mockReturnValue({
       activeOrganizationId: "org-1",
