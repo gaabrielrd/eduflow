@@ -31,6 +31,10 @@ Este arquivo registra as convencoes operacionais do repositorio para agentes e c
 - O `packages/ui` e a fonte unica dos componentes compartilhados de interface.
 - O pacote deve expor componentes e utilitarios pela raiz de `@eduflow/ui`.
 - A fundacao visual do pacote UI usa Tailwind e padroes do ecossistema shadcn/Radix.
+- O pacote tambem centraliza a fundacao visual reutilizavel:
+  - tokens em `packages/ui/src/styles/tokens.css`
+  - primitives compartilhados como `Button`, `Input`, `Select`, `Dialog`, `Skeleton`
+  - patterns compartilhados como `PageHeader`, `LoadingState`, `ErrorState` e `EmptyState`
 - Ao adicionar componentes interativos:
   - garantir foco visivel
   - preservar navegacao por teclado quando aplicavel
@@ -42,7 +46,31 @@ Este arquivo registra as convencoes operacionais do repositorio para agentes e c
 
 - O `apps/web` deve continuar escaneando `packages/ui/src` para classes Tailwind usadas no pacote compartilhado.
 - Estilos compartilhados de componentes devem permanecer no proprio `packages/ui`, nao replicados pagina a pagina.
-- Tokens globais continuam centralizados no frontend em `apps/web/src/styles/tokens.css` ate existir uma camada compartilhada formal para design tokens.
+- Os tokens visuais iniciais vivem em `packages/ui/src/styles/tokens.css` e devem ser consumidos por `apps/web` e pelo Storybook.
+- O arquivo `apps/web/src/styles/tokens.css` existe apenas como ponte de import para a fonte de verdade em `packages/ui`.
+- Em componentes e paginas, preferir classes semanticas como:
+  - `bg-background`, `bg-card`, `bg-muted`
+  - `text-foreground`, `text-card-foreground`, `text-muted-foreground`
+  - `border-border`, `border-input`
+  - `ring-ring`
+- Evitar hardcode de cores utilitarias de dominio visual como `bg-white`, `text-slate-*`, `border-slate-*`, `ring-sky-*` e equivalentes quando existir token semantico adequado.
+- Quando um estado precisar de cor contextual, preferir tokens semanticos como `primary`, `destructive`, `success` e `warning` em vez de paletas visuais arbitrarias.
+- Skeletons, banners e superficies de feedback tambem devem seguir os tokens semanticos do tema.
+
+## Convencoes de composicao no web
+
+- O shell autenticado de `apps/web` deve continuar estruturado sobre componentes reutilizaveis e landmarks semanticos:
+  - `AppShell` como orquestrador
+  - `Sidebar`
+  - `Topbar`
+  - `Breadcrumb`
+  - `OrganizationMenu`
+  - `UserMenu`
+  - `main` para conteudo principal
+- Rotas autenticadas devem reutilizar o shell em `/app` e manter `PageHeader` como bloco de cabecalho de pagina interna, sem duplicar estrutura de navegacao dentro de cada tela.
+- A navegacao autenticada e o breadcrumb devem usar a fonte de verdade compartilhada em `apps/web/src/lib/navigation.ts`.
+- Links ativos no shell devem ser indicados visualmente com base na rota atual, incluindo subrotas como `settings/members`.
+- O comportamento mobile basico do shell deve continuar privilegiando drawer na topbar em vez de duplicar uma sidebar fixa em telas pequenas.
 
 ## TypeScript e build
 
@@ -66,6 +94,23 @@ Este arquivo registra as convencoes operacionais do repositorio para agentes e c
   - preferir reexecutar checks pontuais do workspace afetado
   - evitar concluir que o codigo falhou sem isolar locks em `.next`, arquivos `_tmp_*` ou workers do runner
 
+## Convencoes para estados assincros
+
+- Para loading, erro e ausencia de dados, reutilizar preferencialmente os patterns do `@eduflow/ui`:
+  - `LoadingState`
+  - `ErrorState`
+  - `EmptyState`
+  - `Skeleton`
+- Evitar spinner isolado sem contexto textual. Loading deve preferir titulo e descricao curtos, e quando fizer sentido `srLabel` para leitor de tela.
+- `ErrorState` deve ser tratado como erro de pagina ou secao, com mensagem clara e acionavel.
+- O padrao de retry deve entrar como acao explicita visivel, normalmente via `action` em `ErrorState`, com label como `Tentar novamente` ou equivalente contextual.
+- `EmptyState` deve comunicar ausencia de dados, nao falha tecnica. Quando houver proximo passo claro, expor CTA.
+- `Skeleton` deve ser usado como primitive composavel para preservar layout durante carregamento, sem criar uma biblioteca extensa de placeholders especializados sem necessidade real.
+- Erro de campo e erro de pagina devem permanecer distintos:
+  - erro de campo continua junto ao proprio formulario/input, como em `AuthFormField`
+  - erro de pagina ou secao deve usar `ErrorState` ou banner contextual equivalente
+- Sempre que novos estados assincros forem introduzidos no frontend, adicionar ou atualizar stories no Storybook como referencia principal de uso.
+
 ## Comandos canonicos
 
 - Usar scripts da raiz quando a intencao for validar o monorepo.
@@ -81,6 +126,7 @@ Este arquivo registra as convencoes operacionais do repositorio para agentes e c
   - arquitetura do monorepo
   - ownership de codigo compartilhado
   - fluxo oficial de build, teste ou imports
+- Convencoes de tokens, shell autenticado e estados assincros devem permanecer alinhadas entre `AGENTS.md`, `README.md` e `docs/architecture.md`.
 - Se uma decisao contradizer o `README.md` ou `docs/architecture.md`, alinhar os arquivos no mesmo ciclo de trabalho.
 
 ## Referencias externas aprovadas

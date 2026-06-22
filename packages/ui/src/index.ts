@@ -4,6 +4,7 @@ export { Button, buttonVariants, type ButtonProps } from "./components/primitive
 export { Input, type InputProps } from "./components/primitives/input";
 export { Textarea, type TextareaProps } from "./components/primitives/textarea";
 export { Checkbox } from "./components/primitives/checkbox";
+export { Skeleton, type SkeletonProps } from "./components/primitives/skeleton";
 export { Badge, badgeVariants, type BadgeProps } from "./components/primitives/badge";
 export {
   Card,

@@ -18,6 +18,8 @@ export function ErrorState({
 }: ErrorStateProps) {
   return (
     <div
+      aria-live="assertive"
+      role="alert"
       className={cn(
         "rounded-xl border border-destructive/35 bg-destructive/12 p-8 text-center shadow-md",
         className

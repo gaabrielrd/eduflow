@@ -27,3 +27,15 @@ export const Default: Story = {
     </div>
   )
 };
+
+export const RetryPattern: Story = {
+  render: () => (
+    <div className="w-full max-w-2xl">
+      <ErrorState
+        action={<Button>Tentar novamente</Button>}
+        description="Confira sua conexao ou tente recarregar os dados para continuar a operacao."
+        title="Nao foi possivel carregar esta secao"
+      />
+    </div>
+  )
+};

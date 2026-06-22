@@ -30,3 +30,18 @@ export const Default: Story = {
     </div>
   )
 };
+
+export const WithAction: Story = {
+  args: {
+    title: "Nenhum registro encontrado"
+  },
+  render: () => (
+    <div className="w-full max-w-2xl">
+      <EmptyState
+        action={<Button variant="secondary">Criar primeiro item</Button>}
+        description="Use este estado quando nao houver dados, mas houver uma acao clara para desbloquear o fluxo."
+        title="Nenhum registro encontrado"
+      />
+    </div>
+  )
+};

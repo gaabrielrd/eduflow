@@ -89,6 +89,8 @@ As convencoes iniciais sao:
 - o Storybook documenta primitives e patterns reutilizaveis, nao telas ou fluxos de rota
 - os design tokens iniciais vivem em `packages/ui/src/styles/tokens.css` e sao consumidos por `apps/web` e pelo Storybook via Tailwind v4 em modo CSS-first
 - o contrato visual compartilhado passa a privilegiar classes semanticas como `bg-background`, `text-foreground`, `border-border` e `ring-ring`
+- estados assincros compartilhados como loading, error, empty e skeleton devem ser documentados primeiro no Storybook e reutilizados pelas telas do `apps/web`
+- erro de campo permanece acoplado ao formulario e ao proprio input; erro de pagina deve usar pattern contextual como `ErrorState`
 
 ## Banco de dados
 

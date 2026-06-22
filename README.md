@@ -87,6 +87,8 @@ O Storybook inicial do EduFlow vive em `packages/ui`, ao lado dos componentes co
 
 Os tokens visuais iniciais do produto ficam centralizados em `packages/ui/src/styles/tokens.css` e alimentam tanto o Storybook quanto o `apps/web`.
 
+Os estados assincros reutilizaveis do design system tambem vivem em `packages/ui`, incluindo `LoadingState`, `ErrorState`, `EmptyState` e `Skeleton`, com Storybook como referencia principal de uso.
+
 ```bash
 pnpm storybook
 pnpm build-storybook

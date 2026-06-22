@@ -20,6 +20,7 @@ export const Default: Story = {
     <div className="w-full max-w-2xl">
       <LoadingState
         description="Estamos consolidando metricas, membros e pendencias do workspace."
+        srLabel="Carregando metricas e membros do workspace"
         title="Sincronizando dados"
       />
     </div>
