@@ -9,6 +9,7 @@ import {
   ACTIVE_ORGANIZATION_COOKIE_NAME,
   REFRESH_TOKEN_COOKIE_NAME
 } from "@/lib/auth/auth-storage";
+import type { JsonValue } from "@/lib/api/api-client";
 import type {
   AuthResponse,
   AuthTokens,
@@ -119,9 +120,27 @@ async function externalAuthRequest<T>(options: {
   organizationId?: string | null;
   path: string;
 }) {
+  return externalApiRequest<T>({
+    accessToken: options.accessToken,
+    body: options.body,
+    method: options.method,
+    organizationId: options.organizationId,
+    path: options.path,
+    retryOnUnauthorized: false
+  });
+}
+
+export async function externalApiRequest<T>(options: {
+  accessToken?: string | null;
+  body?: unknown;
+  method?: "DELETE" | "GET" | "PATCH" | "POST" | "PUT";
+  organizationId?: string | null;
+  path: string;
+  retryOnUnauthorized?: boolean;
+}) {
   return apiClient<T>({
     baseUrl: getApiBaseUrl(),
-    body: options.body,
+    body: options.body as JsonValue | undefined,
     headers: {
       ...(options.accessToken
         ? { Authorization: `Bearer ${options.accessToken}` }
@@ -132,11 +151,11 @@ async function externalAuthRequest<T>(options: {
     },
     method: options.method,
     path: options.path,
-    retryOnUnauthorized: false
+    retryOnUnauthorized: options.retryOnUnauthorized ?? false
   });
 }
 
-async function getSessionFromAccessToken(
+export async function getSessionFromAccessToken(
   accessToken: string,
   activeOrganizationId: string | null
 ) {

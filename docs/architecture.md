@@ -62,6 +62,15 @@ Para autorizacao organizacional do MVP, a estrategia adotada e:
 - `RolesGuard` usa metadata declarada por `@Roles(...)` e consome o contexto organizacional ja resolvido, sem nova query de membership
 - o frontend persiste `activeOrganizationId` em cookie proprio e o reenvia para a API via header `X-Organization-Id`
 
+Para membros e convites no MVP, a estrategia atual passa a assumir:
+
+- `OWNER` e `ADMIN` podem listar membros, listar convites e criar convites na organizacao ativa
+- convites aceitam apenas roles operacionais definidas pelo backend e nao permitem `OWNER` sem decisao explicita posterior
+- cada convite gera um `token` unico com expiracao fixa e status derivado por `acceptedAt` e `expiresAt`
+- o link compartilhado do convite aponta para uma rota publica da web, sem envio de email automatico nesta fase
+- ao abrir o link sem sessao, a web mostra um modal de login ou cadastro na propria tela do convite
+- o aceite do convite exige usuario autenticado e validacao do email da conta contra o email persistido no convite
+
 ## Packages
 
 - `packages/ui`: ponto de partida para componentes reutilizaveis.

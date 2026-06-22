@@ -2,6 +2,7 @@ export const appRoutes = [
   { href: "/", label: "Home" },
   { href: "/app", label: "App" },
   { href: "/app/dashboard", label: "Dashboard" },
+  { href: "/app/settings/members", label: "Members" },
   { href: "/status", label: "Status" }
 ] as const;
 

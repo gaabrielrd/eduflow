@@ -6,6 +6,7 @@ import { AuthModule } from "./auth/auth.module.js";
 import { validateEnv } from "./config/env.schema.js";
 import { DatabaseModule } from "./database/database.module.js";
 import { HealthModule } from "./health/health.module.js";
+import { InvitationsModule } from "./invitations/invitations.module.js";
 import { OrganizationsModule } from "./organizations/organizations.module.js";
 
 @Module({
@@ -18,6 +19,7 @@ import { OrganizationsModule } from "./organizations/organizations.module.js";
     AuthModule,
     DatabaseModule,
     HealthModule,
+    InvitationsModule,
     OrganizationsModule
   ]
 })

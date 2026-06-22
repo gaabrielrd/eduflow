@@ -11,7 +11,7 @@ export class ApiError extends Error {
 }
 
 type JsonPrimitive = boolean | number | string | null;
-type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
+export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
 
 type ApiClientOptions = {
   baseUrl?: string;

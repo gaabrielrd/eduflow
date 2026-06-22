@@ -104,3 +104,11 @@ O projeto possui uma pipeline inicial de qualidade em GitHub Actions que roda em
 ## Produto
 
 O roadmap detalhado do MVP esta em [docs/roadmap.md](/E:/OneDrive/Dev/eduflow/docs/roadmap.md). O arquivo [roadmap.md](/E:/OneDrive/Dev/eduflow/roadmap.md) na raiz permanece por compatibilidade historica.
+
+## Membros e convites no MVP
+
+- a area autenticada agora reserva `/app/settings/members` para gestao basica de membros e convites
+- apenas `OWNER` e `ADMIN` podem listar membros, listar convites e gerar novos links de convite
+- o envio de email ainda fica fora do MVP inicial; o fluxo atual expoe um link copiavel
+- o link do convite abre uma rota publica dedicada e, sem sessao, a web exibe login/cadastro em modal sem tirar o usuario da pagina
+- o aceite do convite exige autenticacao e correspondencia entre o email da conta e o email convidado

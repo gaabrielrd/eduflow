@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createInvitationSchema,
   createOrganizationSchema,
   loginSchema,
   registerSchema
@@ -30,5 +31,19 @@ describe("auth schemas", () => {
 
     expect(registerResult.success).toBe(false);
     expect(organizationResult.success).toBe(false);
+  });
+
+  it("accepts valid invitation payloads and rejects OWNER", () => {
+    const validResult = createInvitationSchema.safeParse({
+      email: "invitee@eduflow.dev",
+      role: "MANAGER"
+    });
+    const invalidResult = createInvitationSchema.safeParse({
+      email: "invitee@eduflow.dev",
+      role: "OWNER"
+    });
+
+    expect(validResult.success).toBe(true);
+    expect(invalidResult.success).toBe(false);
   });
 });

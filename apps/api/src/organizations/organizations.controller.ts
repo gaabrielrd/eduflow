@@ -9,6 +9,7 @@ import { RolesGuard } from "../auth/guards/roles.guard.js";
 import type { AuthenticatedUser } from "../auth/types/authenticated-user.interface.js";
 import type { OrganizationContext } from "../auth/types/organization-context.interface.js";
 import { Role } from "../generated/prisma/enums.js";
+import { CreateCurrentOrganizationInvitationDto } from "./dto/create-current-organization-invitation.dto.js";
 import { CreateOrganizationDto } from "./dto/create-organization.dto.js";
 import { UpdateCurrentOrganizationDto } from "./dto/update-current-organization.dto.js";
 import { OrganizationsService } from "./organizations.service.js";
@@ -50,10 +51,33 @@ export class OrganizationsController {
   }
 
   @Get("current/members")
-  @UseGuards(OrganizationContextGuard)
+  @Roles(Role.OWNER, Role.ADMIN)
+  @UseGuards(OrganizationContextGuard, RolesGuard)
   listMembers(
     @CurrentOrganizationContext() context: OrganizationContext
   ) {
     return this.organizationsService.listCurrentOrganizationMembers(context);
+  }
+
+  @Post("current/invitations")
+  @Roles(Role.OWNER, Role.ADMIN)
+  @UseGuards(OrganizationContextGuard, RolesGuard)
+  createInvitation(
+    @CurrentOrganizationContext() context: OrganizationContext,
+    @Body() dto: CreateCurrentOrganizationInvitationDto
+  ) {
+    return this.organizationsService.createCurrentOrganizationInvitation(
+      context,
+      dto
+    );
+  }
+
+  @Get("current/invitations")
+  @Roles(Role.OWNER, Role.ADMIN)
+  @UseGuards(OrganizationContextGuard, RolesGuard)
+  listInvitations(
+    @CurrentOrganizationContext() context: OrganizationContext
+  ) {
+    return this.organizationsService.listCurrentOrganizationInvitations(context);
   }
 }

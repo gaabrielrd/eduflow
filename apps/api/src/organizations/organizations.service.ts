@@ -1,8 +1,10 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable
 } from "@nestjs/common";
+import { randomBytes } from "node:crypto";
 
 import type { AuthenticatedUser } from "../auth/types/authenticated-user.interface.js";
 import { PrismaService } from "../database/prisma.service.js";
@@ -11,6 +13,11 @@ import { Role } from "../generated/prisma/enums.js";
 import type { CreateOrganizationDto } from "./dto/create-organization.dto.js";
 import type { UpdateCurrentOrganizationDto } from "./dto/update-current-organization.dto.js";
 import type { OrganizationContext } from "../auth/types/organization-context.interface.js";
+import type { CreateCurrentOrganizationInvitationDto } from "./dto/create-current-organization-invitation.dto.js";
+import {
+  INVITATION_TTL_IN_DAYS,
+  isInvitableRole
+} from "./invitation-policy.js";
 
 @Injectable()
 export class OrganizationsService {
@@ -169,6 +176,73 @@ export class OrganizationsService {
     });
   }
 
+  async createCurrentOrganizationInvitation(
+    context: OrganizationContext,
+    dto: CreateCurrentOrganizationInvitationDto
+  ) {
+    if (!isInvitableRole(dto.role)) {
+      throw new ForbiddenException("Invitation role is not allowed");
+    }
+
+    const invitation = await this.prisma.invitation.create({
+      data: {
+        email: this.normalizeEmail(dto.email),
+        organizationId: context.organizationId,
+        role: dto.role,
+        token: this.generateInvitationToken(),
+        expiresAt: new Date(
+          Date.now() + INVITATION_TTL_IN_DAYS * 24 * 60 * 60 * 1000
+        )
+      },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        token: true,
+        expiresAt: true,
+        acceptedAt: true,
+        createdAt: true
+      }
+    });
+
+    return {
+      ...invitation,
+      inviteUrl: `/invite/${invitation.token}`,
+      status: this.getInvitationStatus(invitation)
+    };
+  }
+
+  async listCurrentOrganizationInvitations(context: OrganizationContext) {
+    const invitations = await this.prisma.invitation.findMany({
+      where: {
+        organizationId: context.organizationId
+      },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        token: true,
+        expiresAt: true,
+        acceptedAt: true,
+        createdAt: true
+      },
+      orderBy: [
+        {
+          createdAt: "desc"
+        },
+        {
+          id: "desc"
+        }
+      ]
+    });
+
+    return invitations.map((invitation) => ({
+      ...invitation,
+      inviteUrl: `/invite/${invitation.token}`,
+      status: this.getInvitationStatus(invitation)
+    }));
+  }
+
   private normalizeSlug(slug: string) {
     const normalized = slug
       .trim()
@@ -183,6 +257,29 @@ export class OrganizationsService {
     }
 
     return normalized;
+  }
+
+  private normalizeEmail(email: string) {
+    return email.trim().toLowerCase();
+  }
+
+  private generateInvitationToken() {
+    return randomBytes(24).toString("hex");
+  }
+
+  private getInvitationStatus(invitation: {
+    acceptedAt: Date | null;
+    expiresAt: Date;
+  }) {
+    if (invitation.acceptedAt) {
+      return "accepted" as const;
+    }
+
+    if (invitation.expiresAt.getTime() <= Date.now()) {
+      return "expired" as const;
+    }
+
+    return "pending" as const;
   }
 
   private handleKnownPersistenceErrors(error: unknown): never {

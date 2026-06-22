@@ -30,6 +30,12 @@ export const createOrganizationSchema = z.object({
     })
 });
 
+export const createInvitationSchema = z.object({
+  email: z.string().email("Informe um email valido"),
+  role: z.enum(["ADMIN", "INSTRUCTOR", "MANAGER", "STUDENT"])
+});
+
 export type LoginSchema = z.infer<typeof loginSchema>;
 export type RegisterSchema = z.infer<typeof registerSchema>;
 export type CreateOrganizationSchema = z.infer<typeof createOrganizationSchema>;
+export type CreateInvitationSchema = z.infer<typeof createInvitationSchema>;

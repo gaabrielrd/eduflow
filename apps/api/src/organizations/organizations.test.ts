@@ -343,3 +343,216 @@ test("GET /organizations/current/members returns only memberships from the curre
     false
   );
 });
+
+test("GET /organizations/current/members returns 403 for non-admin roles", async () => {
+  const user = await createUserAndToken(
+    app,
+    `members-forbidden.${Date.now()}@organizations.test`
+  );
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: user.user.id,
+    name: "Members Forbidden Org",
+    slug: `members-forbidden-${uniqueSuffix()}`,
+    role: Role.STUDENT
+  });
+
+  const response = await request(app.getHttpServer())
+    .get("/organizations/current/members")
+    .set("Authorization", `Bearer ${user.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(403);
+
+  assert.equal(response.body.message, "Insufficient organization role");
+});
+
+test("POST /organizations/current/invitations creates an invitation for OWNER and ADMIN", async () => {
+  const owner = await createUserAndToken(
+    app,
+    `invite-create-owner.${Date.now()}@organizations.test`
+  );
+  const admin = await createUserAndToken(
+    app,
+    `invite-create-admin.${Date.now()}@organizations.test`
+  );
+
+  const ownerOrganization = await createOrganizationForUser({
+    prisma,
+    userId: owner.user.id,
+    name: "Owner Invite Org",
+    slug: `owner-invite-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const adminOrganization = await createOrganizationForUser({
+    prisma,
+    userId: admin.user.id,
+    name: "Admin Invite Org",
+    slug: `admin-invite-org-${uniqueSuffix()}`,
+    role: Role.ADMIN
+  });
+
+  const ownerResponse = await request(app.getHttpServer())
+    .post("/organizations/current/invitations")
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", ownerOrganization.id)
+    .send({
+      email: "Owner.Invited@Example.com",
+      role: Role.MANAGER
+    })
+    .expect(201);
+
+  const adminResponse = await request(app.getHttpServer())
+    .post("/organizations/current/invitations")
+    .set("Authorization", `Bearer ${admin.accessToken}`)
+    .set("X-Organization-Id", adminOrganization.id)
+    .send({
+      email: "admin.invited@example.com",
+      role: Role.STUDENT
+    })
+    .expect(201);
+
+  assert.equal(ownerResponse.body.email, "owner.invited@example.com");
+  assert.equal(ownerResponse.body.role, Role.MANAGER);
+  assert.equal(ownerResponse.body.status, "pending");
+  assert.equal(typeof ownerResponse.body.token, "string");
+  assert.equal(typeof ownerResponse.body.expiresAt, "string");
+  assert.equal(ownerResponse.body.inviteUrl, `/invite/${ownerResponse.body.token}`);
+
+  assert.equal(adminResponse.body.role, Role.STUDENT);
+
+  const persistedInvitation = await prisma.invitation.findUnique({
+    where: {
+      token: ownerResponse.body.token
+    }
+  });
+
+  assert.ok(persistedInvitation);
+  assert.equal(persistedInvitation.email, "owner.invited@example.com");
+});
+
+test("POST /organizations/current/invitations returns 403 for roles without invitation permission", async () => {
+  const user = await createUserAndToken(
+    app,
+    `invite-forbidden.${Date.now()}@organizations.test`
+  );
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: user.user.id,
+    name: "Invite Forbidden Org",
+    slug: `invite-forbidden-${uniqueSuffix()}`,
+    role: Role.STUDENT
+  });
+
+  const response = await request(app.getHttpServer())
+    .post("/organizations/current/invitations")
+    .set("Authorization", `Bearer ${user.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .send({
+      email: "person@example.com",
+      role: Role.STUDENT
+    })
+    .expect(403);
+
+  assert.equal(response.body.message, "Insufficient organization role");
+});
+
+test("POST /organizations/current/invitations rejects OWNER as an invitation role", async () => {
+  const owner = await createUserAndToken(
+    app,
+    `invite-owner-role.${Date.now()}@organizations.test`
+  );
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: owner.user.id,
+    name: "Owner Role Org",
+    slug: `owner-role-${uniqueSuffix()}`
+  });
+
+  const response = await request(app.getHttpServer())
+    .post("/organizations/current/invitations")
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .send({
+      email: "owner@example.com",
+      role: Role.OWNER
+    })
+    .expect(403);
+
+  assert.equal(response.body.message, "Invitation role is not allowed");
+});
+
+test("GET /organizations/current/invitations returns invitations only from the current organization", async () => {
+  const owner = await createUserAndToken(
+    app,
+    `invite-list-owner.${Date.now()}@organizations.test`
+  );
+  const outsider = await createUserAndToken(
+    app,
+    `invite-list-outsider.${Date.now()}@organizations.test`
+  );
+
+  const currentOrganization = await createOrganizationForUser({
+    prisma,
+    userId: owner.user.id,
+    name: "Current Invite Org",
+    slug: `current-invite-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const otherOrganization = await createOrganizationForUser({
+    prisma,
+    userId: outsider.user.id,
+    name: "Other Invite Org",
+    slug: `other-invite-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+
+  await prisma.invitation.create({
+    data: {
+      email: "current@example.com",
+      organizationId: currentOrganization.id,
+      role: Role.ADMIN,
+      token: `current-invite-${uniqueSuffix()}`,
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000)
+    }
+  });
+  await prisma.invitation.create({
+    data: {
+      email: "other@example.com",
+      organizationId: otherOrganization.id,
+      role: Role.STUDENT,
+      token: `other-invite-${uniqueSuffix()}`,
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000)
+    }
+  });
+
+  const response = await request(app.getHttpServer())
+    .get("/organizations/current/invitations")
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", currentOrganization.id)
+    .expect(200);
+
+  assert.equal(response.body.length, 1);
+  assert.equal(response.body[0].email, "current@example.com");
+});
+
+test("GET /organizations/current/invitations returns 403 for non-admin roles", async () => {
+  const user = await createUserAndToken(
+    app,
+    `invite-list-forbidden.${Date.now()}@organizations.test`
+  );
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: user.user.id,
+    name: "Invite List Forbidden Org",
+    slug: `invite-list-forbidden-${uniqueSuffix()}`,
+    role: Role.STUDENT
+  });
+
+  const response = await request(app.getHttpServer())
+    .get("/organizations/current/invitations")
+    .set("Authorization", `Bearer ${user.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(403);
+
+  assert.equal(response.body.message, "Insufficient organization role");
+});

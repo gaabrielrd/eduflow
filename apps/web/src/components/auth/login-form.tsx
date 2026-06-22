@@ -9,10 +9,22 @@ import { AuthFormField } from "@/components/auth/auth-form-field";
 import { loginSchema, type LoginSchema } from "@/lib/auth/auth-schemas";
 
 type LoginFormProps = {
+  initialEmail?: string;
+  layout?: "card" | "plain";
   onSubmit: (values: LoginSchema) => Promise<void>;
+  onSecondaryAction?: () => void;
+  secondaryActionLabel?: string;
+  secondaryActionText?: string;
 };
 
-export function LoginForm({ onSubmit }: LoginFormProps) {
+export function LoginForm({
+  initialEmail,
+  layout = "card",
+  onSecondaryAction,
+  onSubmit,
+  secondaryActionLabel = "Criar acesso",
+  secondaryActionText = "Ainda nao tem conta?"
+}: LoginFormProps) {
   const {
     formState: { errors, isSubmitting },
     handleSubmit,
@@ -20,7 +32,7 @@ export function LoginForm({ onSubmit }: LoginFormProps) {
     setError
   } = useForm<LoginSchema>({
     defaultValues: {
-      email: "",
+      email: initialEmail ?? "",
       password: ""
     },
     resolver: zodResolver(loginSchema)
@@ -39,8 +51,8 @@ export function LoginForm({ onSubmit }: LoginFormProps) {
     }
   }
 
-  return (
-    <Card className="border-white/70 bg-white/92 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+  const content = (
+    <>
       <CardHeader className="space-y-2">
         <CardTitle className="text-2xl tracking-[-0.05em]">Entrar no EduFlow</CardTitle>
         <p className="text-sm leading-6 text-slate-600">
@@ -85,12 +97,32 @@ export function LoginForm({ onSubmit }: LoginFormProps) {
         </form>
 
         <p className="mt-6 text-sm text-slate-600">
-          Ainda nao tem conta?{" "}
-          <Link className="font-semibold text-slate-950 underline-offset-4 hover:underline" href="/register">
-            Criar acesso
-          </Link>
+          {secondaryActionText}{" "}
+          {onSecondaryAction ? (
+            <button
+              className="font-semibold text-slate-950 underline-offset-4 hover:underline"
+              type="button"
+              onClick={onSecondaryAction}
+            >
+              {secondaryActionLabel}
+            </button>
+      ) : (
+            <Link className="font-semibold text-slate-950 underline-offset-4 hover:underline" href="/register">
+              {secondaryActionLabel}
+            </Link>
+          )}
         </p>
       </CardContent>
+    </>
+  );
+
+  if (layout === "plain") {
+    return <div>{content}</div>;
+  }
+
+  return (
+    <Card className="border-white/70 bg-white/92 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+      {content}
     </Card>
   );
 }
