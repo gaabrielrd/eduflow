@@ -2,6 +2,23 @@
 
 O contrato compartilhado de conteudo editavel vive em `@eduflow/types` e e a fonte de verdade para editor e renderer. Ele usa Zod para validacao em runtime, tipos inferidos para TypeScript e permanece desacoplado de React, Nest DTOs e modelos Prisma.
 
+No dominio atual, esse documento e persistido no campo `Lesson.contentJson`. A lesson tambem carrega um `contentType` (`TEXT`, `VIDEO`, `QUIZ`, `FILE`), que classifica a experiencia da aula, enquanto `contentJson` descreve o corpo editavel renderizavel.
+
+## Como isso se encaixa em cursos e lessons
+
+A estrutura atual de autoria segue:
+
+- `Course`: curso editavel
+- `CourseModule`: secao ordenada dentro do curso
+- `Lesson`: aula ordenada dentro do modulo
+
+Cada `Lesson` possui:
+
+- `contentType`: tipo funcional da aula
+- `contentJson`: documento versionado deste guia
+
+Isso permite manter a evolucao do conteudo desacoplada da modelagem relacional do curriculo. Em outras palavras: curso e ordenacao vivem em `Course`/`CourseModule`/`Lesson`; o corpo estruturado da aula vive neste contrato versionado.
+
 ## Estrutura raiz
 
 O documento v1 e estrito: aceita apenas `version: 1` e rejeita campos desconhecidos no root, nos blocos e em `props`.

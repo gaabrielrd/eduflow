@@ -127,6 +127,18 @@ O projeto possui uma pipeline inicial de qualidade em GitHub Actions que roda em
 
 O roadmap detalhado do MVP esta em [docs/roadmap.md](/E:/OneDrive/Dev/eduflow/docs/roadmap.md). O arquivo [roadmap.md](/E:/OneDrive/Dev/eduflow/roadmap.md) na raiz permanece por compatibilidade historica.
 
+## Estrutura atual de cursos
+
+O dominio educacional ja implementado nesta base segue a hierarquia:
+
+- `Course`: entidade raiz editavel da autoria, vinculada a uma `Organization`, com `title`, `slug`, `description` opcional e `status` (`DRAFT`, `PUBLISHED`, `ARCHIVED`)
+- `CourseModule`: agrupador ordenado dentro de um curso, com `title`, `description` opcional, `position` e `status` (`ACTIVE`, `ARCHIVED`)
+- `Lesson`: unidade ordenada dentro de um modulo, com `title`, `description` opcional, `contentType`, `contentJson`, `position`, `estimatedDurationMinutes`, `isPreview` e `status` (`ACTIVE`, `ARCHIVED`)
+
+Na pratica, o curriculo autoravel hoje e `curso -> modulos -> lessons`, com unicidade de ordenacao por `position` dentro de cada nivel pai.
+
+O campo `contentType` classifica a lesson em `TEXT`, `VIDEO`, `QUIZ` ou `FILE`. O corpo editavel da lesson fica em `contentJson`, usando o contrato versionado descrito em [docs/content-contract.md](/E:/OneDrive/Dev/eduflow/docs/content-contract.md). No estado atual, esse contrato e compartilhado por `@eduflow/types` e usado como base de renderer no frontend.
+
 ## Membros e convites no MVP
 
 - a area autenticada agora reserva `/app/settings/members` para gestao basica de membros e convites

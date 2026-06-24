@@ -98,6 +98,30 @@ O guia operacional de interface e experiencia desta base vive em `docs/ui.md`. E
 
 PostgreSQL e o banco principal planejado e o Prisma e a camada de acesso escolhida. Nesta fase, o schema Prisma ja cobre identidade, tenancy e a estrutura inicial de autoria de cursos, com `Course`, `CourseModule` e `Lesson`. A decisao de publicacao continua separando a entidade editavel `Course` do futuro `CourseVersion`, que entrara em sprint posterior para snapshots publicados e imutaveis.
 
+### Estrutura atual de cursos e lessons
+
+O curriculo autoravel atual segue esta hierarquia:
+
+- `Course` pertence a uma `Organization` e concentra metadados editaveis do curso
+- `CourseModule` pertence a um `Course` e organiza o curriculo em secoes ordenadas
+- `Lesson` pertence a um `CourseModule` e representa a unidade ordenada consumivel do curriculo
+
+As regras importantes do modelo atual sao:
+
+- `Course.slug` e unico por organizacao
+- `CourseModule.position` e unico por curso
+- `Lesson.position` e unico por modulo
+- modulos e lessons usam arquivamento logico por `status` em vez de delete fisico como fluxo principal
+
+Cada lesson tambem possui:
+
+- `contentType`: tipo funcional da lesson em `TEXT`, `VIDEO`, `QUIZ` ou `FILE`
+- `contentJson`: payload JSON do conteudo editavel
+- `estimatedDurationMinutes`: duracao estimada opcional
+- `isPreview`: indicador para acesso de preview
+
+O contrato do campo `contentJson` fica em `@eduflow/types` e esta descrito em [docs/content-contract.md](/E:/OneDrive/Dev/eduflow/docs/content-contract.md). Hoje esse documento e independente do transporte HTTP e do banco: Nest valida a presenca de um objeto JSON, enquanto o schema versionado compartilhado define a estrutura esperada pelo editor e pelo renderer.
+
 ## Tenancy inicial
 
 A base inicial de identidade e tenancy do EduFlow deve assumir:
