@@ -7,4 +7,4 @@ export interface WorkspacePlaceholder {
   readonly status: "placeholder";
 }
 
-export * from "./content-contract.js";
+export * from "./content-contract";
