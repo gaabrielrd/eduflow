@@ -141,6 +141,54 @@ describe("ContentRenderer", () => {
     );
   });
 
+  it("renders html markup for rich text blocks while keeping legacy strings working", () => {
+    render(
+      <ContentRenderer
+        content={{
+          version: 1,
+          blocks: [
+            {
+              id: "heading-rich",
+              type: "heading",
+              props: {
+                level: 2,
+                text: "<strong>Titulo rico</strong> com <em>fase</em>"
+              }
+            },
+            {
+              id: "paragraph-rich",
+              type: "paragraph",
+              props: {
+                text: "<p>Texto com <strong>destaque</strong></p><ul><li>Item rico</li></ul>"
+              }
+            },
+            {
+              id: "quote-rich",
+              type: "quote",
+              props: {
+                text: "<p>Citacao <em>rica</em></p>"
+              }
+            },
+            {
+              id: "callout-legacy",
+              type: "callout",
+              props: {
+                variant: "info",
+                text: "Texto legado preservado"
+              }
+            }
+          ]
+        }}
+      />
+    );
+
+    expect(screen.getByRole("heading", { level: 2, name: "Titulo rico com fase" })).toBeInTheDocument();
+    expect(screen.getByText("Texto com destaque")).toBeInTheDocument();
+    expect(screen.getByText("Item rico")).toBeInTheDocument();
+    expect(screen.getByText("Citacao rica")).toBeInTheDocument();
+    expect(screen.getByText("Texto legado preservado")).toBeInTheDocument();
+  });
+
   it("renders placeholder metadata when present", () => {
     render(
       <ContentRenderer

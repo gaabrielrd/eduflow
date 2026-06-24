@@ -12,9 +12,12 @@
     "test": "vitest run --config vitest.config.mjs"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.2.2",
     "@eduflow/types": "workspace:*",
     "@eduflow/ui": "workspace:*",
+    "@hookform/resolvers": "^5.2.2",
+    "@tiptap/pm": "^3.27.1",
+    "@tiptap/react": "^3.27.1",
+    "@tiptap/starter-kit": "^3.27.1",
     "next": "^16.2.9",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",

@@ -135,19 +135,42 @@ function RenderedBlock({ block }: { readonly block: ContentBlock }) {
 function HeadingBlockView({ block }: { readonly block: HeadingBlock }) {
   const tagName = `h${block.props.level}` as const;
 
+  if (!containsHtmlMarkup(block.props.text)) {
+    return createElement(
+      tagName,
+      {
+        className: headingLevelClasses[block.props.level]
+      },
+      block.props.text
+    );
+  }
+
   return createElement(tagName, {
-    className: headingLevelClasses[block.props.level]
-  }, block.props.text);
+    className: cn(
+      headingLevelClasses[block.props.level],
+      "[&_em]:italic [&_strong]:font-semibold"
+    ),
+    dangerouslySetInnerHTML: {
+      __html: block.props.text
+    }
+  });
 }
 
 function ParagraphBlockView({ block }: { readonly block: ParagraphBlock }) {
-  return <p className="text-base leading-7 text-foreground">{block.props.text}</p>;
+  return (
+    <RichTextView
+      className="text-base leading-7 text-foreground"
+      value={block.props.text}
+    />
+  );
 }
 
 function QuoteBlockView({ block }: { readonly block: QuoteBlock }) {
   return (
     <figure className="rounded-xl border-l-4 border-primary bg-muted/35 px-5 py-4 text-foreground">
-      <blockquote className="text-base italic leading-7">{block.props.text}</blockquote>
+      <blockquote className="text-base italic leading-7">
+        <RichTextView value={block.props.text} />
+      </blockquote>
       {block.props.attribution ? (
         <figcaption className="mt-3 text-sm font-medium text-muted-foreground">
           {block.props.attribution}
@@ -178,7 +201,10 @@ function CalloutBlockView({ block }: { readonly block: CalloutBlock }) {
           </h3>
         ) : null}
       </div>
-      <p className="mt-3 text-sm leading-6 text-foreground">{block.props.text}</p>
+      <RichTextView
+        className="mt-3 text-sm leading-6 text-foreground"
+        value={block.props.text}
+      />
     </section>
   );
 }
@@ -247,6 +273,32 @@ function UnsupportedBlockFallback({ block }: { readonly block?: unknown }) {
       </p>
     </div>
   );
+}
+
+function RichTextView({
+  className,
+  value
+}: {
+  className?: string;
+  value: string;
+}) {
+  if (!containsHtmlMarkup(value)) {
+    return <p className={className}>{value}</p>;
+  }
+
+  return (
+    <div
+      className={cn(
+        "space-y-3 [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-4 [&_li]:ml-5 [&_li]:list-item [&_ol]:space-y-2 [&_ol]:pl-2 [&_p:not(:last-child)]:mb-3 [&_strong]:font-semibold [&_ul]:space-y-2 [&_ul]:pl-2",
+        className
+      )}
+      dangerouslySetInnerHTML={{ __html: value }}
+    />
+  );
+}
+
+function containsHtmlMarkup(value: string) {
+  return /<\/?[a-z][\s\S]*>/i.test(value);
 }
 
 function capitalize(value: string) {

@@ -23,6 +23,26 @@ vi.mock("@/lib/courses/course-service", () => ({
   updateLesson: vi.fn()
 }));
 
+vi.mock("@/components/courses/rich-text-block-editor", () => ({
+  RichTextBlockEditor: ({
+    ariaLabel,
+    controls: _controls,
+    onChange,
+    value
+  }: {
+    ariaLabel?: string;
+    controls?: string[];
+    onChange: (value: string) => void;
+    value: string;
+  }) => (
+    <textarea
+      aria-label={ariaLabel ?? "Editor de texto rico"}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    />
+  )
+}));
+
 const getCourseCurriculumMock = vi.mocked(getCourseCurriculum);
 const updateLessonMock = vi.mocked(updateLesson);
 
@@ -105,9 +125,9 @@ describe("LessonContentEditorScreen", () => {
       await screen.findByRole("heading", { level: 1, name: "Aula de blocos" })
     ).toBeTruthy();
     expect(screen.getByText("TEXT")).toBeTruthy();
-    expect(screen.getAllByText("Preview").length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: "Preview" })).toBeTruthy();
     expect((await screen.findAllByText("Titulo original")).length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Paragrafo original").length).toBeGreaterThan(0);
+    expect(screen.getByDisplayValue("Paragrafo original")).toBeTruthy();
   });
 
   it("shows the empty state when the lesson has no blocks", async () => {
@@ -196,8 +216,8 @@ describe("LessonContentEditorScreen", () => {
 
     expect((await screen.findAllByText("Titulo original")).length).toBeGreaterThan(0);
 
-    fireEvent.click(screen.getAllByText("Paragrafo original")[0]!);
-    expect(screen.getByLabelText("Texto")).toHaveValue("Paragrafo original");
+    fireEvent.click(screen.getByDisplayValue("Paragrafo original"));
+    expect(screen.getByDisplayValue("Paragrafo original")).toBeTruthy();
 
     openMenu(screen.getAllByLabelText("Acoes do bloco")[1]!);
     fireEvent.click(await screen.findByRole("menuitem", { name: "Duplicar bloco" }));
@@ -230,9 +250,9 @@ describe("LessonContentEditorScreen", () => {
     vi.useFakeTimers();
 
     fireEvent.click(screen.getAllByText("Titulo original")[0]!);
-    fireEvent.input(screen.getByLabelText("Texto"), {
+    fireEvent.input(screen.getByDisplayValue("Titulo original"), {
       target: {
-        value: "Titulo atualizado"
+        value: "<p><strong>Titulo atualizado</strong></p>"
       }
     });
 
@@ -257,7 +277,7 @@ describe("LessonContentEditorScreen", () => {
             type: "heading",
             props: {
               level: 2,
-              text: "Titulo atualizado"
+              text: "<p><strong>Titulo atualizado</strong></p>"
             }
           },
           {
@@ -270,6 +290,89 @@ describe("LessonContentEditorScreen", () => {
         ]
       }
     });
+  });
+
+  it("opens and closes the preview aside from the header button", async () => {
+    getCourseCurriculumMock.mockResolvedValue(baseCurriculum);
+
+    render(
+      createElement(LessonContentEditorScreen, {
+        courseId: "course-1",
+        lessonId: "lesson-1"
+      })
+    );
+
+    await screen.findByRole("heading", { level: 1, name: "Aula de blocos" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Preview" }));
+
+    expect(await screen.findByRole("dialog")).toBeTruthy();
+    expect(screen.getByText("Preview da aula")).toBeTruthy();
+    expect(screen.getAllByText("Paragrafo original").length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).toBeNull();
+    });
+  });
+
+  it("updates the preview immediately when inline rich text changes", async () => {
+    getCourseCurriculumMock.mockResolvedValue(baseCurriculum);
+
+    render(
+      createElement(LessonContentEditorScreen, {
+        courseId: "course-1",
+        lessonId: "lesson-1"
+      })
+    );
+
+    await screen.findByRole("heading", { level: 1, name: "Aula de blocos" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Preview" }));
+    await screen.findByRole("dialog");
+
+    fireEvent.change(screen.getByDisplayValue("Paragrafo original"), {
+      target: {
+        value: "<p><strong>Paragrafo atualizado</strong> com preview</p>"
+      }
+    });
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Paragrafo atualizado com preview").length).toBeGreaterThan(0);
+    });
+  });
+
+  it("shows the empty preview state when no blocks exist", async () => {
+    getCourseCurriculumMock.mockResolvedValue({
+      ...baseCurriculum,
+      modules: [
+        {
+          ...baseCurriculum.modules[0]!,
+          lessons: [
+            {
+              ...baseCurriculum.modules[0]!.lessons[0]!,
+              contentJson: {
+                version: 1,
+                blocks: []
+              }
+            }
+          ]
+        }
+      ]
+    });
+
+    render(
+      createElement(LessonContentEditorScreen, {
+        courseId: "course-1",
+        lessonId: "lesson-1"
+      })
+    );
+
+    await screen.findByText("Nenhum bloco criado ainda");
+    fireEvent.click(screen.getByRole("button", { name: "Preview" }));
+
+    expect(await screen.findByText("Preview vazio")).toBeTruthy();
   });
 
   it("falls back safely when the lesson content is malformed", async () => {

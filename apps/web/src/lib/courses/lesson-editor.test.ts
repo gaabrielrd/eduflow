@@ -4,7 +4,10 @@ import type { ContentBlock } from "@eduflow/types";
 import type { LessonNode } from "@/lib/courses/course-types";
 import {
   createEditorBlock,
+  getPlainTextFromRichText,
+  getRichTextEditorContent,
   getLessonEditorInitialBlocks,
+  hasRichTextMarkup,
   initialLessonEditorState,
   lessonEditorReducer,
   normalizeContentDocument
@@ -150,5 +153,22 @@ describe("lesson-editor", () => {
       "video",
       "file"
     ]);
+  });
+
+  it("converts plain text into valid rich text editor content", () => {
+    expect(getRichTextEditorContent("Primeira linha\n\nSegunda linha")).toBe(
+      "<p>Primeira linha</p><p>Segunda linha</p>"
+    );
+  });
+
+  it("extracts readable plain text from stored html", () => {
+    expect(getPlainTextFromRichText("<p><strong>Resumo</strong> do bloco</p>")).toBe(
+      "Resumo do bloco"
+    );
+  });
+
+  it("detects stored rich text markup without breaking plain text", () => {
+    expect(hasRichTextMarkup("<p>Com markup</p>")).toBe(true);
+    expect(hasRichTextMarkup("Texto simples")).toBe(false);
   });
 });

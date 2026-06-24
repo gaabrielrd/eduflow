@@ -302,11 +302,11 @@ export function getBlockSummary(block: ContentBlock) {
     case "heading":
       return block.props.text || "Sem texto";
     case "paragraph":
-      return block.props.text || "Sem texto";
+      return getRichTextSummary(block.props.text);
     case "quote":
-      return block.props.text || "Sem texto";
+      return getRichTextSummary(block.props.text);
     case "callout":
-      return block.props.title || block.props.text || "Sem conteudo";
+      return block.props.title || getRichTextSummary(block.props.text, "Sem conteudo");
     case "divider":
       return "Separador visual";
     case "image":
@@ -326,6 +326,67 @@ export function getCalloutVariantOptions(): CalloutVariant[] {
 
 export function getLessonEditorInitialBlocks(lesson: LessonNode) {
   return normalizeContentDocument(lesson.contentJson).blocks;
+}
+
+export function getRichTextEditorContent(value: string) {
+  const normalizedValue = value.trim();
+
+  if (!normalizedValue) {
+    return "<p></p>";
+  }
+
+  if (hasRichTextMarkup(normalizedValue)) {
+    return normalizedValue;
+  }
+
+  return normalizedValue
+    .split(/\n{2,}/)
+    .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, "<br />")}</p>`)
+    .join("");
+}
+
+export function getPlainTextFromRichText(value: string) {
+  const normalizedValue = value.trim();
+
+  if (!normalizedValue) {
+    return "";
+  }
+
+  if (typeof DOMParser !== "undefined") {
+    const document = new DOMParser().parseFromString(normalizedValue, "text/html");
+
+    return normalizeSummaryWhitespace(document.body.textContent ?? "");
+  }
+
+  return normalizeSummaryWhitespace(
+    normalizedValue
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/(p|div|li|blockquote|h[1-6])>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+  );
+}
+
+export function hasRichTextMarkup(value: string) {
+  return /<\/?[a-z][\s\S]*>/i.test(value);
+}
+
+function getRichTextSummary(value: string, fallback = "Sem texto") {
+  const summary = getPlainTextFromRichText(value);
+
+  return summary || fallback;
+}
+
+function normalizeSummaryWhitespace(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 function assertNever(value: never): never {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -16,7 +17,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  ContentRenderer,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -36,11 +36,12 @@ import {
   Textarea
 } from "@eduflow/ui";
 import { useAppBreadcrumbs } from "@/components/breadcrumb-context";
+import { LessonPreviewAside } from "@/components/courses/lesson-preview-aside";
+import { RichTextBlockEditor } from "@/components/courses/rich-text-block-editor";
 import {
   LESSON_EDITOR_PERSIST_DELAY_MS,
   createClientBlockId,
   createEditorBlock,
-  getBlockSummary,
   getBlockTypeLabel,
   getCalloutVariantOptions,
   getLessonEditorInitialBlocks,
@@ -97,6 +98,7 @@ export function LessonContentEditorScreen({
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [state, dispatch] = useReducer(lessonEditorReducer, initialLessonEditorState);
 
   const loadEditor = useCallback(async () => {
@@ -182,11 +184,6 @@ export function LessonContentEditorScreen({
   }, [state.blocks, state.hasHydrated, state.isDirty, state.lesson]);
 
   const lesson = state.lesson;
-  const selectedBlock = useMemo(
-    () => state.blocks.find((block) => block.id === state.selectedBlockId) ?? null,
-    [state.blocks, state.selectedBlockId]
-  );
-
   const breadcrumbItems = useMemo(
     () => [
       { href: "/app/dashboard", label: "App" },
@@ -212,37 +209,49 @@ export function LessonContentEditorScreen({
     void loadEditor();
   }
 
-  function handleAddBlock(type: (typeof blockTypes)[number]) {
+  const handleAddBlock = useCallback((type: (typeof blockTypes)[number]) => {
     setSaveErrorMessage(null);
     dispatch({
       type: "add-block",
       block: createEditorBlock(type)
     });
-  }
+  }, []);
 
-  function handleSelectBlock(blockId: string) {
+  const handleSelectBlock = useCallback((blockId: string) => {
     dispatch({
       type: "select-block",
       blockId
     });
-  }
+  }, []);
 
-  function handleDuplicateBlock(blockId: string) {
+  const handleDuplicateBlock = useCallback((blockId: string) => {
     setSaveErrorMessage(null);
     dispatch({
       type: "duplicate-block",
       blockId,
       duplicateId: createClientBlockId("block")
     });
-  }
+  }, []);
 
-  function handleRemoveBlock(blockId: string) {
+  const handleRemoveBlock = useCallback((blockId: string) => {
     setSaveErrorMessage(null);
     dispatch({
       type: "remove-block",
       blockId
     });
-  }
+  }, []);
+
+  const handleUpdateBlock = useCallback(
+    (blockId: string, updater: (current: EditorBlock) => EditorBlock) => {
+      setSaveErrorMessage(null);
+      dispatch({
+        type: "update-block",
+        blockId,
+        updater
+      });
+    },
+    []
+  );
 
   if (isLoading) {
     return (
@@ -263,6 +272,11 @@ export function LessonContentEditorScreen({
     );
   }
 
+  const previewContent = normalizeContentDocument({
+    version: 1,
+    blocks: state.blocks
+  });
+
   return (
     <section className="space-y-8">
       <PageHeader
@@ -270,6 +284,9 @@ export function LessonContentEditorScreen({
           <>
             <Button asChild variant="outline">
               <Link href={`/app/courses/${courseId}/curriculum`}>Voltar para curriculo</Link>
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setIsPreviewOpen(true)}>
+              Preview
             </Button>
             <AddBlockMenu onAddBlock={handleAddBlock} />
           </>
@@ -303,141 +320,51 @@ export function LessonContentEditorScreen({
         </p>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
-        <Card>
-          <CardHeader className="gap-4 border-b border-border/70 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold tracking-[-0.04em] text-card-foreground">
-                Blocos
-              </h2>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Selecione um bloco para editar seu conteudo ou adicione novos trechos ao fluxo da aula.
-              </p>
+      <Card className="overflow-hidden">
+        <CardHeader className="gap-4 border-b border-border/70 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold tracking-[-0.04em] text-card-foreground">
+              Blocos da aula
+            </h2>
+            <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">
+              Edite cada trecho diretamente na lista, mantendo o fluxo da narrativa e abrindo o
+              preview apenas quando precisar validar a leitura completa.
+            </p>
+          </div>
+          <AddBlockMenu onAddBlock={handleAddBlock} />
+        </CardHeader>
+        <CardContent className="pt-5">
+          {state.blocks.length === 0 ? (
+            <EmptyState
+              action={<AddBlockMenu onAddBlock={handleAddBlock} />}
+              description="Comece adicionando o primeiro bloco do conteudo desta aula."
+              title="Nenhum bloco criado ainda"
+            />
+          ) : (
+            <div className="space-y-4">
+              {state.blocks.map((block, index) => (
+                <LessonBlockCard
+                  key={block.id}
+                  block={block}
+                  index={index}
+                  isSelected={block.id === state.selectedBlockId}
+                  onDuplicate={handleDuplicateBlock}
+                  onRemove={handleRemoveBlock}
+                  onSelect={handleSelectBlock}
+                  onUpdate={handleUpdateBlock}
+                />
+              ))}
             </div>
-            <AddBlockMenu onAddBlock={handleAddBlock} />
-          </CardHeader>
-          <CardContent className="pt-5">
-            {state.blocks.length === 0 ? (
-              <EmptyState
-                action={<AddBlockMenu onAddBlock={handleAddBlock} />}
-                description="Comece adicionando o primeiro bloco do conteudo desta aula."
-                title="Nenhum bloco criado ainda"
-              />
-            ) : (
-              <div className="space-y-3">
-                {state.blocks.map((block, index) => {
-                  const isSelected = block.id === state.selectedBlockId;
+          )}
+        </CardContent>
+      </Card>
 
-                  return (
-                    <div
-                      key={block.id}
-                      aria-pressed={isSelected}
-                      className={[
-                        "w-full rounded-2xl border px-4 py-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                        isSelected
-                          ? "border-primary/45 bg-primary/10 shadow-sm"
-                          : "border-border/70 bg-card hover:border-input hover:bg-muted/20"
-                      ].join(" ")}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => handleSelectBlock(block.id)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          handleSelectBlock(block.id);
-                        }
-                      }}
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0 space-y-2">
-                          <div className="flex flex-wrap items-center gap-3">
-                            <Badge variant={isSelected ? "secondary" : "neutral"}>
-                              {getBlockTypeLabel(block.type)}
-                            </Badge>
-                            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                              Bloco {String(index + 1).padStart(2, "0")}
-                            </span>
-                          </div>
-                          <p className="truncate text-sm font-medium text-foreground">
-                            {getBlockSummary(block)}
-                          </p>
-                        </div>
-
-                        <BlockActionsMenu
-                          blockId={block.id}
-                          onDuplicate={handleDuplicateBlock}
-                          onRemove={handleRemoveBlock}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <div className="space-y-6">
-          <Card>
-            <CardHeader className="border-b border-border/70">
-              <h2 className="text-lg font-semibold tracking-[-0.04em] text-card-foreground">
-                Editor do bloco
-              </h2>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                {selectedBlock
-                  ? "Ajuste os campos do bloco selecionado."
-                  : "Selecione um bloco na lista para editar seus campos."}
-              </p>
-            </CardHeader>
-            <CardContent className="pt-5">
-              {selectedBlock ? (
-                <SelectedBlockEditor
-                  block={selectedBlock}
-                  onChange={(updater) => {
-                    setSaveErrorMessage(null);
-                    dispatch({
-                      type: "update-block",
-                      blockId: selectedBlock.id,
-                      updater
-                    });
-                  }}
-                />
-              ) : (
-                <EmptyState
-                  description="Escolha um item da lista para editar o conteudo e os metadados do bloco."
-                  title="Nenhum bloco selecionado"
-                />
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="border-b border-border/70">
-              <h2 className="text-lg font-semibold tracking-[-0.04em] text-card-foreground">
-                Preview
-              </h2>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Renderizacao atual do documento com os blocos persistidos no editor.
-              </p>
-            </CardHeader>
-            <CardContent className="pt-5">
-              {state.blocks.length === 0 ? (
-                <EmptyState
-                  description="O preview aparecera assim que a aula tiver pelo menos um bloco."
-                  title="Preview vazio"
-                />
-              ) : (
-                <ContentRenderer
-                  content={normalizeContentDocument({
-                    version: 1,
-                    blocks: state.blocks
-                  })}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <LessonPreviewAside
+        content={previewContent}
+        lessonTitle={lesson.title}
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+      />
     </section>
   );
 }
@@ -501,6 +428,63 @@ function BlockActionsMenu({
   );
 }
 
+const LessonBlockCard = memo(function LessonBlockCard({
+  block,
+  index,
+  isSelected,
+  onDuplicate,
+  onRemove,
+  onSelect,
+  onUpdate
+}: {
+  block: EditorBlock;
+  index: number;
+  isSelected: boolean;
+  onDuplicate: (blockId: string) => void;
+  onRemove: (blockId: string) => void;
+  onSelect: (blockId: string) => void;
+  onUpdate: (blockId: string, updater: (current: EditorBlock) => EditorBlock) => void;
+}) {
+  const handleChange = useCallback(
+    (updater: (current: EditorBlock) => EditorBlock) => onUpdate(block.id, updater),
+    [block.id, onUpdate]
+  );
+
+  return (
+    <article
+      className={[
+        "rounded-[1.75rem] border p-5 transition sm:p-6",
+        isSelected
+          ? "border-primary/45 bg-primary/10 shadow-sm"
+          : "border-border/70 bg-card hover:border-input"
+      ].join(" ")}
+      onClick={() => onSelect(block.id)}
+      onFocusCapture={() => onSelect(block.id)}
+    >
+      <div className="flex flex-col gap-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge variant={isSelected ? "secondary" : "neutral"}>
+                {getBlockTypeLabel(block.type)}
+              </Badge>
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                Bloco {String(index + 1).padStart(2, "0")}
+              </span>
+            </div>
+          </div>
+          <BlockActionsMenu
+            blockId={block.id}
+            onDuplicate={onDuplicate}
+            onRemove={onRemove}
+          />
+        </div>
+        <SelectedBlockEditor block={block} onChange={handleChange} />
+      </div>
+    </article>
+  );
+});
+
 function SelectedBlockEditor({
   block,
   onChange
@@ -511,7 +495,7 @@ function SelectedBlockEditor({
   switch (block.type) {
     case "heading":
       return (
-        <div className="space-y-4">
+        <FieldsStack>
           <Field label="Nivel">
             <Select
               value={String(block.props.level)}
@@ -542,17 +526,19 @@ function SelectedBlockEditor({
             </Select>
           </Field>
 
-          <Field label="Texto">
-            <Input
+          <Field label="Titulo">
+            <RichTextBlockEditor
+              ariaLabel="Titulo"
+              controls={["bold", "italic"]}
               value={block.props.text}
-              onChange={(event) =>
+              onChange={(value) =>
                 onChange((current) =>
                   current.type === "heading"
                     ? {
                         ...current,
                         props: {
                           ...current.props,
-                          text: event.target.value
+                          text: value
                         }
                       }
                     : current
@@ -560,22 +546,22 @@ function SelectedBlockEditor({
               }
             />
           </Field>
-        </div>
+        </FieldsStack>
       );
     case "paragraph":
       return (
         <Field label="Texto">
-          <Textarea
-            rows={8}
+          <RichTextBlockEditor
+            ariaLabel="Texto"
             value={block.props.text}
-            onChange={(event) =>
+            onChange={(value) =>
               onChange((current) =>
                 current.type === "paragraph"
                   ? {
                       ...current,
                       props: {
                         ...current.props,
-                        text: event.target.value
+                        text: value
                       }
                     }
                   : current
@@ -586,19 +572,19 @@ function SelectedBlockEditor({
       );
     case "quote":
       return (
-        <div className="space-y-4">
+        <FieldsStack>
           <Field label="Citacao">
-            <Textarea
-              rows={6}
+            <RichTextBlockEditor
+              ariaLabel="Citacao"
               value={block.props.text}
-              onChange={(event) =>
+              onChange={(value) =>
                 onChange((current) =>
                   current.type === "quote"
                     ? {
                         ...current,
                         props: {
                           ...current.props,
-                          text: event.target.value
+                          text: value
                         }
                       }
                     : current
@@ -624,11 +610,11 @@ function SelectedBlockEditor({
               }
             />
           </Field>
-        </div>
+        </FieldsStack>
       );
     case "callout":
       return (
-        <div className="space-y-4">
+        <FieldsStack>
           <Field label="Variante">
             <Select
               value={block.props.variant}
@@ -677,17 +663,17 @@ function SelectedBlockEditor({
             />
           </Field>
           <Field label="Texto">
-            <Textarea
-              rows={5}
+            <RichTextBlockEditor
+              ariaLabel="Texto do callout"
               value={block.props.text}
-              onChange={(event) =>
+              onChange={(value) =>
                 onChange((current) =>
                   current.type === "callout"
                     ? {
                         ...current,
                         props: {
                           ...current.props,
-                          text: event.target.value
+                          text: value
                         }
                       }
                     : current
@@ -695,18 +681,20 @@ function SelectedBlockEditor({
               }
             />
           </Field>
-        </div>
+        </FieldsStack>
       );
     case "divider":
       return (
-        <EmptyState
-          description="Este bloco nao possui campos editaveis nesta versao."
-          title="Separador visual"
-        />
+        <FieldSurface>
+          <EmptyState
+            description="Este bloco nao possui campos editaveis nesta versao."
+            title="Separador visual"
+          />
+        </FieldSurface>
       );
     case "image":
       return (
-        <div className="space-y-4">
+        <FieldsStack>
           <Field label="Legenda">
             <Input
               value={block.props.caption ?? ""}
@@ -744,11 +732,11 @@ function SelectedBlockEditor({
               }
             />
           </Field>
-        </div>
+        </FieldsStack>
       );
     case "video":
       return (
-        <div className="space-y-4">
+        <FieldsStack>
           <Field label="Titulo">
             <Input
               value={block.props.title ?? ""}
@@ -786,11 +774,11 @@ function SelectedBlockEditor({
               }
             />
           </Field>
-        </div>
+        </FieldsStack>
       );
     case "file":
       return (
-        <div className="space-y-4">
+        <FieldsStack>
           <Field label="Titulo">
             <Input
               value={block.props.title ?? ""}
@@ -828,11 +816,19 @@ function SelectedBlockEditor({
               }
             />
           </Field>
-        </div>
+        </FieldsStack>
       );
     default:
       return null;
   }
+}
+
+function FieldsStack({
+  children
+}: {
+  children: ReactNode;
+}) {
+  return <div className="space-y-5">{children}</div>;
 }
 
 function Field({
@@ -843,11 +839,19 @@ function Field({
   label: string;
 }) {
   return (
-    <label className="block space-y-2">
+    <label className="block space-y-3">
       <span className="text-sm font-medium text-foreground">{label}</span>
-      {children}
+      <FieldSurface>{children}</FieldSurface>
     </label>
   );
+}
+
+function FieldSurface({
+  children
+}: {
+  children: ReactNode;
+}) {
+  return <div className="space-y-3">{children}</div>;
 }
 
 function toOptionalValue(value: string) {

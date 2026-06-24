@@ -50,6 +50,17 @@ O documento v1 e estrito: aceita apenas `version: 1` e rejeita campos desconheci
 - `video`: placeholder minimo com `props.title` e `props.caption` opcionais
 - `file`: placeholder minimo com `props.title` e `props.caption` opcionais
 
+## Semantica atual dos campos textuais
+
+O contrato v1 nao mudou de shape: os campos `props.text` continuam sendo `string`.
+
+No entanto, para blocos textuais (`paragraph`, `quote` e `callout`), essa `string` pode assumir dois formatos compativeis:
+
+- texto simples legado, sem markup
+- HTML rico persistido pelo editor baseado em Tiptap
+
+O renderer do frontend deve aceitar ambos os formatos. Isso preserva compatibilidade com aulas antigas sem introduzir `contentJson.version: 2` nesta fase.
+
 ## Versionamento
 
 Novas evolucoes do formato devem entrar como novos schemas versionados, sem alargar silenciosamente o contrato v1. Isso preserva compatibilidade explicita entre conteudo legado e novos block types.
