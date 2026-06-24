@@ -242,6 +242,42 @@ test("PATCH /courses/:courseId/modules/:moduleId updates title and description",
   assert.equal(response.body.description, null);
 });
 
+test("module authoring endpoints allow instructors to mutate modules", async () => {
+  const instructor = await createUserAndToken(app, `module-instructor.${Date.now()}@modules.test`);
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: instructor.user.id,
+    name: "Module Instructor Org",
+    slug: `module-instructor-org-${uniqueSuffix()}`,
+    role: Role.INSTRUCTOR
+  });
+  const course = await createCourseForOrganization({
+    organizationId: organization.id,
+    createdById: instructor.user.id
+  });
+
+  const createResponse = await request(app.getHttpServer())
+    .post(`/courses/${course.id}/modules`)
+    .set("Authorization", `Bearer ${instructor.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .send({
+      title: "Instructor Module"
+    })
+    .expect(201);
+
+  const updateResponse = await request(app.getHttpServer())
+    .patch(`/courses/${course.id}/modules/${createResponse.body.id}`)
+    .set("Authorization", `Bearer ${instructor.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .send({
+      title: "Instructor Module Updated"
+    })
+    .expect(200);
+
+  assert.equal(createResponse.body.title, "Instructor Module");
+  assert.equal(updateResponse.body.title, "Instructor Module Updated");
+});
+
 test("DELETE /courses/:courseId/modules/:moduleId archives the module and all lessons idempotently", async () => {
   const owner = await createUserAndToken(app, `module-archive.${Date.now()}@modules.test`);
   const organization = await createOrganizationForUser({

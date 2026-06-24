@@ -9,13 +9,13 @@ import {
 } from "@nestjs/common";
 
 import { CurrentOrganizationContext } from "../auth/decorators/current-organization-context.decorator.js";
+import { AUTHORING_ROLES } from "../auth/authoring-roles.js";
 import { Roles } from "../auth/decorators/roles.decorator.js";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard.js";
 import { OrganizationContextGuard } from "../auth/guards/organization-context.guard.js";
 import { RolesGuard } from "../auth/guards/roles.guard.js";
 import type { OrganizationContext } from "../auth/types/organization-context.interface.js";
 import { ReorderItemsDto } from "../common/dto/reorder-items.dto.js";
-import { Role } from "../generated/prisma/enums.js";
 import { CreateLessonDto } from "./dto/create-lesson.dto.js";
 import { UpdateLessonDto } from "./dto/update-lesson.dto.js";
 import { LessonsService } from "./lessons.service.js";
@@ -26,7 +26,7 @@ export class LessonsController {
   constructor(private readonly lessonsService: LessonsService) {}
 
   @Post("modules/:moduleId/lessons")
-  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  @Roles(...AUTHORING_ROLES)
   @UseGuards(RolesGuard)
   create(
     @CurrentOrganizationContext() context: OrganizationContext,
@@ -37,7 +37,7 @@ export class LessonsController {
   }
 
   @Post("modules/:moduleId/lessons/reorder")
-  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  @Roles(...AUTHORING_ROLES)
   @UseGuards(RolesGuard)
   reorder(
     @CurrentOrganizationContext() context: OrganizationContext,
@@ -48,7 +48,7 @@ export class LessonsController {
   }
 
   @Patch("lessons/:lessonId")
-  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  @Roles(...AUTHORING_ROLES)
   @UseGuards(RolesGuard)
   update(
     @CurrentOrganizationContext() context: OrganizationContext,
@@ -59,7 +59,7 @@ export class LessonsController {
   }
 
   @Delete("lessons/:lessonId")
-  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  @Roles(...AUTHORING_ROLES)
   @UseGuards(RolesGuard)
   archive(
     @CurrentOrganizationContext() context: OrganizationContext,

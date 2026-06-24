@@ -11,13 +11,13 @@ import {
 
 import { CurrentOrganizationContext } from "../auth/decorators/current-organization-context.decorator.js";
 import { CurrentUser } from "../auth/decorators/current-user.decorator.js";
+import { AUTHORING_ROLES } from "../auth/authoring-roles.js";
 import { Roles } from "../auth/decorators/roles.decorator.js";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard.js";
 import { OrganizationContextGuard } from "../auth/guards/organization-context.guard.js";
 import { RolesGuard } from "../auth/guards/roles.guard.js";
 import type { AuthenticatedUser } from "../auth/types/authenticated-user.interface.js";
 import type { OrganizationContext } from "../auth/types/organization-context.interface.js";
-import { Role } from "../generated/prisma/enums.js";
 import { CoursesService } from "./courses.service.js";
 import { CreateCourseDto } from "./dto/create-course.dto.js";
 import { UpdateCourseDto } from "./dto/update-course.dto.js";
@@ -28,7 +28,7 @@ export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
   @Post()
-  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  @Roles(...AUTHORING_ROLES)
   @UseGuards(RolesGuard)
   create(
     @CurrentOrganizationContext() context: OrganizationContext,
@@ -60,7 +60,7 @@ export class CoursesController {
   }
 
   @Patch(":id")
-  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  @Roles(...AUTHORING_ROLES)
   @UseGuards(RolesGuard)
   update(
     @CurrentOrganizationContext() context: OrganizationContext,
@@ -71,7 +71,7 @@ export class CoursesController {
   }
 
   @Delete(":id")
-  @Roles(Role.OWNER, Role.ADMIN, Role.MANAGER)
+  @Roles(...AUTHORING_ROLES)
   @UseGuards(RolesGuard)
   archive(
     @CurrentOrganizationContext() context: OrganizationContext,

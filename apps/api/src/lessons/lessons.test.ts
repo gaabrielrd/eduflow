@@ -271,6 +271,47 @@ test("PATCH /lessons/:lessonId updates title and lesson metadata", async () => {
   assert.equal(response.body.isPreview, true);
 });
 
+test("lesson authoring endpoints allow instructors to mutate lessons", async () => {
+  const instructor = await createUserAndToken(app, `lesson-instructor.${Date.now()}@lessons.test`);
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: instructor.user.id,
+    name: "Lesson Instructor Org",
+    slug: `lesson-instructor-org-${uniqueSuffix()}`,
+    role: Role.INSTRUCTOR
+  });
+  const course = await createCourseForOrganization({
+    organizationId: organization.id,
+    createdById: instructor.user.id
+  });
+  const module = await createModuleForCourse({
+    courseId: course.id
+  });
+
+  const createResponse = await request(app.getHttpServer())
+    .post(`/modules/${module.id}/lessons`)
+    .set("Authorization", `Bearer ${instructor.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .send({
+      title: "Instructor Lesson",
+      contentType: LessonContentType.TEXT,
+      contentJson: { type: "doc", content: [] }
+    })
+    .expect(201);
+
+  const updateResponse = await request(app.getHttpServer())
+    .patch(`/lessons/${createResponse.body.id}`)
+    .set("Authorization", `Bearer ${instructor.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .send({
+      title: "Instructor Lesson Updated"
+    })
+    .expect(200);
+
+  assert.equal(createResponse.body.title, "Instructor Lesson");
+  assert.equal(updateResponse.body.title, "Instructor Lesson Updated");
+});
+
 test("DELETE /lessons/:lessonId archives lessons idempotently", async () => {
   const owner = await createUserAndToken(app, `lesson-archive.${Date.now()}@lessons.test`);
   const organization = await createOrganizationForUser({

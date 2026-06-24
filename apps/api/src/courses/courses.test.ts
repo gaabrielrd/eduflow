@@ -447,7 +447,7 @@ test("course endpoints reject cross-organization access with 404", async () => {
   }
 });
 
-test("course endpoints require organization context and enforce authoring roles", async () => {
+test("course endpoints require organization context, allow instructor authoring, and enforce denied roles", async () => {
   const student = await createUserAndToken(app, `course-role-student.${Date.now()}@courses.test`);
   const instructor = await createUserAndToken(app, `course-role-instructor.${Date.now()}@courses.test`);
 
@@ -501,14 +501,24 @@ test("course endpoints require organization context and enforce authoring roles"
     })
     .expect(403);
 
+  const instructorCreateResponse = await request(app.getHttpServer())
+    .post("/courses")
+    .set("Authorization", `Bearer ${instructor.accessToken}`)
+    .set("X-Organization-Id", instructorOrganization.id)
+    .send({
+      title: "Instructor Course",
+      slug: `instructor-course-${uniqueSuffix()}`
+    })
+    .expect(201);
+
   const instructorUpdateResponse = await request(app.getHttpServer())
     .patch(`/courses/${instructorCourse.id}`)
     .set("Authorization", `Bearer ${instructor.accessToken}`)
     .set("X-Organization-Id", instructorOrganization.id)
     .send({
-      title: "Should Not Update"
+      title: "Instructor Updated Course"
     })
-    .expect(403);
+    .expect(200);
 
   const studentArchiveResponse = await request(app.getHttpServer())
     .delete(`/courses/${course.id}`)
@@ -517,7 +527,8 @@ test("course endpoints require organization context and enforce authoring roles"
     .expect(403);
 
   assert.equal(studentCreateResponse.body.message, "Insufficient organization role");
-  assert.equal(instructorUpdateResponse.body.message, "Insufficient organization role");
+  assert.equal(instructorCreateResponse.body.createdById, instructor.user.id);
+  assert.equal(instructorUpdateResponse.body.title, "Instructor Updated Course");
   assert.equal(studentArchiveResponse.body.message, "Insufficient organization role");
 });
 
