@@ -91,7 +91,7 @@ jobs:
 
       - name: Provision MinIO bucket
         run: >
-          docker run --rm --network host minio/mc sh -c
+          docker run --rm --network host --entrypoint /bin/sh minio/mc -c
           "until mc alias set local http://127.0.0.1:9000 $STORAGE_ACCESS_KEY $STORAGE_SECRET_KEY; do sleep 2; done &&
           mc mb --ignore-existing local/$STORAGE_BUCKET_NAME &&
           mc anonymous set download local/$STORAGE_BUCKET_NAME"
