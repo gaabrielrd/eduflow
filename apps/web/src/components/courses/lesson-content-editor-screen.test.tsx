@@ -1,6 +1,6 @@
 import { createElement, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
 import { LessonContentEditorScreen } from "@/components/courses/lesson-content-editor-screen";
 import { LESSON_EDITOR_PERSIST_DELAY_MS } from "@/lib/courses/lesson-editor";
@@ -234,6 +234,63 @@ describe("LessonContentEditorScreen", () => {
     });
   });
 
+  it("reorders blocks upward in the editor list", async () => {
+    getCourseCurriculumMock.mockResolvedValue(baseCurriculum);
+
+    render(
+      createElement(LessonContentEditorScreen, {
+        courseId: "course-1",
+        lessonId: "lesson-1"
+      })
+    );
+
+    expect((await screen.findAllByText("Titulo original")).length).toBeGreaterThan(0);
+    expect(getEditorBlockValues()).toEqual(["Titulo original", "Paragrafo original"]);
+
+    fireEvent.click(screen.getByRole("button", { name: "Mover bloco 2 para cima" }));
+
+    await waitFor(() => {
+      expect(getEditorBlockValues()).toEqual(["Paragrafo original", "Titulo original"]);
+    });
+  });
+
+  it("reorders blocks downward in the editor list", async () => {
+    getCourseCurriculumMock.mockResolvedValue(baseCurriculum);
+
+    render(
+      createElement(LessonContentEditorScreen, {
+        courseId: "course-1",
+        lessonId: "lesson-1"
+      })
+    );
+
+    expect((await screen.findAllByText("Titulo original")).length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole("button", { name: "Mover bloco 1 para baixo" }));
+
+    await waitFor(() => {
+      expect(getEditorBlockValues()).toEqual(["Paragrafo original", "Titulo original"]);
+    });
+  });
+
+  it("disables move controls for the first and last blocks", async () => {
+    getCourseCurriculumMock.mockResolvedValue(baseCurriculum);
+
+    render(
+      createElement(LessonContentEditorScreen, {
+        courseId: "course-1",
+        lessonId: "lesson-1"
+      })
+    );
+
+    expect((await screen.findAllByText("Titulo original")).length).toBeGreaterThan(0);
+
+    expect(screen.getByRole("button", { name: "Mover bloco 1 para cima" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Mover bloco 1 para baixo" })).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: "Mover bloco 2 para cima" })).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: "Mover bloco 2 para baixo" })).toBeDisabled();
+  });
+
   it("saves changes to the api after the debounce delay", async () => {
     getCourseCurriculumMock.mockResolvedValue(baseCurriculum);
     updateLessonMock.mockResolvedValue(baseCurriculum.modules[0]!.lessons[0]!);
@@ -292,6 +349,54 @@ describe("LessonContentEditorScreen", () => {
     });
   });
 
+  it("saves reordered blocks to the api after the debounce delay", async () => {
+    getCourseCurriculumMock.mockResolvedValue(baseCurriculum);
+    updateLessonMock.mockResolvedValue(baseCurriculum.modules[0]!.lessons[0]!);
+
+    render(
+      createElement(LessonContentEditorScreen, {
+        courseId: "course-1",
+        lessonId: "lesson-1"
+      })
+    );
+
+    expect((await screen.findAllByText("Titulo original")).length).toBeGreaterThan(0);
+
+    vi.useFakeTimers();
+
+    fireEvent.click(screen.getByRole("button", { name: "Mover bloco 1 para baixo" }));
+
+    expect(updateLessonMock).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(LESSON_EDITOR_PERSIST_DELAY_MS);
+      await Promise.resolve();
+    });
+
+    expect(updateLessonMock).toHaveBeenCalledWith("lesson-1", {
+      contentJson: {
+        version: 1,
+        blocks: [
+          {
+            id: "paragraph-1",
+            type: "paragraph",
+            props: {
+              text: "Paragrafo original"
+            }
+          },
+          {
+            id: "heading-1",
+            type: "heading",
+            props: {
+              level: 2,
+              text: "Titulo original"
+            }
+          }
+        ]
+      }
+    });
+  });
+
   it("opens and closes the preview aside from the header button", async () => {
     getCourseCurriculumMock.mockResolvedValue(baseCurriculum);
 
@@ -339,7 +444,35 @@ describe("LessonContentEditorScreen", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getAllByText("Paragrafo atualizado com preview").length).toBeGreaterThan(0);
+      expect(screen.getByRole("dialog")).toHaveTextContent("Paragrafo atualizado com preview");
+    });
+  });
+
+  it("shows the reordered block order in preview", async () => {
+    getCourseCurriculumMock.mockResolvedValue(baseCurriculum);
+
+    render(
+      createElement(LessonContentEditorScreen, {
+        courseId: "course-1",
+        lessonId: "lesson-1"
+      })
+    );
+
+    await screen.findByRole("heading", { level: 1, name: "Aula de blocos" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Mover bloco 1 para baixo" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "Preview" }));
+
+    const dialog = await screen.findByRole("dialog");
+
+    await waitFor(() => {
+      const paragraph = within(dialog).getByText("Paragrafo original");
+      const heading = within(dialog).getByText("Titulo original");
+
+      expect(paragraph.compareDocumentPosition(heading)).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING
+      );
     });
   });
 
@@ -418,4 +551,8 @@ function openMenu(trigger: HTMLElement) {
     button: 0,
     ctrlKey: false
   });
+}
+
+function getEditorBlockValues() {
+  return screen.getAllByRole("textbox").map((element) => (element as HTMLTextAreaElement).value);
 }

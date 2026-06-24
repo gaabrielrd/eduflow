@@ -131,6 +131,84 @@ describe("lesson-editor", () => {
     expect(nextState.selectedBlockId).toBe("paragraph-1");
   });
 
+  it("moves a block up when there is a previous neighbor", () => {
+    const initializedState = lessonEditorReducer(initialLessonEditorState, {
+      type: "initialize",
+      lesson: baseLesson,
+      blocks: getLessonEditorInitialBlocks(baseLesson)
+    });
+    const selectedState = lessonEditorReducer(initializedState, {
+      type: "select-block",
+      blockId: "paragraph-1"
+    });
+
+    const nextState = lessonEditorReducer(selectedState, {
+      type: "move-block",
+      blockId: "paragraph-1",
+      direction: "up"
+    });
+
+    expect(nextState.blocks.map((block) => block.id)).toEqual(["paragraph-1", "heading-1"]);
+    expect(nextState.selectedBlockId).toBe("paragraph-1");
+    expect(nextState.isDirty).toBe(true);
+  });
+
+  it("moves a block down when there is a next neighbor", () => {
+    const initializedState = lessonEditorReducer(initialLessonEditorState, {
+      type: "initialize",
+      lesson: baseLesson,
+      blocks: getLessonEditorInitialBlocks(baseLesson)
+    });
+    const selectedState = lessonEditorReducer(initializedState, {
+      type: "select-block",
+      blockId: "heading-1"
+    });
+
+    const nextState = lessonEditorReducer(selectedState, {
+      type: "move-block",
+      blockId: "heading-1",
+      direction: "down"
+    });
+
+    expect(nextState.blocks.map((block) => block.id)).toEqual(["paragraph-1", "heading-1"]);
+    expect(nextState.selectedBlockId).toBe("heading-1");
+    expect(nextState.isDirty).toBe(true);
+  });
+
+  it("does not change state when moving the first block up", () => {
+    const initializedState = lessonEditorReducer(initialLessonEditorState, {
+      type: "initialize",
+      lesson: baseLesson,
+      blocks: getLessonEditorInitialBlocks(baseLesson)
+    });
+
+    const nextState = lessonEditorReducer(initializedState, {
+      type: "move-block",
+      blockId: "heading-1",
+      direction: "up"
+    });
+
+    expect(nextState).toBe(initializedState);
+    expect(nextState.isDirty).toBe(false);
+  });
+
+  it("does not change state when moving the last block down", () => {
+    const initializedState = lessonEditorReducer(initialLessonEditorState, {
+      type: "initialize",
+      lesson: baseLesson,
+      blocks: getLessonEditorInitialBlocks(baseLesson)
+    });
+
+    const nextState = lessonEditorReducer(initializedState, {
+      type: "move-block",
+      blockId: "paragraph-1",
+      direction: "down"
+    });
+
+    expect(nextState).toBe(initializedState);
+    expect(nextState.isDirty).toBe(false);
+  });
+
   it("creates all supported block types with the shared schema shape", () => {
     expect(
       [

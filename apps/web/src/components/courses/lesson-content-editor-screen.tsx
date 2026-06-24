@@ -73,6 +73,34 @@ function DotsIcon() {
   );
 }
 
+function ArrowUpIcon() {
+  return (
+    <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 16 16" fill="none">
+      <path
+        d="M8 12V4M8 4L4.75 7.25M8 4L11.25 7.25"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}
+
+function ArrowDownIcon() {
+  return (
+    <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 16 16" fill="none">
+      <path
+        d="M8 4V12M8 12L4.75 8.75M8 12L11.25 8.75"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}
+
 const blockTypes: Array<EditorBlock["type"]> = [
   "heading",
   "paragraph",
@@ -253,6 +281,15 @@ export function LessonContentEditorScreen({
     []
   );
 
+  const handleMoveBlock = useCallback((blockId: string, direction: "up" | "down") => {
+    setSaveErrorMessage(null);
+    dispatch({
+      type: "move-block",
+      blockId,
+      direction
+    });
+  }, []);
+
   if (isLoading) {
     return (
       <LoadingState
@@ -349,9 +386,12 @@ export function LessonContentEditorScreen({
                   index={index}
                   isSelected={block.id === state.selectedBlockId}
                   onDuplicate={handleDuplicateBlock}
+                  onMove={handleMoveBlock}
                   onRemove={handleRemoveBlock}
                   onSelect={handleSelectBlock}
                   onUpdate={handleUpdateBlock}
+                  canMoveUp={index > 0}
+                  canMoveDown={index < state.blocks.length - 1}
                 />
               ))}
             </div>
@@ -432,7 +472,10 @@ const LessonBlockCard = memo(function LessonBlockCard({
   block,
   index,
   isSelected,
+  canMoveDown,
+  canMoveUp,
   onDuplicate,
+  onMove,
   onRemove,
   onSelect,
   onUpdate
@@ -440,7 +483,10 @@ const LessonBlockCard = memo(function LessonBlockCard({
   block: EditorBlock;
   index: number;
   isSelected: boolean;
+  canMoveDown: boolean;
+  canMoveUp: boolean;
   onDuplicate: (blockId: string) => void;
+  onMove: (blockId: string, direction: "up" | "down") => void;
   onRemove: (blockId: string) => void;
   onSelect: (blockId: string) => void;
   onUpdate: (blockId: string, updater: (current: EditorBlock) => EditorBlock) => void;
@@ -473,11 +519,39 @@ const LessonBlockCard = memo(function LessonBlockCard({
               </span>
             </div>
           </div>
-          <BlockActionsMenu
-            blockId={block.id}
-            onDuplicate={onDuplicate}
-            onRemove={onRemove}
-          />
+          <div className="flex items-center gap-2">
+            <Button
+              aria-label={`Mover bloco ${index + 1} para cima`}
+              leadingIcon={<ArrowUpIcon />}
+              size="sm"
+              variant="outline"
+              disabled={!canMoveUp}
+              onClick={(event) => {
+                event.stopPropagation();
+                onMove(block.id, "up");
+              }}
+            >
+              Subir
+            </Button>
+            <Button
+              aria-label={`Mover bloco ${index + 1} para baixo`}
+              leadingIcon={<ArrowDownIcon />}
+              size="sm"
+              variant="outline"
+              disabled={!canMoveDown}
+              onClick={(event) => {
+                event.stopPropagation();
+                onMove(block.id, "down");
+              }}
+            >
+              Descer
+            </Button>
+            <BlockActionsMenu
+              blockId={block.id}
+              onDuplicate={onDuplicate}
+              onRemove={onRemove}
+            />
+          </div>
         </div>
         <SelectedBlockEditor block={block} onChange={handleChange} />
       </div>

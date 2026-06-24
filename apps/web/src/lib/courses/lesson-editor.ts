@@ -53,6 +53,12 @@ type UpdateBlockAction = {
   updater: (block: ContentBlock) => ContentBlock;
 };
 
+type MoveBlockAction = {
+  type: "move-block";
+  blockId: string;
+  direction: "up" | "down";
+};
+
 type MarkPersistedAction = {
   type: "mark-persisted";
   persistedAt: string;
@@ -65,6 +71,7 @@ export type LessonEditorAction =
   | DuplicateBlockAction
   | RemoveBlockAction
   | UpdateBlockAction
+  | MoveBlockAction
   | MarkPersistedAction;
 
 export const initialLessonEditorState: LessonEditorState = {
@@ -152,6 +159,30 @@ export function lessonEditorReducer(
         ),
         isDirty: true
       };
+    case "move-block": {
+      const sourceIndex = state.blocks.findIndex((block) => block.id === action.blockId);
+
+      if (sourceIndex === -1) {
+        return state;
+      }
+
+      const targetIndex = action.direction === "up" ? sourceIndex - 1 : sourceIndex + 1;
+
+      if (targetIndex < 0 || targetIndex >= state.blocks.length) {
+        return state;
+      }
+
+      const nextBlocks = [...state.blocks];
+      const [movedBlock] = nextBlocks.splice(sourceIndex, 1);
+
+      nextBlocks.splice(targetIndex, 0, movedBlock as ContentBlock);
+
+      return {
+        ...state,
+        blocks: nextBlocks,
+        isDirty: true
+      };
+    }
     case "mark-persisted":
       return {
         ...state,
