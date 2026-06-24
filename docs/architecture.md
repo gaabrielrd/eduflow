@@ -25,6 +25,8 @@ Rotas ja existentes:
 - `/app`: shell inicial da area de aplicacao
 - `/app/dashboard`: tela inicial temporaria do dashboard
 
+No repositorio, as rotas autenticadas publicas sob `/app/*` ficam materializadas em `apps/web/src/app/app/*`. O primeiro `app` e o segmento de URL; o segundo e a pasta raiz do App Router dentro de `src/app`.
+
 O app usa alias local `@/*` para imports internos em `src/`. Imports entre workspaces devem usar nomes de pacote, como `@eduflow/ui`, `@eduflow/types` e `@eduflow/config`.
 
 ### `apps/api`

@@ -305,6 +305,18 @@ describe("CourseCurriculumScreen", () => {
     expect(await screen.findByText("Aula renomeada")).toBeTruthy();
   });
 
+  it("renders an entry point to edit the lesson content", async () => {
+    getCourseCurriculumMock.mockResolvedValue(baseCurriculum);
+
+    render(createElement(CourseCurriculumScreen, { courseId: "course-1" }));
+
+    expect(await screen.findByText("Modulo inicial")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Editar conteudo" })).toHaveAttribute(
+      "href",
+      "/app/courses/course-1/lessons/lesson-1/edit"
+    );
+  });
+
   it("creates a lesson with the default text draft payload", async () => {
     getCourseCurriculumMock.mockResolvedValue(baseCurriculum);
     createLessonMock.mockResolvedValue({

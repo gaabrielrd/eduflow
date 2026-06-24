@@ -73,4 +73,9 @@ export type CreateLessonPayload = {
 
 export type UpdateLessonPayload = {
   title?: string;
+  description?: string;
+  contentType?: LessonContentType;
+  contentJson?: ContentDocument;
+  estimatedDurationMinutes?: number;
+  isPreview?: boolean;
 };

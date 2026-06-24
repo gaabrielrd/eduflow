@@ -139,6 +139,8 @@ Na pratica, o curriculo autoravel hoje e `curso -> modulos -> lessons`, com unic
 
 O campo `contentType` classifica a lesson em `TEXT`, `VIDEO`, `QUIZ` ou `FILE`. O corpo editavel da lesson fica em `contentJson`, usando o contrato versionado descrito em [docs/content-contract.md](/E:/OneDrive/Dev/eduflow/docs/content-contract.md). No estado atual, esse contrato e compartilhado por `@eduflow/types` e usado como base de renderer no frontend.
 
+No `apps/web`, as rotas autenticadas publicas sob `/app/*` ficam fisicamente em `apps/web/src/app/app/*`, seguindo a convencao atual do App Router usada pelo shell autenticado.
+
 ## Membros e convites no MVP
 
 - a area autenticada agora reserva `/app/settings/members` para gestao basica de membros e convites

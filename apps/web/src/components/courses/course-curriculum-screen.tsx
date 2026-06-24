@@ -668,6 +668,13 @@ export function CourseCurriculumScreen({ courseId }: { courseId: string }) {
 
                       {canManageCurriculum ? (
                         <div className="flex flex-wrap gap-2">
+                          <Button asChild variant="secondary">
+                            <Link
+                              href={`/app/courses/${courseId}/lessons/${lesson.id}/edit`}
+                            >
+                              Editar conteudo
+                            </Link>
+                          </Button>
                           <Button
                             leadingIcon={<PencilIcon />}
                             variant="outline"
