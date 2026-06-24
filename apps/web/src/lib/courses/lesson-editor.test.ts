@@ -80,6 +80,24 @@ describe("lesson-editor", () => {
     ]);
   });
 
+  it("adds a block, selects it, and marks state as dirty", () => {
+    const initializedState = lessonEditorReducer(initialLessonEditorState, {
+      type: "initialize",
+      lesson: baseLesson,
+      blocks: getLessonEditorInitialBlocks(baseLesson)
+    });
+    const newBlock = createEditorBlock("quote");
+
+    const nextState = lessonEditorReducer(initializedState, {
+      type: "add-block",
+      block: newBlock
+    });
+
+    expect(nextState.blocks.at(-1)).toEqual(newBlock);
+    expect(nextState.selectedBlockId).toBe(newBlock.id);
+    expect(nextState.isDirty).toBe(true);
+  });
+
   it("duplicates blocks immutably and preserves props with a new id", () => {
     const initializedState = lessonEditorReducer(initialLessonEditorState, {
       type: "initialize",
@@ -101,6 +119,42 @@ describe("lesson-editor", () => {
     });
     expect(nextState.blocks[1]).not.toBe(initializedState.blocks[0]);
     expect(nextState.selectedBlockId).toBe("heading-copy");
+  });
+
+  it("updates a block immutably and marks state as dirty", () => {
+    const initializedState = lessonEditorReducer(initialLessonEditorState, {
+      type: "initialize",
+      lesson: baseLesson,
+      blocks: getLessonEditorInitialBlocks(baseLesson)
+    });
+
+    const nextState = lessonEditorReducer(initializedState, {
+      type: "update-block",
+      blockId: "paragraph-1",
+      updater: (block) =>
+        block.type === "paragraph"
+          ? {
+              ...block,
+              props: {
+                ...block.props,
+                text: "Paragrafo atualizado"
+              }
+            }
+          : block
+    });
+
+    expect(initializedState.blocks[1]?.props).toEqual({
+      text: "Paragrafo original"
+    });
+    expect(nextState.blocks[1]).toEqual({
+      id: "paragraph-1",
+      type: "paragraph",
+      props: {
+        text: "Paragrafo atualizado"
+      }
+    });
+    expect(nextState.blocks[1]).not.toBe(initializedState.blocks[1]);
+    expect(nextState.isDirty).toBe(true);
   });
 
   it("moves selection deterministically when removing the selected block", () => {
@@ -129,6 +183,35 @@ describe("lesson-editor", () => {
       }
     ]);
     expect(nextState.selectedBlockId).toBe("paragraph-1");
+  });
+
+  it("keeps the current selection when removing a different block", () => {
+    const initializedState = lessonEditorReducer(initialLessonEditorState, {
+      type: "initialize",
+      lesson: baseLesson,
+      blocks: getLessonEditorInitialBlocks(baseLesson)
+    });
+    const selectedState = lessonEditorReducer(initializedState, {
+      type: "select-block",
+      blockId: "paragraph-1"
+    });
+
+    const nextState = lessonEditorReducer(selectedState, {
+      type: "remove-block",
+      blockId: "heading-1"
+    });
+
+    expect(nextState.blocks).toEqual([
+      {
+        id: "paragraph-1",
+        type: "paragraph",
+        props: {
+          text: "Paragrafo original"
+        }
+      }
+    ]);
+    expect(nextState.selectedBlockId).toBe("paragraph-1");
+    expect(nextState.isDirty).toBe(true);
   });
 
   it("moves a block up when there is a previous neighbor", () => {
@@ -207,6 +290,27 @@ describe("lesson-editor", () => {
 
     expect(nextState).toBe(initializedState);
     expect(nextState.isDirty).toBe(false);
+  });
+
+  it("resets dirty state and stores the persistence timestamp after save", () => {
+    const initializedState = lessonEditorReducer(initialLessonEditorState, {
+      type: "initialize",
+      lesson: baseLesson,
+      blocks: getLessonEditorInitialBlocks(baseLesson)
+    });
+    const dirtyState = lessonEditorReducer(initializedState, {
+      type: "add-block",
+      block: createEditorBlock("divider")
+    });
+
+    const nextState = lessonEditorReducer(dirtyState, {
+      type: "mark-persisted",
+      persistedAt: "2026-06-24T12:30:00.000Z"
+    });
+
+    expect(dirtyState.isDirty).toBe(true);
+    expect(nextState.isDirty).toBe(false);
+    expect(nextState.lastSavedAt).toBe("2026-06-24T12:30:00.000Z");
   });
 
   it("creates all supported block types with the shared schema shape", () => {

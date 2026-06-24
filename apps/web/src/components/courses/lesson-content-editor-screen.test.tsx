@@ -397,6 +397,44 @@ describe("LessonContentEditorScreen", () => {
     });
   });
 
+  it("surfaces save failures without losing local editor state", async () => {
+    getCourseCurriculumMock.mockResolvedValue(baseCurriculum);
+    updateLessonMock.mockRejectedValue(new Error("Falha no autosave"));
+
+    render(
+      createElement(LessonContentEditorScreen, {
+        courseId: "course-1",
+        lessonId: "lesson-1"
+      })
+    );
+
+    expect((await screen.findAllByText("Titulo original")).length).toBeGreaterThan(0);
+
+    vi.useFakeTimers();
+
+    fireEvent.change(screen.getByDisplayValue("Paragrafo original"), {
+      target: {
+        value: "<p>Paragrafo com falha</p>"
+      }
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(LESSON_EDITOR_PERSIST_DELAY_MS);
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(updateLessonMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("Falha no autosave")).toBeTruthy();
+    expect(screen.getByText("Falha ao salvar")).toBeTruthy();
+    expect(screen.queryByText("Salvo")).toBeNull();
+    expect(screen.getByDisplayValue("<p>Paragrafo com falha</p>")).toBeTruthy();
+    expect(screen.getAllByLabelText("Acoes do bloco")).toHaveLength(2);
+  });
+
   it("opens and closes the preview aside from the header button", async () => {
     getCourseCurriculumMock.mockResolvedValue(baseCurriculum);
 

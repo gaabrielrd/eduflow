@@ -137,7 +137,7 @@ O dominio educacional ja implementado nesta base segue a hierarquia:
 
 Na pratica, o curriculo autoravel hoje e `curso -> modulos -> lessons`, com unicidade de ordenacao por `position` dentro de cada nivel pai.
 
-O campo `contentType` classifica a lesson em `TEXT`, `VIDEO`, `QUIZ` ou `FILE`. O corpo editavel da lesson fica em `contentJson`, usando o contrato versionado descrito em [docs/content-contract.md](/E:/OneDrive/Dev/eduflow/docs/content-contract.md). No estado atual, esse contrato e compartilhado por `@eduflow/types` e usado como base de renderer no frontend. Nos blocos textuais do v1, `props.text` continua sendo `string`, mas agora pode carregar tanto texto simples legado quanto HTML rico persistido pelo editor.
+O campo `contentType` classifica a lesson em `TEXT`, `VIDEO`, `QUIZ` ou `FILE`. O corpo editavel da lesson fica em `contentJson`, usando o contrato versionado descrito em [docs/content-contract.md](/E:/OneDrive/Dev/eduflow/docs/content-contract.md). Esse documento e a referencia operacional para formato JSON, blocos suportados, regras de validacao, limitacoes atuais e estrategia de extensao. No estado atual, o contrato e compartilhado por `@eduflow/types` e usado como base de renderer no frontend. Nos blocos textuais do v1, `props.text` continua sendo `string`, mas agora pode carregar tanto texto simples legado quanto HTML rico persistido pelo editor.
 
 No `apps/web`, as rotas autenticadas publicas sob `/app/*` ficam fisicamente em `apps/web/src/app/app/*`, seguindo a convencao atual do App Router usada pelo shell autenticado.
 

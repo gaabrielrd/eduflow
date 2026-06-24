@@ -183,9 +183,17 @@ describe("ContentRenderer", () => {
     );
 
     expect(screen.getByRole("heading", { level: 2, name: "Titulo rico com fase" })).toBeInTheDocument();
-    expect(screen.getByText("Texto com destaque")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        (_, element) => element?.tagName === "P" && element.textContent === "Texto com destaque"
+      )
+    ).toBeInTheDocument();
     expect(screen.getByText("Item rico")).toBeInTheDocument();
-    expect(screen.getByText("Citacao rica")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        (_, element) => element?.tagName === "P" && element.textContent === "Citacao rica"
+      )
+    ).toBeInTheDocument();
     expect(screen.getByText("Texto legado preservado")).toBeInTheDocument();
   });
 

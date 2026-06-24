@@ -122,7 +122,7 @@ Cada lesson tambem possui:
 - `estimatedDurationMinutes`: duracao estimada opcional
 - `isPreview`: indicador para acesso de preview
 
-O contrato do campo `contentJson` fica em `@eduflow/types` e esta descrito em [docs/content-contract.md](/E:/OneDrive/Dev/eduflow/docs/content-contract.md). Hoje esse documento e independente do transporte HTTP e do banco: Nest valida a presenca de um objeto JSON, enquanto o schema versionado compartilhado define a estrutura esperada pelo editor e pelo renderer. Na iteracao atual do editor de lessons, os blocos textuais de `contentJson.version = 1` continuam com `props.text` como `string`, mas o frontend passa a aceitar tanto texto simples legado quanto HTML rico persistido pelo editor inline.
+O contrato do campo `contentJson` fica em `@eduflow/types` e esta descrito em [docs/content-contract.md](/E:/OneDrive/Dev/eduflow/docs/content-contract.md). Esse guia concentra a fonte de verdade para formato, blocos suportados, validacao, limitacoes atuais e extensao do editor. Hoje ele permanece independente do transporte HTTP e do banco: Nest valida a presenca de um objeto JSON, enquanto o schema versionado compartilhado define a estrutura esperada pelo editor e pelo renderer. Na iteracao atual do editor de lessons, os blocos textuais de `contentJson.version = 1` continuam com `props.text` como `string`, mas o frontend passa a aceitar tanto texto simples legado quanto HTML rico persistido pelo editor inline.
 
 ## Tenancy inicial
 
