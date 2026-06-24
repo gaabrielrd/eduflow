@@ -49,6 +49,24 @@ services:
     networks:
       - eduflow-local
 
+  minio-init:
+    image: minio/mc:latest
+    container_name: eduflow-minio-init
+    depends_on:
+      - minio
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        until mc alias set local http://minio:9000 eduflow eduflow123; do
+          echo "Waiting for MinIO..."
+          sleep 2
+        done
+        mc mb --ignore-existing local/${STORAGE_BUCKET_NAME:-eduflow-media}
+        mc anonymous set download local/${STORAGE_BUCKET_NAME:-eduflow-media}
+    networks:
+      - eduflow-local
+
 networks:
   eduflow-local:
     name: eduflow-local

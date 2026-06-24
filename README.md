@@ -43,11 +43,14 @@ Servicos expostos localmente:
 - Redis: `localhost:6379`
 - MinIO API: `http://localhost:9000`
 - MinIO Console: `http://localhost:9001`
+- MinIO bucket inicial: `eduflow-media`
 
 Credenciais locais previstas no compose e no `.env.example`:
 
 - PostgreSQL: usuario `eduflow`, senha `eduflow`, database `eduflow`
 - MinIO: usuario `eduflow`, senha `eduflow123`
+
+O `docker compose` tambem provisiona automaticamente o bucket local configurado em `STORAGE_BUCKET_NAME` e aplica leitura publica para o fluxo inicial de assets.
 
 Para derrubar o ambiente:
 

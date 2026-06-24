@@ -15,4 +15,4 @@ pnpm api:prisma:migrate:deploy
 pnpm api:test
 ```
 
-A suite cobre os fluxos criticos de autenticacao, organizacoes, permissoes e isolamento entre tenants. Entre os casos, o harness de teste limpa as tabelas criticas para manter execucao deterministica tanto localmente quanto na CI.
+A suite cobre os fluxos criticos de autenticacao, organizacoes, permissoes, isolamento entre tenants e o smoke test inicial do `StorageModule` contra o MinIO local. Entre os casos, o harness de teste limpa as tabelas criticas para manter execucao deterministica tanto localmente quanto na CI.

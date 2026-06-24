@@ -15,9 +15,12 @@ process.env.REDIS_URL ??= "redis://localhost:6379";
 process.env.JWT_SECRET ??= "test-secret";
 process.env.JWT_ACCESS_TOKEN_EXPIRES_IN ??= "1h";
 process.env.JWT_REFRESH_TOKEN_EXPIRES_IN ??= "30d";
-process.env.S3_ENDPOINT ??= "http://localhost:9000";
-process.env.S3_ACCESS_KEY ??= "eduflow";
-process.env.S3_SECRET_KEY ??= "eduflow123";
+process.env.STORAGE_ENDPOINT ??= "http://localhost:9000";
+process.env.STORAGE_ACCESS_KEY ??= "eduflow";
+process.env.STORAGE_SECRET_KEY ??= "eduflow123";
+process.env.STORAGE_BUCKET_NAME ??= "eduflow-media";
+process.env.STORAGE_REGION ??= "us-east-1";
+process.env.STORAGE_PUBLIC_BASE_URL ??= "http://localhost:9000";
 
 type ModuleImport = DynamicModule | Promise<DynamicModule> | Type<unknown>;
 

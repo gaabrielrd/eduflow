@@ -41,6 +41,7 @@ O estado atual inclui:
 - `ValidationPipe` global
 - filtro global de excecoes com `statusCode`, `message`, `error`, `path` e `timestamp`
 - `DatabaseModule` com `PrismaService`
+- `StorageModule` com abstracao S3-compatible para upload assinado, leitura publica, delecao e validacao de bucket no bootstrap
 - `prisma/schema.prisma` com identidade, tenancy inicial e os primeiros modelos de autoria de cursos (`Course`, `CourseModule`, `Lesson`)
 - infraestrutura de autorizacao baseada em `JwtAuthGuard`, `CurrentUser`, `OrganizationContextGuard`, `Roles` e `RolesGuard`
 
@@ -152,7 +153,6 @@ Ainda nao existem:
 
 - modelo `CourseVersion` no banco
 - Redis, BullMQ e jobs assincronos
-- MinIO ou armazenamento S3-compatible
 - integracao real com LLM
 - relatorios e certificados
 - testes automatizados de dominio ou e2e

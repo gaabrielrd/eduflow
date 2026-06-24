@@ -30,11 +30,14 @@ Servicos disponiveis:
 - Redis em `localhost:6379`
 - MinIO API em `http://localhost:9000`
 - MinIO Console em `http://localhost:9001`
+- MinIO bucket inicial em `eduflow-media` por default
 
 Credenciais locais de desenvolvimento:
 
 - PostgreSQL: usuario `eduflow`, senha `eduflow`, database `eduflow`
 - MinIO: usuario `eduflow`, senha `eduflow123`
+
+O compose tambem sobe um passo de inicializacao que cria o bucket configurado em `STORAGE_BUCKET_NAME` caso ele nao exista e aplica policy de leitura publica no ambiente local. Isso deixa o fluxo de upload assinado e leitura publica reproduzivel sem passos manuais extras.
 
 Para derrubar o ambiente:
 
@@ -55,9 +58,12 @@ Copie os valores de referencia de `.env.example` para o ambiente local usado pel
 - `JWT_SECRET`
 - `JWT_ACCESS_TOKEN_EXPIRES_IN`
 - `JWT_REFRESH_TOKEN_EXPIRES_IN`
-- `S3_ENDPOINT`
-- `S3_ACCESS_KEY`
-- `S3_SECRET_KEY`
+- `STORAGE_ENDPOINT`
+- `STORAGE_ACCESS_KEY`
+- `STORAGE_SECRET_KEY`
+- `STORAGE_BUCKET_NAME`
+- `STORAGE_REGION`
+- `STORAGE_PUBLIC_BASE_URL`
 - `LLM_API_KEY`
 
 Valores esperados para a infraestrutura local:
@@ -68,9 +74,12 @@ REDIS_URL=redis://localhost:6379
 JWT_SECRET=change-me
 JWT_ACCESS_TOKEN_EXPIRES_IN=1h
 JWT_REFRESH_TOKEN_EXPIRES_IN=30d
-S3_ENDPOINT=http://localhost:9000
-S3_ACCESS_KEY=eduflow
-S3_SECRET_KEY=eduflow123
+STORAGE_ENDPOINT=http://localhost:9000
+STORAGE_ACCESS_KEY=eduflow
+STORAGE_SECRET_KEY=eduflow123
+STORAGE_BUCKET_NAME=eduflow-media
+STORAGE_REGION=us-east-1
+STORAGE_PUBLIC_BASE_URL=http://localhost:9000
 ```
 
 A porta padrao da API e `4000`. A web usa o padrao do Next.js, normalmente `3000`, salvo configuracao externa.
@@ -167,6 +176,17 @@ pnpm --filter @eduflow/api dev
 ```
 
 Com a infraestrutura Docker ativa e o `.env` preenchido com o `DATABASE_URL` acima, a API fica alinhada com o PostgreSQL local sem ajustes extras de formato.
+
+### Storage local
+
+A API agora possui um `StorageModule` interno para encapsular upload assinado, URL publica de leitura, delecao e validacao de bucket em provedores S3-compatible. No setup local, o compose entrega:
+
+- endpoint interno para a API em `http://localhost:9000`
+- bucket configuravel por `STORAGE_BUCKET_NAME`
+- leitura publica via `STORAGE_PUBLIC_BASE_URL`
+- validacao fail-fast do bucket ao subir a API
+
+No v1, a leitura usa URL publica montada a partir de `STORAGE_PUBLIC_BASE_URL` e do bucket configurado. Caso o produto migre depois para leitura privada, a mudanca deve ficar atras da mesma interface do modulo de storage.
 
 Para a sprint inicial de autenticacao, a API usa JWT com transporte `Bearer` em JSON. O default local previsto e `1h` para access token e `30d` para refresh token.
 

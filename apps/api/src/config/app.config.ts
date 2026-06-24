@@ -13,9 +13,12 @@ function parseEnv() {
     JWT_SECRET: process.env.JWT_SECRET,
     JWT_ACCESS_TOKEN_EXPIRES_IN: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
     JWT_REFRESH_TOKEN_EXPIRES_IN: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN,
-    S3_ENDPOINT: process.env.S3_ENDPOINT,
-    S3_ACCESS_KEY: process.env.S3_ACCESS_KEY,
-    S3_SECRET_KEY: process.env.S3_SECRET_KEY
+    STORAGE_ENDPOINT: process.env.STORAGE_ENDPOINT,
+    STORAGE_ACCESS_KEY: process.env.STORAGE_ACCESS_KEY,
+    STORAGE_SECRET_KEY: process.env.STORAGE_SECRET_KEY,
+    STORAGE_BUCKET_NAME: process.env.STORAGE_BUCKET_NAME,
+    STORAGE_REGION: process.env.STORAGE_REGION,
+    STORAGE_PUBLIC_BASE_URL: process.env.STORAGE_PUBLIC_BASE_URL
   });
 }
 
@@ -45,12 +48,22 @@ export function getJwtConfig() {
   };
 }
 
-export function getS3Config() {
-  const { S3_ACCESS_KEY, S3_ENDPOINT, S3_SECRET_KEY } = parseEnv();
+export function getStorageConfig() {
+  const {
+    STORAGE_ACCESS_KEY,
+    STORAGE_BUCKET_NAME,
+    STORAGE_ENDPOINT,
+    STORAGE_PUBLIC_BASE_URL,
+    STORAGE_REGION,
+    STORAGE_SECRET_KEY
+  } = parseEnv();
 
   return {
-    endpoint: S3_ENDPOINT,
-    accessKey: S3_ACCESS_KEY,
-    secretKey: S3_SECRET_KEY
+    endpoint: STORAGE_ENDPOINT,
+    accessKey: STORAGE_ACCESS_KEY,
+    secretKey: STORAGE_SECRET_KEY,
+    bucketName: STORAGE_BUCKET_NAME,
+    region: STORAGE_REGION,
+    publicBaseUrl: STORAGE_PUBLIC_BASE_URL
   };
 }
