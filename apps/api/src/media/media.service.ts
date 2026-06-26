@@ -14,6 +14,7 @@ import { STORAGE_SERVICE } from "../storage/storage.constants.js";
 import { StorageConfigService } from "../storage/storage-config.service.js";
 import type { StorageService } from "../storage/storage.service.js";
 import type { CompleteMediaDto } from "./dto/complete-media.dto.js";
+import type { ListMediaDto, MediaMimeGroup } from "./dto/list-media.dto.js";
 import type { PresignMediaDto } from "./dto/presign-media.dto.js";
 
 const SUPPORTED_MEDIA_MIME_TYPES = new Set([
@@ -22,6 +23,9 @@ const SUPPORTED_MEDIA_MIME_TYPES = new Set([
   "image/webp",
   "application/pdf"
 ]);
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 20;
+const MAX_PAGE_SIZE = 100;
 
 const mediaAssetSelect = {
   id: true,
@@ -37,6 +41,10 @@ const mediaAssetSelect = {
   updatedAt: true
 } satisfies Prisma.MediaAssetSelect;
 
+type MediaAssetRecord = Prisma.MediaAssetGetPayload<{
+  select: typeof mediaAssetSelect;
+}>;
+
 @Injectable()
 export class MediaService {
   constructor(
@@ -45,6 +53,43 @@ export class MediaService {
     @Inject(StorageConfigService)
     private readonly storageConfigService: StorageConfigService
   ) {}
+
+  async listMedia(context: OrganizationContext, dto: ListMediaDto) {
+    const page = dto.page ?? DEFAULT_PAGE;
+    const pageSize = Math.min(dto.pageSize ?? DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE);
+    const where = this.buildListWhereInput(context, dto);
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.mediaAsset.findMany({
+        where,
+        select: mediaAssetSelect,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        skip: (page - 1) * pageSize,
+        take: pageSize
+      }),
+      this.prisma.mediaAsset.count({ where })
+    ]);
+
+    return {
+      items: items.map((item) => this.toMediaResponse(item)),
+      page,
+      pageSize,
+      total
+    };
+  }
+
+  async getMediaById(context: OrganizationContext, id: string) {
+    const mediaAsset = await this.prisma.mediaAsset.findFirst({
+      where: this.buildActiveMediaWhereInput(context, id),
+      select: mediaAssetSelect
+    });
+
+    if (!mediaAsset) {
+      throw new NotFoundException("Media asset not found");
+    }
+
+    return this.toMediaResponse(mediaAsset);
+  }
 
   async createPresignedUpload(
     context: OrganizationContext,
@@ -109,7 +154,7 @@ export class MediaService {
       );
     }
 
-    return this.prisma.mediaAsset.update({
+    const updatedMediaAsset = await this.prisma.mediaAsset.update({
       where: {
         id: mediaAsset.id
       },
@@ -118,6 +163,38 @@ export class MediaService {
       },
       select: mediaAssetSelect
     });
+
+    return this.toMediaResponse(updatedMediaAsset);
+  }
+
+  async deleteMedia(context: OrganizationContext, id: string) {
+    const mediaAsset = await this.prisma.mediaAsset.findFirst({
+      where: {
+        id,
+        organizationId: context.organizationId
+      },
+      select: mediaAssetSelect
+    });
+
+    if (!mediaAsset) {
+      throw new NotFoundException("Media asset not found");
+    }
+
+    if (mediaAsset.status === MediaAssetStatus.DELETED) {
+      return this.toMediaResponse(mediaAsset);
+    }
+
+    const deletedMediaAsset = await this.prisma.mediaAsset.update({
+      where: {
+        id: mediaAsset.id
+      },
+      data: {
+        status: MediaAssetStatus.DELETED
+      },
+      select: mediaAssetSelect
+    });
+
+    return this.toMediaResponse(deletedMediaAsset);
   }
 
   private normalizeOriginalName(fileName: string) {
@@ -158,5 +235,70 @@ export class MediaService {
     const filename = storageKey.split("/").pop() ?? "";
 
     return filename.replace(/^[0-9a-f-]+-/, "");
+  }
+
+  private buildActiveMediaWhereInput(context: OrganizationContext, id?: string) {
+    return {
+      organizationId: context.organizationId,
+      ...(id ? { id } : {}),
+      status: {
+        not: MediaAssetStatus.DELETED
+      }
+    } satisfies Prisma.MediaAssetWhereInput;
+  }
+
+  private buildListWhereInput(context: OrganizationContext, dto: ListMediaDto) {
+    const normalizedSearch = dto.search?.trim();
+    const where: Prisma.MediaAssetWhereInput = this.buildActiveMediaWhereInput(
+      context
+    );
+
+    if (normalizedSearch) {
+      where.originalName = {
+        contains: normalizedSearch,
+        mode: "insensitive"
+      };
+    }
+
+    const mimeTypeFilter = this.buildMimeTypeFilter(dto.mimeGroup);
+
+    if (mimeTypeFilter) {
+      where.mimeType = mimeTypeFilter;
+    }
+
+    return where;
+  }
+
+  private buildMimeTypeFilter(mimeGroup?: MediaMimeGroup) {
+    if (mimeGroup === "image") {
+      return {
+        startsWith: "image/"
+      } satisfies Prisma.StringFilter<"MediaAsset">;
+    }
+
+    if (mimeGroup === "document") {
+      return {
+        equals: "application/pdf"
+      } satisfies Prisma.StringFilter<"MediaAsset">;
+    }
+
+    return undefined;
+  }
+
+  private toMediaResponse(mediaAsset: MediaAssetRecord) {
+    return {
+      id: mediaAsset.id,
+      fileName: mediaAsset.fileName,
+      originalName: mediaAsset.originalName,
+      mimeType: mediaAsset.mimeType,
+      sizeBytes: mediaAsset.sizeBytes,
+      status: mediaAsset.status,
+      createdAt: mediaAsset.createdAt,
+      updatedAt: mediaAsset.updatedAt,
+      readUrl: this.storageService.getReadUrl({
+        organizationId: mediaAsset.organizationId,
+        key: mediaAsset.storageKey
+      })
+    };
   }
 }
