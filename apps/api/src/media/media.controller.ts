@@ -1,4 +1,14 @@
-import { Body, Controller, Inject, Post, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Inject,
+  Param,
+  Post,
+  Query,
+  UseGuards
+} from "@nestjs/common";
 
 import { CurrentOrganizationContext } from "../auth/decorators/current-organization-context.decorator.js";
 import { CurrentUser } from "../auth/decorators/current-user.decorator.js";
@@ -10,6 +20,7 @@ import { RolesGuard } from "../auth/guards/roles.guard.js";
 import type { AuthenticatedUser } from "../auth/types/authenticated-user.interface.js";
 import type { OrganizationContext } from "../auth/types/organization-context.interface.js";
 import { CompleteMediaDto } from "./dto/complete-media.dto.js";
+import { ListMediaDto } from "./dto/list-media.dto.js";
 import { PresignMediaDto } from "./dto/presign-media.dto.js";
 import { MediaService } from "./media.service.js";
 
@@ -17,6 +28,22 @@ import { MediaService } from "./media.service.js";
 @UseGuards(JwtAuthGuard, OrganizationContextGuard)
 export class MediaController {
   constructor(@Inject(MediaService) private readonly mediaService: MediaService) {}
+
+  @Get()
+  list(
+    @CurrentOrganizationContext() context: OrganizationContext,
+    @Query() dto: ListMediaDto
+  ) {
+    return this.mediaService.listMedia(context, dto);
+  }
+
+  @Get(":id")
+  getById(
+    @CurrentOrganizationContext() context: OrganizationContext,
+    @Param("id") id: string
+  ) {
+    return this.mediaService.getMediaById(context, id);
+  }
 
   @Post("presign")
   @Roles(...AUTHORING_ROLES)
@@ -37,5 +64,13 @@ export class MediaController {
     @Body() dto: CompleteMediaDto
   ) {
     return this.mediaService.completeUpload(context, dto);
+  }
+
+  @Delete(":id")
+  remove(
+    @CurrentOrganizationContext() context: OrganizationContext,
+    @Param("id") id: string
+  ) {
+    return this.mediaService.deleteMedia(context, id);
   }
 }
