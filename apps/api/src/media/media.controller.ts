@@ -1,4 +1,13 @@
-import { Body, Controller, Inject, Post, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Inject,
+  Param,
+  Post,
+  UseGuards
+} from "@nestjs/common";
 
 import { CurrentOrganizationContext } from "../auth/decorators/current-organization-context.decorator.js";
 import { CurrentUser } from "../auth/decorators/current-user.decorator.js";
@@ -17,6 +26,11 @@ import { MediaService } from "./media.service.js";
 @UseGuards(JwtAuthGuard, OrganizationContextGuard)
 export class MediaController {
   constructor(@Inject(MediaService) private readonly mediaService: MediaService) {}
+
+  @Get()
+  list(@CurrentOrganizationContext() context: OrganizationContext) {
+    return this.mediaService.listMediaAssets(context);
+  }
 
   @Post("presign")
   @Roles(...AUTHORING_ROLES)
@@ -37,5 +51,15 @@ export class MediaController {
     @Body() dto: CompleteMediaDto
   ) {
     return this.mediaService.completeUpload(context, dto);
+  }
+
+  @Delete(":mediaId")
+  @Roles(...AUTHORING_ROLES)
+  @UseGuards(RolesGuard)
+  remove(
+    @CurrentOrganizationContext() context: OrganizationContext,
+    @Param("mediaId") mediaId: string
+  ) {
+    return this.mediaService.deleteMediaAsset(context, mediaId);
   }
 }

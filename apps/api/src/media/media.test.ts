@@ -6,6 +6,8 @@ import request from "supertest";
 
 import { PrismaService } from "../database/prisma.service.js";
 import { MediaAssetStatus, Role } from "../generated/prisma/enums.js";
+import { STORAGE_SERVICE } from "../storage/storage.constants.js";
+import type { StorageService } from "../storage/storage.service.js";
 import {
   bootstrapTestApp,
   closeTestApp,
@@ -17,6 +19,7 @@ import {
 
 let app: INestApplication;
 let prisma: PrismaService;
+let storageService: StorageService;
 
 before(async () => {
   process.env.MEDIA_UPLOAD_MAX_SIZE_BYTES = "10485760";
@@ -24,6 +27,7 @@ before(async () => {
   const testContext = await bootstrapTestApp();
   app = testContext.app;
   prisma = testContext.prisma;
+  storageService = app.get<StorageService>(STORAGE_SERVICE);
 });
 
 beforeEach(async () => {
@@ -300,4 +304,204 @@ test("POST /media/complete rejects nonexistent, cross-organization, and non-pend
   assert.equal(missingResponse.body.message, "Media asset not found");
   assert.equal(foreignResponse.body.message, "Media asset not found");
   assert.match(nonPendingResponse.body.message, /pending/i);
+});
+
+test("GET /media lists non-deleted media assets from the active organization ordered by newest first", async () => {
+  const student = await createUserAndToken(
+    app,
+    `media-list.${Date.now()}@media.test`
+  );
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: student.user.id,
+    name: "Media List Org",
+    slug: `media-list-org-${uniqueSuffix()}`,
+    role: Role.STUDENT
+  });
+  const outsider = await createUserAndToken(
+    app,
+    `media-list-outsider.${Date.now()}@media.test`
+  );
+  const outsiderOrganization = await createOrganizationForUser({
+    prisma,
+    userId: outsider.user.id,
+    name: "Media List Outsider Org",
+    slug: `media-list-outsider-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+
+  const olderAsset = await prisma.mediaAsset.create({
+    data: {
+      organizationId: organization.id,
+      uploadedById: student.user.id,
+      fileName: "older.png",
+      originalName: "older.png",
+      mimeType: "image/png",
+      sizeBytes: 1024,
+      storageKey: `organizations/${organization.id}/media/2026/06/${uniqueSuffix()}-older.png`,
+      status: MediaAssetStatus.READY,
+      createdAt: new Date("2026-06-20T10:00:00.000Z")
+    }
+  });
+  const newerAsset = await prisma.mediaAsset.create({
+    data: {
+      organizationId: organization.id,
+      uploadedById: student.user.id,
+      fileName: "newer.pdf",
+      originalName: "newer.pdf",
+      mimeType: "application/pdf",
+      sizeBytes: 2048,
+      storageKey: `organizations/${organization.id}/media/2026/06/${uniqueSuffix()}-newer.pdf`,
+      status: MediaAssetStatus.READY,
+      createdAt: new Date("2026-06-21T10:00:00.000Z")
+    }
+  });
+
+  await prisma.mediaAsset.create({
+    data: {
+      organizationId: organization.id,
+      uploadedById: student.user.id,
+      fileName: "deleted.png",
+      originalName: "deleted.png",
+      mimeType: "image/png",
+      sizeBytes: 512,
+      storageKey: `organizations/${organization.id}/media/2026/06/${uniqueSuffix()}-deleted.png`,
+      status: MediaAssetStatus.DELETED
+    }
+  });
+
+  await prisma.mediaAsset.create({
+    data: {
+      organizationId: outsiderOrganization.id,
+      uploadedById: outsider.user.id,
+      fileName: "foreign.png",
+      originalName: "foreign.png",
+      mimeType: "image/png",
+      sizeBytes: 512,
+      storageKey: `organizations/${outsiderOrganization.id}/media/2026/06/${uniqueSuffix()}-foreign.png`,
+      status: MediaAssetStatus.READY
+    }
+  });
+
+  const response = await request(app.getHttpServer())
+    .get("/media")
+    .set("Authorization", `Bearer ${student.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(200);
+
+  assert.deepEqual(
+    response.body.map((item: { id: string }) => item.id),
+    [newerAsset.id, olderAsset.id]
+  );
+});
+
+test("DELETE /media/:id marks the asset as DELETED and removes the storage object", async () => {
+  const manager = await createUserAndToken(
+    app,
+    `media-delete.${Date.now()}@media.test`
+  );
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: manager.user.id,
+    name: "Media Delete Org",
+    slug: `media-delete-org-${uniqueSuffix()}`,
+    role: Role.MANAGER
+  });
+  const mediaAsset = await prisma.mediaAsset.create({
+    data: {
+      organizationId: organization.id,
+      uploadedById: manager.user.id,
+      fileName: "hero-banner.png",
+      originalName: "Hero Banner.PNG",
+      mimeType: "image/png",
+      sizeBytes: 2048,
+      storageKey: `organizations/${organization.id}/media/2026/06/${uniqueSuffix()}-hero-banner.png`,
+      status: MediaAssetStatus.READY
+    }
+  });
+
+  const deletedObjects: Array<{ key: string; organizationId: string }> = [];
+  const originalDeleteObject = storageService.deleteObject.bind(storageService);
+  storageService.deleteObject = async (object) => {
+    deletedObjects.push(object);
+  };
+
+  try {
+    const response = await request(app.getHttpServer())
+      .delete(`/media/${mediaAsset.id}`)
+      .set("Authorization", `Bearer ${manager.accessToken}`)
+      .set("X-Organization-Id", organization.id)
+      .expect(200);
+
+    assert.equal(response.body.id, mediaAsset.id);
+    assert.equal(response.body.status, MediaAssetStatus.DELETED);
+    assert.deepEqual(deletedObjects, [
+      {
+        key: mediaAsset.storageKey,
+        organizationId: organization.id
+      }
+    ]);
+
+    const persistedAsset = await prisma.mediaAsset.findUnique({
+      where: {
+        id: mediaAsset.id
+      }
+    });
+
+    assert.equal(persistedAsset?.status, MediaAssetStatus.DELETED);
+  } finally {
+    storageService.deleteObject = originalDeleteObject;
+  }
+});
+
+test("DELETE /media/:id rejects nonexistent and cross-organization media assets", async () => {
+  const owner = await createUserAndToken(
+    app,
+    `media-delete-owner.${Date.now()}@media.test`
+  );
+  const outsider = await createUserAndToken(
+    app,
+    `media-delete-outsider.${Date.now()}@media.test`
+  );
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: owner.user.id,
+    name: "Media Delete Owner Org",
+    slug: `media-delete-owner-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const outsiderOrganization = await createOrganizationForUser({
+    prisma,
+    userId: outsider.user.id,
+    name: "Media Delete Outsider Org",
+    slug: `media-delete-outsider-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const foreignAsset = await prisma.mediaAsset.create({
+    data: {
+      organizationId: outsiderOrganization.id,
+      uploadedById: outsider.user.id,
+      fileName: "foreign.pdf",
+      originalName: "foreign.pdf",
+      mimeType: "application/pdf",
+      sizeBytes: 1024,
+      storageKey: `organizations/${outsiderOrganization.id}/media/2026/06/${uniqueSuffix()}-foreign.pdf`,
+      status: MediaAssetStatus.READY
+    }
+  });
+
+  const missingResponse = await request(app.getHttpServer())
+    .delete(`/media/missing-${uniqueSuffix()}`)
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(404);
+
+  const foreignResponse = await request(app.getHttpServer())
+    .delete(`/media/${foreignAsset.id}`)
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(404);
+
+  assert.equal(missingResponse.body.message, "Media asset not found");
+  assert.equal(foreignResponse.body.message, "Media asset not found");
 });

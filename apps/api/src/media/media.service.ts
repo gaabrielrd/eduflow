@@ -120,6 +120,53 @@ export class MediaService {
     });
   }
 
+  async listMediaAssets(context: OrganizationContext) {
+    return this.prisma.mediaAsset.findMany({
+      where: {
+        organizationId: context.organizationId,
+        status: {
+          not: MediaAssetStatus.DELETED
+        }
+      },
+      orderBy: {
+        createdAt: "desc"
+      },
+      select: mediaAssetSelect
+    });
+  }
+
+  async deleteMediaAsset(context: OrganizationContext, mediaId: string) {
+    const mediaAsset = await this.prisma.mediaAsset.findFirst({
+      where: {
+        id: mediaId,
+        organizationId: context.organizationId,
+        status: {
+          not: MediaAssetStatus.DELETED
+        }
+      },
+      select: mediaAssetSelect
+    });
+
+    if (!mediaAsset) {
+      throw new NotFoundException("Media asset not found");
+    }
+
+    await this.storageService.deleteObject({
+      organizationId: mediaAsset.organizationId,
+      key: mediaAsset.storageKey
+    });
+
+    return this.prisma.mediaAsset.update({
+      where: {
+        id: mediaAsset.id
+      },
+      data: {
+        status: MediaAssetStatus.DELETED
+      },
+      select: mediaAssetSelect
+    });
+  }
+
   private normalizeOriginalName(fileName: string) {
     const normalized = fileName.trim();
 
