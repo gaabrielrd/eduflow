@@ -10,6 +10,7 @@ import { DatabaseModule } from "./database/database.module.js";
 import { HealthModule } from "./health/health.module.js";
 import { InvitationsModule } from "./invitations/invitations.module.js";
 import { LessonsModule } from "./lessons/lessons.module.js";
+import { MediaModule } from "./media/media.module.js";
 import { OrganizationsModule } from "./organizations/organizations.module.js";
 import { StorageModule } from "./storage/storage.module.js";
 
@@ -27,6 +28,7 @@ import { StorageModule } from "./storage/storage.module.js";
     HealthModule,
     InvitationsModule,
     LessonsModule,
+    MediaModule,
     OrganizationsModule,
     StorageModule
   ]

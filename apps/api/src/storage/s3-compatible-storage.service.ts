@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { Inject } from "@nestjs/common";
 import {
   DeleteObjectCommand,
   HeadBucketCommand,
@@ -28,7 +29,10 @@ export class S3CompatibleStorageService
   private readonly config: StorageConfiguration;
   private readonly client: S3Client;
 
-  constructor(private readonly storageConfigService: StorageConfigService) {
+  constructor(
+    @Inject(StorageConfigService)
+    private readonly storageConfigService: StorageConfigService
+  ) {
     this.config = this.storageConfigService.getSettings();
     this.client = new S3Client({
       region: this.config.region,

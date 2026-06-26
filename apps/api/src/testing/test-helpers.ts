@@ -21,6 +21,7 @@ process.env.STORAGE_SECRET_KEY ??= "eduflow123";
 process.env.STORAGE_BUCKET_NAME ??= "eduflow-media";
 process.env.STORAGE_REGION ??= "us-east-1";
 process.env.STORAGE_PUBLIC_BASE_URL ??= "http://localhost:9000";
+process.env.MEDIA_UPLOAD_MAX_SIZE_BYTES ??= "10485760";
 
 type ModuleImport = DynamicModule | Promise<DynamicModule> | Type<unknown>;
 
@@ -58,6 +59,7 @@ export async function bootstrapTestApp(
 export async function resetDatabase(prisma: PrismaService) {
   await prisma.$transaction([
     prisma.authSession.deleteMany(),
+    prisma.mediaAsset.deleteMany(),
     prisma.lesson.deleteMany(),
     prisma.courseModule.deleteMany(),
     prisma.course.deleteMany(),

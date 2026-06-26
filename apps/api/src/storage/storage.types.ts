@@ -32,4 +32,5 @@ export type StorageConfiguration = {
   bucketName: string;
   region: string;
   publicBaseUrl: string;
+  mediaUploadMaxSizeBytes: number;
 };

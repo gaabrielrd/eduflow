@@ -15,7 +15,8 @@ export const envSchema = z.object({
   STORAGE_SECRET_KEY: z.string().min(1),
   STORAGE_BUCKET_NAME: z.string().min(1),
   STORAGE_REGION: z.string().min(1).default("us-east-1"),
-  STORAGE_PUBLIC_BASE_URL: z.url()
+  STORAGE_PUBLIC_BASE_URL: z.url(),
+  MEDIA_UPLOAD_MAX_SIZE_BYTES: z.coerce.number().int().positive().default(10485760)
 });
 
 export function validateEnv(config: Record<string, unknown>) {

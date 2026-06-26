@@ -22,6 +22,7 @@ function createStorageService(overrides: Record<string, unknown> = {}) {
     STORAGE_BUCKET_NAME: "eduflow-media",
     STORAGE_REGION: "us-east-1",
     STORAGE_PUBLIC_BASE_URL: "http://localhost:9000",
+    MEDIA_UPLOAD_MAX_SIZE_BYTES: "10485760",
     ...overrides
   });
   const configService = new ConfigService(parsedEnv);

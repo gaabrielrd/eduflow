@@ -18,7 +18,8 @@ function parseEnv() {
     STORAGE_SECRET_KEY: process.env.STORAGE_SECRET_KEY,
     STORAGE_BUCKET_NAME: process.env.STORAGE_BUCKET_NAME,
     STORAGE_REGION: process.env.STORAGE_REGION,
-    STORAGE_PUBLIC_BASE_URL: process.env.STORAGE_PUBLIC_BASE_URL
+    STORAGE_PUBLIC_BASE_URL: process.env.STORAGE_PUBLIC_BASE_URL,
+    MEDIA_UPLOAD_MAX_SIZE_BYTES: process.env.MEDIA_UPLOAD_MAX_SIZE_BYTES
   });
 }
 
@@ -53,6 +54,7 @@ export function getStorageConfig() {
     STORAGE_ACCESS_KEY,
     STORAGE_BUCKET_NAME,
     STORAGE_ENDPOINT,
+    MEDIA_UPLOAD_MAX_SIZE_BYTES,
     STORAGE_PUBLIC_BASE_URL,
     STORAGE_REGION,
     STORAGE_SECRET_KEY
@@ -64,6 +66,7 @@ export function getStorageConfig() {
     secretKey: STORAGE_SECRET_KEY,
     bucketName: STORAGE_BUCKET_NAME,
     region: STORAGE_REGION,
-    publicBaseUrl: STORAGE_PUBLIC_BASE_URL
+    publicBaseUrl: STORAGE_PUBLIC_BASE_URL,
+    mediaUploadMaxSizeBytes: MEDIA_UPLOAD_MAX_SIZE_BYTES
   };
 }
