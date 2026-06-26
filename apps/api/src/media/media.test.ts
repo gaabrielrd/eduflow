@@ -216,6 +216,8 @@ test("POST /media/complete marks a pending asset as READY", async () => {
 
   assert.equal(response.body.id, mediaAsset.id);
   assert.equal(response.body.status, MediaAssetStatus.READY);
+  assert.match(response.body.readUrl, /^http:\/\/localhost:9000\//);
+  assert.equal("storageKey" in response.body, false);
 
   const persistedAsset = await prisma.mediaAsset.findUnique({
     where: {
@@ -393,6 +395,8 @@ test("GET /media lists non-deleted media assets from the active organization ord
     response.body.map((item: { id: string }) => item.id),
     [newerAsset.id, olderAsset.id]
   );
+  assert.match(response.body[0]?.readUrl, /^http:\/\/localhost:9000\//);
+  assert.equal("storageKey" in response.body[0], false);
 });
 
 test("DELETE /media/:id marks the asset as DELETED and removes the storage object", async () => {
@@ -435,6 +439,8 @@ test("DELETE /media/:id marks the asset as DELETED and removes the storage objec
 
     assert.equal(response.body.id, mediaAsset.id);
     assert.equal(response.body.status, MediaAssetStatus.DELETED);
+    assert.match(response.body.readUrl, /^http:\/\/localhost:9000\//);
+    assert.equal("storageKey" in response.body, false);
     assert.deepEqual(deletedObjects, [
       {
         key: mediaAsset.storageKey,

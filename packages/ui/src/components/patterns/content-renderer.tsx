@@ -26,9 +26,18 @@ import {
 export interface ContentRendererProps
   extends Omit<HTMLAttributes<HTMLDivElement>, "content"> {
   readonly content: ContentDocument;
+  readonly mediaAssetsById?: Record<string, ContentRendererMediaAsset>;
 }
 
 type PlaceholderBlock = ImageBlock | VideoBlock | FileBlock;
+
+export type ContentRendererMediaAsset = {
+  readonly id: string;
+  readonly originalName: string;
+  readonly mimeType: string;
+  readonly sizeBytes: number;
+  readonly readUrl?: string;
+};
 
 const calloutVariantStyles: Record<CalloutVariant, string> = {
   info: "border-primary/35 bg-primary/10 text-foreground",
@@ -59,6 +68,7 @@ const headingLevelClasses: Record<HeadingBlock["props"]["level"], string> = {
 export function ContentRenderer({
   className,
   content,
+  mediaAssetsById,
   ...props
 }: ContentRendererProps) {
   const rawBlocks = getRawBlocks(content);
@@ -85,7 +95,13 @@ export function ContentRenderer({
           return <UnsupportedBlockFallback block={rawBlock} key={key} />;
         }
 
-        return <RenderedBlock block={parsedBlock.data} key={key} />;
+        return (
+          <RenderedBlock
+            block={parsedBlock.data}
+            key={key}
+            mediaAssetsById={mediaAssetsById}
+          />
+        );
       })}
     </div>
   );
@@ -109,7 +125,13 @@ function getBlockKey(block: unknown, index: number) {
   return `content-block-${index}`;
 }
 
-function RenderedBlock({ block }: { readonly block: ContentBlock }) {
+function RenderedBlock({
+  block,
+  mediaAssetsById
+}: {
+  readonly block: ContentBlock;
+  readonly mediaAssetsById?: Record<string, ContentRendererMediaAsset>;
+}) {
   switch (block.type) {
     case "heading":
       return <HeadingBlockView block={block} />;
@@ -122,11 +144,25 @@ function RenderedBlock({ block }: { readonly block: ContentBlock }) {
     case "divider":
       return <DividerBlockView />;
     case "image":
-      return <PlaceholderBlockView block={block} label="Imagem" icon={<ImageIcon />} />;
+      return (
+        <PlaceholderBlockView
+          block={block}
+          label="Imagem"
+          icon={<ImageIcon />}
+          mediaAsset={block.props.assetId ? mediaAssetsById?.[block.props.assetId] : undefined}
+        />
+      );
     case "video":
       return <PlaceholderBlockView block={block} label="Video" icon={<VideoIcon />} />;
     case "file":
-      return <PlaceholderBlockView block={block} label="Arquivo" icon={<FileIcon />} />;
+      return (
+        <PlaceholderBlockView
+          block={block}
+          label="Arquivo"
+          icon={<FileIcon />}
+          mediaAsset={block.props.assetId ? mediaAssetsById?.[block.props.assetId] : undefined}
+        />
+      );
     default:
       return <UnsupportedBlockFallback block={block} />;
   }
@@ -216,12 +252,36 @@ function DividerBlockView() {
 function PlaceholderBlockView({
   block,
   icon,
-  label
+  label,
+  mediaAsset
 }: {
   readonly block: PlaceholderBlock;
   readonly icon: ReactNode;
   readonly label: string;
+  readonly mediaAsset?: ContentRendererMediaAsset;
 }) {
+  if (block.type === "image" && block.props.assetId) {
+    return (
+      <ImageAssetBlockView
+        alt={block.props.alt}
+        assetId={block.props.assetId}
+        caption={block.props.caption}
+        mediaAsset={mediaAsset}
+      />
+    );
+  }
+
+  if (block.type === "file" && block.props.assetId) {
+    return (
+      <FileAssetBlockView
+        assetId={block.props.assetId}
+        caption={block.props.caption}
+        mediaAsset={mediaAsset}
+        title={block.props.title}
+      />
+    );
+  }
+
   const title = "title" in block.props ? block.props.title : undefined;
   const caption = block.props.caption;
   const alt = "alt" in block.props ? block.props.alt : undefined;
@@ -250,6 +310,116 @@ function PlaceholderBlockView({
         </CardContent>
       ) : null}
     </Card>
+  );
+}
+
+function ImageAssetBlockView({
+  alt,
+  assetId,
+  caption,
+  mediaAsset
+}: {
+  alt?: string;
+  assetId: string;
+  caption?: string;
+  mediaAsset?: ContentRendererMediaAsset;
+}) {
+  if (!mediaAsset || !mediaAsset.readUrl || !mediaAsset.mimeType.startsWith("image/")) {
+    return (
+      <MissingMediaFallback
+        assetId={assetId}
+        description="A imagem selecionada nao esta disponivel para preview."
+        title="Imagem indisponivel"
+      />
+    );
+  }
+
+  return (
+    <Card className="overflow-hidden border-border/70 bg-card shadow-sm">
+      <div className="border-b border-border/70 bg-muted/25 p-4">
+        <img
+          alt={alt ?? mediaAsset.originalName}
+          className="max-h-[24rem] w-full rounded-xl object-contain"
+          src={mediaAsset.readUrl}
+        />
+      </div>
+      <CardHeader className="gap-2">
+        <Badge variant="outline">Imagem</Badge>
+        <CardTitle>{mediaAsset.originalName}</CardTitle>
+        {caption ? <CardDescription>{caption}</CardDescription> : null}
+      </CardHeader>
+      {alt ? (
+        <CardContent>
+          <p className="text-sm leading-6 text-muted-foreground">
+            <span className="font-medium text-foreground">Alt text:</span> {alt}
+          </p>
+        </CardContent>
+      ) : null}
+    </Card>
+  );
+}
+
+function FileAssetBlockView({
+  assetId,
+  caption,
+  mediaAsset,
+  title
+}: {
+  assetId: string;
+  caption?: string;
+  mediaAsset?: ContentRendererMediaAsset;
+  title?: string;
+}) {
+  if (!mediaAsset) {
+    return (
+      <MissingMediaFallback
+        assetId={assetId}
+        description="O arquivo selecionado nao esta disponivel para preview."
+        title="Arquivo indisponivel"
+      />
+    );
+  }
+
+  return (
+    <Card className="border-border/70 bg-card/90 shadow-sm">
+      <CardHeader className="gap-3">
+        <div className="flex items-start gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+            <FileIcon />
+          </div>
+          <div className="space-y-2">
+            <Badge variant="outline">Arquivo</Badge>
+            <CardTitle>{title ?? mediaAsset.originalName}</CardTitle>
+            <CardDescription>{mediaAsset.originalName}</CardDescription>
+          </div>
+        </div>
+        {caption ? <CardDescription>{caption}</CardDescription> : null}
+      </CardHeader>
+      <CardContent className="space-y-1 text-sm text-muted-foreground">
+        <p>Tipo: {mediaAsset.mimeType}</p>
+        <p>Tamanho: {formatRendererFileSize(mediaAsset.sizeBytes)}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function MissingMediaFallback({
+  assetId,
+  description,
+  title
+}: {
+  assetId: string;
+  description: string;
+  title: string;
+}) {
+  return (
+    <div className="rounded-xl border border-dashed border-warning/45 bg-warning/10 px-4 py-4">
+      <p className="text-sm font-semibold text-foreground">{title}</p>
+      <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+      <p className="mt-2 text-xs font-medium uppercase tracking-eyebrow text-warning">
+        Asset: {assetId}
+      </p>
+    </div>
   );
 }
 
@@ -303,6 +473,18 @@ function containsHtmlMarkup(value: string) {
 
 function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function formatRendererFileSize(sizeBytes: number) {
+  if (sizeBytes >= 1024 * 1024) {
+    return `${(sizeBytes / (1024 * 1024)).toFixed(sizeBytes % (1024 * 1024) === 0 ? 0 : 1)} MB`;
+  }
+
+  if (sizeBytes >= 1024) {
+    return `${Math.round(sizeBytes / 1024)} KB`;
+  }
+
+  return `${sizeBytes} B`;
 }
 
 function ImageIcon() {

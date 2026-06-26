@@ -5,6 +5,7 @@ export interface MediaAsset {
   readonly fileName: string;
   readonly originalName: string;
   readonly mimeType: string;
+  readonly readUrl?: string;
   readonly sizeBytes: number;
   readonly status: MediaAssetStatus;
   readonly createdAt: string;

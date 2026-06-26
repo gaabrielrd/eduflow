@@ -42,6 +42,7 @@ export const validContentDocumentFixture = {
       id: "block_6",
       type: "image",
       props: {
+        assetId: "media_image_1",
         alt: "Diagram placeholder",
         caption: "Illustration coming soon."
       }
@@ -58,6 +59,7 @@ export const validContentDocumentFixture = {
       id: "block_8",
       type: "file",
       props: {
+        assetId: "media_file_1",
         title: "Worksheet placeholder",
         caption: "Supporting material will be uploaded later."
       }
@@ -142,7 +144,9 @@ export const minimalPlaceholderFixtures = {
   image: {
     id: "image_1",
     type: "image",
-    props: {}
+    props: {
+      assetId: "media_image_minimal"
+    }
   },
   video: {
     id: "video_1",
@@ -152,6 +156,8 @@ export const minimalPlaceholderFixtures = {
   file: {
     id: "file_1",
     type: "file",
-    props: {}
+    props: {
+      assetId: "media_file_minimal"
+    }
   }
 };

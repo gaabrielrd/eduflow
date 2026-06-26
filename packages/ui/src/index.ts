@@ -70,4 +70,8 @@ export { PageHeader, type PageHeaderProps } from "./components/patterns/page-hea
 export { EmptyState, type EmptyStateProps } from "./components/patterns/empty-state";
 export { LoadingState, type LoadingStateProps } from "./components/patterns/loading-state";
 export { ErrorState, type ErrorStateProps } from "./components/patterns/error-state";
-export { ContentRenderer, type ContentRendererProps } from "./components/patterns/content-renderer";
+export {
+  ContentRenderer,
+  type ContentRendererMediaAsset,
+  type ContentRendererProps
+} from "./components/patterns/content-renderer";

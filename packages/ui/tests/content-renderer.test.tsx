@@ -49,6 +49,7 @@ const fullDocument: ContentDocument = {
       id: "image-1",
       type: "image",
       props: {
+        assetId: "media-image-1",
         alt: "Diagrama da jornada da pessoa aluna",
         caption: "Placeholder da ilustracao"
       }
@@ -65,6 +66,7 @@ const fullDocument: ContentDocument = {
       id: "file-1",
       type: "file",
       props: {
+        assetId: "media-file-1",
         title: "Checklist de publicacao",
         caption: "Arquivo complementar"
       }
@@ -74,7 +76,27 @@ const fullDocument: ContentDocument = {
 
 describe("ContentRenderer", () => {
   it("renders every supported block type from a valid document", () => {
-    const { container } = render(<ContentRenderer content={fullDocument} />);
+    const { container } = render(
+      <ContentRenderer
+        content={fullDocument}
+        mediaAssetsById={{
+          "media-file-1": {
+            id: "media-file-1",
+            mimeType: "application/pdf",
+            originalName: "Checklist.pdf",
+            readUrl: "https://cdn.eduflow.test/checklist.pdf",
+            sizeBytes: 4096
+          },
+          "media-image-1": {
+            id: "media-image-1",
+            mimeType: "image/png",
+            originalName: "Journey diagram.png",
+            readUrl: "https://cdn.eduflow.test/journey.png",
+            sizeBytes: 2048
+          }
+        }}
+      />
+    );
 
     expect(
       screen.getByRole("heading", { level: 2, name: "Introducao" })
@@ -85,10 +107,11 @@ describe("ContentRenderer", () => {
     expect(screen.getByText("Aprender com contexto reduz retrabalho.")).toBeInTheDocument();
     expect(screen.getByRole("note", { name: "Warning callout" })).toBeInTheDocument();
     expect(container.querySelector("hr")).not.toBeNull();
-    expect(screen.getByText("Imagem")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Diagrama da jornada da pessoa aluna" })).toBeInTheDocument();
     expect(screen.getByText("Placeholder da ilustracao")).toBeInTheDocument();
     expect(screen.getByText("Demo do produto")).toBeInTheDocument();
     expect(screen.getByText("Checklist de publicacao")).toBeInTheDocument();
+    expect(screen.getAllByText("Checklist.pdf").length).toBeGreaterThan(0);
   });
 
   it("renders nothing for empty block arrays", () => {
@@ -220,6 +243,81 @@ describe("ContentRenderer", () => {
     expect(screen.getByText("Ilustracao principal")).toBeInTheDocument();
     expect(screen.getByText(/Alt text:/)).toBeInTheDocument();
     expect(screen.getByText(/Mapa visual do modulo/)).toBeInTheDocument();
+  });
+
+  it("renders resolved image and file assets when media lookup data is available", () => {
+    render(
+      <ContentRenderer
+        content={{
+          version: 1,
+          blocks: [
+            {
+              id: "image-asset-1",
+              type: "image",
+              props: {
+                assetId: "media-image-1",
+                alt: "Fluxo ilustrado",
+                caption: "Imagem resolvida"
+              }
+            },
+            {
+              id: "file-asset-1",
+              type: "file",
+              props: {
+                assetId: "media-file-1",
+                caption: "PDF complementar"
+              }
+            }
+          ]
+        }}
+        mediaAssetsById={{
+          "media-file-1": {
+            id: "media-file-1",
+            mimeType: "application/pdf",
+            originalName: "Checklist.pdf",
+            readUrl: "https://cdn.eduflow.test/checklist.pdf",
+            sizeBytes: 4096
+          },
+          "media-image-1": {
+            id: "media-image-1",
+            mimeType: "image/png",
+            originalName: "Journey diagram.png",
+            readUrl: "https://cdn.eduflow.test/journey.png",
+            sizeBytes: 2048
+          }
+        }}
+      />
+    );
+
+    expect(screen.getByRole("img", { name: "Fluxo ilustrado" })).toHaveAttribute(
+      "src",
+      "https://cdn.eduflow.test/journey.png"
+    );
+    expect(screen.getAllByText("Checklist.pdf").length).toBeGreaterThan(0);
+    expect(screen.getByText("Tamanho: 4 KB")).toBeInTheDocument();
+  });
+
+  it("shows a fallback when a referenced media asset cannot be resolved", () => {
+    render(
+      <ContentRenderer
+        content={{
+          version: 1,
+          blocks: [
+            {
+              id: "image-missing-1",
+              type: "image",
+              props: {
+                assetId: "missing-image",
+                caption: "Referencia quebrada"
+              }
+            }
+          ]
+        }}
+      />
+    );
+
+    expect(screen.getByText("Imagem indisponivel")).toBeInTheDocument();
+    expect(screen.getByText("Asset: missing-image")).toBeInTheDocument();
   });
 
   it("shows a fallback for unsupported block types", () => {

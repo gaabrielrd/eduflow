@@ -53,6 +53,7 @@ export const calloutBlockSchema = createBlockSchema("callout", {
 export const dividerBlockSchema = createBlockSchema("divider", {});
 
 export const imageBlockSchema = createBlockSchema("image", {
+  assetId: z.string().optional(),
   alt: z.string().optional(),
   caption: z.string().optional()
 });
@@ -63,6 +64,7 @@ export const videoBlockSchema = createBlockSchema("video", {
 });
 
 export const fileBlockSchema = createBlockSchema("file", {
+  assetId: z.string().optional(),
   caption: z.string().optional(),
   title: z.string().optional()
 });

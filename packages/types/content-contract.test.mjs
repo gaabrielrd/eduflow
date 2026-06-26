@@ -87,3 +87,23 @@ runTest("accepts minimal placeholder blocks", () => {
   assert.equal(videoResult.success, true);
   assert.equal(fileResult.success, true);
 });
+
+runTest("keeps image and file asset references optional for backward compatibility", () => {
+  const legacyImageResult = imageBlockSchema.safeParse({
+    id: "image_legacy",
+    type: "image",
+    props: {
+      caption: "Placeholder antigo"
+    }
+  });
+  const legacyFileResult = fileBlockSchema.safeParse({
+    id: "file_legacy",
+    type: "file",
+    props: {
+      title: "Arquivo antigo"
+    }
+  });
+
+  assert.equal(legacyImageResult.success, true);
+  assert.equal(legacyFileResult.success, true);
+});

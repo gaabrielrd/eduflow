@@ -1,6 +1,7 @@
 import { createElement, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 import { LessonContentEditorScreen } from "@/components/courses/lesson-content-editor-screen";
 import { LESSON_EDITOR_PERSIST_DELAY_MS } from "@/lib/courses/lesson-editor";
@@ -8,6 +9,8 @@ import {
   getCourseCurriculum,
   updateLesson
 } from "@/lib/courses/course-service";
+import { listMediaAssets } from "@/lib/media/media-library-service";
+import type { MediaAsset } from "@/lib/media/media-types";
 import type { CourseCurriculum } from "@/lib/courses/course-types";
 
 vi.mock("next/link", () => ({
@@ -21,6 +24,10 @@ vi.mock("next/link", () => ({
 vi.mock("@/lib/courses/course-service", () => ({
   getCourseCurriculum: vi.fn(),
   updateLesson: vi.fn()
+}));
+
+vi.mock("@/lib/media/media-library-service", () => ({
+  listMediaAssets: vi.fn()
 }));
 
 vi.mock("@/components/courses/rich-text-block-editor", () => ({
@@ -44,7 +51,20 @@ vi.mock("@/components/courses/rich-text-block-editor", () => ({
 }));
 
 const getCourseCurriculumMock = vi.mocked(getCourseCurriculum);
+const listMediaAssetsMock = vi.mocked(listMediaAssets);
 const updateLessonMock = vi.mocked(updateLesson);
+
+const mediaAsset: MediaAsset = {
+  createdAt: "2026-06-26T10:00:00.000Z",
+  fileName: "hero.png",
+  id: "media-1",
+  mimeType: "image/png",
+  originalName: "Hero image.png",
+  readUrl: "https://cdn.eduflow.test/hero.png",
+  sizeBytes: 2048,
+  status: "READY",
+  updatedAt: "2026-06-26T10:00:00.000Z"
+};
 
 const baseCurriculum: CourseCurriculum = {
   createdAt: "2026-06-24T12:00:00.000Z",
@@ -109,6 +129,7 @@ describe("LessonContentEditorScreen", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useRealTimers();
+    listMediaAssetsMock.mockResolvedValue([mediaAsset]);
   });
 
   it("loads lesson metadata and existing content", async () => {
@@ -581,6 +602,83 @@ describe("LessonContentEditorScreen", () => {
     );
 
     expect(await screen.findByText("Nenhum bloco criado ainda")).toBeTruthy();
+  });
+
+  it("selects an image asset, stores its assetId, and renders the preview", async () => {
+    const user = userEvent.setup();
+    getCourseCurriculumMock.mockResolvedValue({
+      ...baseCurriculum,
+      modules: [
+        {
+          ...baseCurriculum.modules[0]!,
+          lessons: [
+            {
+              ...baseCurriculum.modules[0]!.lessons[0]!,
+              contentJson: {
+                version: 1,
+                blocks: [
+                  {
+                    id: "image-1",
+                    type: "image",
+                    props: {
+                      caption: "Hero da aula"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    });
+    updateLessonMock.mockResolvedValue(baseCurriculum.modules[0]!.lessons[0]!);
+
+    render(
+      createElement(LessonContentEditorScreen, {
+        courseId: "course-1",
+        lessonId: "lesson-1"
+      })
+    );
+
+    expect(await screen.findByText("Nenhuma imagem selecionada ainda.")).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Selecionar imagem" }));
+    await user.click(await screen.findByText("Hero image.png"));
+    await user.click(screen.getByRole("button", { name: "Usar imagem" }));
+
+    expect(await screen.findByText("Hero image.png")).toBeTruthy();
+
+    await waitFor(
+      () => {
+        expect(updateLessonMock).toHaveBeenCalledWith("lesson-1", {
+          contentJson: {
+            version: 1,
+            blocks: [
+              {
+                id: "image-1",
+                type: "image",
+                props: {
+                  assetId: "media-1",
+                  caption: "Hero da aula"
+                }
+              }
+            ]
+          }
+        });
+      },
+      {
+        timeout: 2000
+      }
+    );
+
+    await user.click(screen.getByRole("button", { name: "Preview" }));
+
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("img", { name: "Hero image.png" })).toHaveAttribute(
+      "src",
+      mediaAsset.readUrl
+    );
+    expect(within(dialog).getByText("Hero da aula")).toBeTruthy();
   });
 });
 

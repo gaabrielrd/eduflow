@@ -17,6 +17,7 @@ import {
   Card,
   CardContent,
   CardHeader,
+  type ContentRendererMediaAsset,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -37,6 +38,8 @@ import {
 } from "@eduflow/ui";
 import { useAppBreadcrumbs } from "@/components/breadcrumb-context";
 import { LessonPreviewAside } from "@/components/courses/lesson-preview-aside";
+import { formatMediaType } from "@/components/media/media-formatters";
+import { MediaPicker } from "@/components/media/media-picker";
 import { RichTextBlockEditor } from "@/components/courses/rich-text-block-editor";
 import {
   LESSON_EDITOR_PERSIST_DELAY_MS,
@@ -53,6 +56,9 @@ import {
   getCourseCurriculum,
   updateLesson
 } from "@/lib/courses/course-service";
+import { listMediaAssets } from "@/lib/media/media-library-service";
+import type { MediaAsset } from "@/lib/media/media-types";
+import { formatFileSize } from "@/lib/media/media-upload-config";
 import type {
   CourseCurriculum,
   LessonNode
@@ -123,6 +129,8 @@ export function LessonContentEditorScreen({
 }: LessonContentEditorScreenProps) {
   const [curriculum, setCurriculum] = useState<CourseCurriculum | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>([]);
+  const [mediaLoadErrorMessage, setMediaLoadErrorMessage] = useState<string | null>(null);
   const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -140,7 +148,22 @@ export function LessonContentEditorScreen({
         throw new Error("Nao foi possivel localizar a aula solicitada neste curso.");
       }
 
+      const mediaResolution = await listMediaAssets()
+        .then((assets) => ({
+          assets,
+          errorMessage: null
+        }))
+        .catch((error: unknown) => ({
+          assets: [] as MediaAsset[],
+          errorMessage:
+            error instanceof Error
+              ? error.message
+              : "Nao foi possivel carregar a biblioteca de midia."
+        }));
+
       setCurriculum(nextCurriculum);
+      setMediaAssets(mediaResolution.assets);
+      setMediaLoadErrorMessage(mediaResolution.errorMessage);
       dispatch({
         type: "initialize",
         lesson: nextLesson,
@@ -212,6 +235,22 @@ export function LessonContentEditorScreen({
   }, [state.blocks, state.hasHydrated, state.isDirty, state.lesson]);
 
   const lesson = state.lesson;
+  const mediaAssetsById = useMemo<Record<string, ContentRendererMediaAsset>>(
+    () =>
+      Object.fromEntries(
+        mediaAssets.map((asset) => [
+          asset.id,
+          {
+            id: asset.id,
+            mimeType: asset.mimeType,
+            originalName: asset.originalName,
+            readUrl: asset.readUrl,
+            sizeBytes: asset.sizeBytes
+          }
+        ])
+      ),
+    [mediaAssets]
+  );
   const breadcrumbItems = useMemo(
     () => [
       { href: "/app/dashboard", label: "App" },
@@ -288,6 +327,14 @@ export function LessonContentEditorScreen({
       blockId,
       direction
     });
+  }, []);
+
+  const rememberMediaAsset = useCallback((asset: MediaAsset) => {
+    setMediaAssets((current) => {
+      const nextAssets = current.filter((item) => item.id !== asset.id);
+      return [asset, ...nextAssets];
+    });
+    setMediaLoadErrorMessage(null);
   }, []);
 
   if (isLoading) {
@@ -385,7 +432,10 @@ export function LessonContentEditorScreen({
                   block={block}
                   index={index}
                   isSelected={block.id === state.selectedBlockId}
+                  mediaAssetsById={mediaAssetsById}
+                  mediaLoadErrorMessage={mediaLoadErrorMessage}
                   onDuplicate={handleDuplicateBlock}
+                  onRememberMediaAsset={rememberMediaAsset}
                   onMove={handleMoveBlock}
                   onRemove={handleRemoveBlock}
                   onSelect={handleSelectBlock}
@@ -402,6 +452,7 @@ export function LessonContentEditorScreen({
       <LessonPreviewAside
         content={previewContent}
         lessonTitle={lesson.title}
+        mediaAssetsById={mediaAssetsById}
         open={isPreviewOpen}
         onOpenChange={setIsPreviewOpen}
       />
@@ -472,9 +523,12 @@ const LessonBlockCard = memo(function LessonBlockCard({
   block,
   index,
   isSelected,
+  mediaAssetsById,
+  mediaLoadErrorMessage,
   canMoveDown,
   canMoveUp,
   onDuplicate,
+  onRememberMediaAsset,
   onMove,
   onRemove,
   onSelect,
@@ -483,9 +537,12 @@ const LessonBlockCard = memo(function LessonBlockCard({
   block: EditorBlock;
   index: number;
   isSelected: boolean;
+  mediaAssetsById: Record<string, ContentRendererMediaAsset>;
+  mediaLoadErrorMessage: string | null;
   canMoveDown: boolean;
   canMoveUp: boolean;
   onDuplicate: (blockId: string) => void;
+  onRememberMediaAsset: (asset: MediaAsset) => void;
   onMove: (blockId: string, direction: "up" | "down") => void;
   onRemove: (blockId: string) => void;
   onSelect: (blockId: string) => void;
@@ -553,7 +610,13 @@ const LessonBlockCard = memo(function LessonBlockCard({
             />
           </div>
         </div>
-        <SelectedBlockEditor block={block} onChange={handleChange} />
+        <SelectedBlockEditor
+          block={block}
+          mediaAssetsById={mediaAssetsById}
+          mediaLoadErrorMessage={mediaLoadErrorMessage}
+          onChange={handleChange}
+          onRememberMediaAsset={onRememberMediaAsset}
+        />
       </div>
     </article>
   );
@@ -561,10 +624,16 @@ const LessonBlockCard = memo(function LessonBlockCard({
 
 function SelectedBlockEditor({
   block,
-  onChange
+  mediaAssetsById,
+  mediaLoadErrorMessage,
+  onChange,
+  onRememberMediaAsset
 }: {
   block: EditorBlock;
+  mediaAssetsById: Record<string, ContentRendererMediaAsset>;
+  mediaLoadErrorMessage: string | null;
   onChange: (updater: (current: EditorBlock) => EditorBlock) => void;
+  onRememberMediaAsset: (asset: MediaAsset) => void;
 }) {
   switch (block.type) {
     case "heading":
@@ -769,6 +838,39 @@ function SelectedBlockEditor({
     case "image":
       return (
         <FieldsStack>
+          <MediaSelectionField
+            assetId={block.props.assetId}
+            assetLabel="imagem"
+            mediaAsset={block.props.assetId ? mediaAssetsById[block.props.assetId] : undefined}
+            mediaLoadErrorMessage={mediaLoadErrorMessage}
+            onClear={() =>
+              onChange((current) =>
+                current.type === "image"
+                  ? {
+                      ...current,
+                      props: {
+                        ...current.props,
+                        assetId: undefined
+                      }
+                    }
+                  : current
+              )
+            }
+            onSelect={(asset) => {
+              onRememberMediaAsset(asset);
+              onChange((current) =>
+                current.type === "image"
+                  ? {
+                      ...current,
+                      props: {
+                        ...current.props,
+                        assetId: asset.id
+                      }
+                    }
+                  : current
+              );
+            }}
+          />
           <Field label="Legenda">
             <Input
               value={block.props.caption ?? ""}
@@ -811,6 +913,12 @@ function SelectedBlockEditor({
     case "video":
       return (
         <FieldsStack>
+          <FieldSurface>
+            <div className="rounded-2xl border border-warning/35 bg-warning/10 px-4 py-3 text-sm text-muted-foreground">
+              A selecao de asset para video continua pendente. A biblioteca de midia atual so
+              suporta imagens e PDFs nesta iteracao.
+            </div>
+          </FieldSurface>
           <Field label="Titulo">
             <Input
               value={block.props.title ?? ""}
@@ -853,6 +961,39 @@ function SelectedBlockEditor({
     case "file":
       return (
         <FieldsStack>
+          <MediaSelectionField
+            assetId={block.props.assetId}
+            assetLabel="arquivo"
+            mediaAsset={block.props.assetId ? mediaAssetsById[block.props.assetId] : undefined}
+            mediaLoadErrorMessage={mediaLoadErrorMessage}
+            onClear={() =>
+              onChange((current) =>
+                current.type === "file"
+                  ? {
+                      ...current,
+                      props: {
+                        ...current.props,
+                        assetId: undefined
+                      }
+                    }
+                  : current
+              )
+            }
+            onSelect={(asset) => {
+              onRememberMediaAsset(asset);
+              onChange((current) =>
+                current.type === "file"
+                  ? {
+                      ...current,
+                      props: {
+                        ...current.props,
+                        assetId: asset.id
+                      }
+                    }
+                  : current
+              );
+            }}
+          />
           <Field label="Titulo">
             <Input
               value={block.props.title ?? ""}
@@ -926,6 +1067,76 @@ function FieldSurface({
   children: ReactNode;
 }) {
   return <div className="space-y-3">{children}</div>;
+}
+
+function MediaSelectionField({
+  assetId,
+  assetLabel,
+  mediaAsset,
+  mediaLoadErrorMessage,
+  onClear,
+  onSelect
+}: {
+  assetId?: string;
+  assetLabel: "imagem" | "arquivo";
+  mediaAsset?: ContentRendererMediaAsset;
+  mediaLoadErrorMessage: string | null;
+  onClear: () => void;
+  onSelect: (asset: MediaAsset) => void;
+}) {
+  return (
+    <FieldSurface>
+      <div className="flex flex-wrap items-center gap-3">
+        <MediaPicker
+          confirmLabel={`Usar ${assetLabel}`}
+          description={`Escolha uma ${assetLabel} existente da biblioteca para este bloco.`}
+          onSelect={onSelect}
+          title={`Selecionar ${assetLabel}`}
+          trigger={
+            <Button type="button" variant="outline">
+              {assetId ? `Trocar ${assetLabel}` : `Selecionar ${assetLabel}`}
+            </Button>
+          }
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          disabled={!assetId}
+          onClick={onClear}
+        >
+          Remover selecao
+        </Button>
+      </div>
+
+      {mediaLoadErrorMessage ? (
+        <p className="text-sm text-warning">
+          A biblioteca nao foi carregada na abertura desta tela. O preview pode ficar incompleto
+          ate a proxima atualizacao.
+        </p>
+      ) : null}
+
+      {assetId ? (
+        mediaAsset ? (
+          <div className="rounded-2xl border border-border/70 bg-muted/25 p-4 text-sm">
+            <p className="font-medium text-card-foreground">{mediaAsset.originalName}</p>
+            <p className="mt-1 text-muted-foreground">
+              {formatMediaType(mediaAsset.mimeType)} · {formatFileSize(mediaAsset.sizeBytes)}
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-warning/35 bg-warning/10 p-4 text-sm text-muted-foreground">
+            O asset selecionado nao esta disponivel no momento. Referencia atual: {assetId}
+          </div>
+        )
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          {assetLabel === "imagem"
+            ? "Nenhuma imagem selecionada ainda."
+            : "Nenhum arquivo selecionado ainda."}
+        </p>
+      )}
+    </FieldSurface>
+  );
 }
 
 function toOptionalValue(value: string) {

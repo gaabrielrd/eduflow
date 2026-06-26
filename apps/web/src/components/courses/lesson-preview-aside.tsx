@@ -2,6 +2,7 @@
 
 import {
   ContentRenderer,
+  type ContentRendererMediaAsset,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -13,6 +14,7 @@ import type { ContentDocument } from "@eduflow/types";
 type LessonPreviewAsideProps = {
   content: ContentDocument;
   lessonTitle: string;
+  mediaAssetsById?: Record<string, ContentRendererMediaAsset>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -20,6 +22,7 @@ type LessonPreviewAsideProps = {
 export function LessonPreviewAside({
   content,
   lessonTitle,
+  mediaAssetsById,
   open,
   onOpenChange
 }: LessonPreviewAsideProps) {
@@ -40,7 +43,11 @@ export function LessonPreviewAside({
                 title="Preview vazio"
               />
             ) : (
-              <ContentRenderer className="max-w-none" content={content} />
+              <ContentRenderer
+                className="max-w-none"
+                content={content}
+                mediaAssetsById={mediaAssetsById}
+              />
             )}
           </div>
         </div>

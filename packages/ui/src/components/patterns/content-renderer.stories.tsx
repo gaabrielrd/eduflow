@@ -47,6 +47,7 @@ const mixedContent: ContentDocument = {
       id: "image-1",
       type: "image",
       props: {
+        assetId: "media-image-1",
         alt: "Fluxo resumido de onboarding desenhado em quatro etapas",
         caption: "Espaco reservado para a ilustracao principal"
       }
@@ -63,6 +64,7 @@ const mixedContent: ContentDocument = {
       id: "file-1",
       type: "file",
       props: {
+        assetId: "media-file-1",
         title: "Guia da primeira semana",
         caption: "Arquivo complementar para consulta rapida"
       }
@@ -106,7 +108,23 @@ type Story = StoryObj<typeof meta>;
 export const MixedDocument: Story = {
   args: {
     content: mixedContent,
-    className: "max-w-3xl"
+    className: "max-w-3xl",
+    mediaAssetsById: {
+      "media-file-1": {
+        id: "media-file-1",
+        mimeType: "application/pdf",
+        originalName: "Guia da primeira semana.pdf",
+        readUrl: "https://example.com/guia.pdf",
+        sizeBytes: 4096
+      },
+      "media-image-1": {
+        id: "media-image-1",
+        mimeType: "image/png",
+        originalName: "Fluxo de onboarding.png",
+        readUrl: "https://placehold.co/1200x720/png",
+        sizeBytes: 2048
+      }
+    }
   }
 };
 

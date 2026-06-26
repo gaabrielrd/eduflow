@@ -120,6 +120,7 @@ Exemplo:
 
 | Prop | Tipo | Obrigatorio | Regra |
 | --- | --- | --- | --- |
+| `assetId` | `string` | Nao | Referencia opcional para um `MediaAsset` existente da biblioteca |
 | `alt` | `string` | Nao | Texto alternativo opcional |
 | `caption` | `string` | Nao | Legenda opcional |
 
@@ -130,10 +131,15 @@ Exemplo:
 | `title` | `string` | Nao | Titulo opcional |
 | `caption` | `string` | Nao | Legenda opcional |
 
+Observacao operacional:
+
+- a selecao de asset para `video` continua pendente porque a biblioteca de midia atual ainda nao suporta uploads/listagem de arquivos de video no MVP.
+
 ### `file`
 
 | Prop | Tipo | Obrigatorio | Regra |
 | --- | --- | --- | --- |
+| `assetId` | `string` | Nao | Referencia opcional para um `MediaAsset` existente da biblioteca |
 | `title` | `string` | Nao | Titulo opcional |
 | `caption` | `string` | Nao | Legenda opcional |
 
@@ -147,6 +153,7 @@ O schema atual, implementado em `packages/types/src/content-contract.ts`, garant
 - `heading.props.level` limitado a `1` ate `6`
 - `heading.props.text` obrigatorio e nao vazio apos `trim()`
 - `callout.props.variant` limitado a `info | success | warning | destructive`
+- `image.props.assetId` e `file.props.assetId`, quando presentes, continuam sendo strings opacas de referencia
 - nenhuma chave extra no documento, no bloco ou em `props`
 
 Os testes que cobrem esse contrato ficam em `packages/types` e devem continuar validando:
@@ -184,7 +191,8 @@ As limitacoes atuais devem ser tratadas como parte explicita do contrato operati
 
 - blocos textuais continuam persistindo `string`, nao um AST ou JSON estruturado de rich text
 - o renderer confia no HTML persistido e apenas detecta markup por inspeção de string
-- `image`, `video` e `file` ainda sao placeholders no preview, nao renderizadores completos de asset
+- `image` e `file` podem carregar `assetId` para resolver metadados e preview basico sem persistir `storageKey`, mas ainda nao tentam viewers avancados ou tratamento rico de erro
+- `video` continua como placeholder no preview e sem integracao de asset enquanto a biblioteca de midia nao suportar MIME types de video
 - blocos nao suportados ou payloads malformados degradam para fallback visual no renderer, ou sao descartados pela normalizacao do editor, em vez de serem reparados
 - o autosave do editor e debounce-based e nao possui fila de retry, resolucao offline ou reconciliacao explicita de conflito
 

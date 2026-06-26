@@ -37,6 +37,10 @@ const mediaAssetSelect = {
   updatedAt: true
 } satisfies Prisma.MediaAssetSelect;
 
+type MediaAssetRecord = Prisma.MediaAssetGetPayload<{
+  select: typeof mediaAssetSelect;
+}>;
+
 @Injectable()
 export class MediaService {
   constructor(
@@ -109,7 +113,7 @@ export class MediaService {
       );
     }
 
-    return this.prisma.mediaAsset.update({
+    const updatedAsset = await this.prisma.mediaAsset.update({
       where: {
         id: mediaAsset.id
       },
@@ -118,10 +122,12 @@ export class MediaService {
       },
       select: mediaAssetSelect
     });
+
+    return this.toMediaAssetResponse(updatedAsset);
   }
 
   async listMediaAssets(context: OrganizationContext) {
-    return this.prisma.mediaAsset.findMany({
+    const mediaAssets = await this.prisma.mediaAsset.findMany({
       where: {
         organizationId: context.organizationId,
         status: {
@@ -133,6 +139,8 @@ export class MediaService {
       },
       select: mediaAssetSelect
     });
+
+    return mediaAssets.map((asset) => this.toMediaAssetResponse(asset));
   }
 
   async deleteMediaAsset(context: OrganizationContext, mediaId: string) {
@@ -156,7 +164,7 @@ export class MediaService {
       key: mediaAsset.storageKey
     });
 
-    return this.prisma.mediaAsset.update({
+    const deletedAsset = await this.prisma.mediaAsset.update({
       where: {
         id: mediaAsset.id
       },
@@ -165,6 +173,8 @@ export class MediaService {
       },
       select: mediaAssetSelect
     });
+
+    return this.toMediaAssetResponse(deletedAsset);
   }
 
   private normalizeOriginalName(fileName: string) {
@@ -205,5 +215,22 @@ export class MediaService {
     const filename = storageKey.split("/").pop() ?? "";
 
     return filename.replace(/^[0-9a-f-]+-/, "");
+  }
+
+  private toMediaAssetResponse(mediaAsset: MediaAssetRecord) {
+    return {
+      id: mediaAsset.id,
+      fileName: mediaAsset.fileName,
+      originalName: mediaAsset.originalName,
+      mimeType: mediaAsset.mimeType,
+      sizeBytes: mediaAsset.sizeBytes,
+      status: mediaAsset.status,
+      createdAt: mediaAsset.createdAt,
+      updatedAt: mediaAsset.updatedAt,
+      readUrl: this.storageService.getReadUrl({
+        organizationId: mediaAsset.organizationId,
+        key: mediaAsset.storageKey
+      })
+    };
   }
 }
