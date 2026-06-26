@@ -338,6 +338,23 @@ export type EnumLessonStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumLessonStatusFilter<$PrismaModel>
 }
 
+export type EnumMediaAssetStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.MediaAssetStatus | Prisma.EnumMediaAssetStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.MediaAssetStatus[] | Prisma.ListEnumMediaAssetStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MediaAssetStatus[] | Prisma.ListEnumMediaAssetStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMediaAssetStatusFilter<$PrismaModel> | $Enums.MediaAssetStatus
+}
+
+export type EnumMediaAssetStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MediaAssetStatus | Prisma.EnumMediaAssetStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.MediaAssetStatus[] | Prisma.ListEnumMediaAssetStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MediaAssetStatus[] | Prisma.ListEnumMediaAssetStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMediaAssetStatusWithAggregatesFilter<$PrismaModel> | $Enums.MediaAssetStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMediaAssetStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMediaAssetStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -646,6 +663,23 @@ export type NestedEnumLessonStatusWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumLessonStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumLessonStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumMediaAssetStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.MediaAssetStatus | Prisma.EnumMediaAssetStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.MediaAssetStatus[] | Prisma.ListEnumMediaAssetStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MediaAssetStatus[] | Prisma.ListEnumMediaAssetStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMediaAssetStatusFilter<$PrismaModel> | $Enums.MediaAssetStatus
+}
+
+export type NestedEnumMediaAssetStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MediaAssetStatus | Prisma.EnumMediaAssetStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.MediaAssetStatus[] | Prisma.ListEnumMediaAssetStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MediaAssetStatus[] | Prisma.ListEnumMediaAssetStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMediaAssetStatusWithAggregatesFilter<$PrismaModel> | $Enums.MediaAssetStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMediaAssetStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMediaAssetStatusFilter<$PrismaModel>
 }
 
 

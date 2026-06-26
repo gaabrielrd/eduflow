@@ -185,6 +185,7 @@ export type OrganizationWhereInput = {
   memberships?: Prisma.MembershipListRelationFilter
   invitations?: Prisma.InvitationListRelationFilter
   courses?: Prisma.CourseListRelationFilter
+  mediaAssets?: Prisma.MediaAssetListRelationFilter
 }
 
 export type OrganizationOrderByWithRelationInput = {
@@ -196,6 +197,7 @@ export type OrganizationOrderByWithRelationInput = {
   memberships?: Prisma.MembershipOrderByRelationAggregateInput
   invitations?: Prisma.InvitationOrderByRelationAggregateInput
   courses?: Prisma.CourseOrderByRelationAggregateInput
+  mediaAssets?: Prisma.MediaAssetOrderByRelationAggregateInput
 }
 
 export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -210,6 +212,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   memberships?: Prisma.MembershipListRelationFilter
   invitations?: Prisma.InvitationListRelationFilter
   courses?: Prisma.CourseListRelationFilter
+  mediaAssets?: Prisma.MediaAssetListRelationFilter
 }, "id" | "slug">
 
 export type OrganizationOrderByWithAggregationInput = {
@@ -243,6 +246,7 @@ export type OrganizationCreateInput = {
   memberships?: Prisma.MembershipCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
   courses?: Prisma.CourseCreateNestedManyWithoutOrganizationInput
+  mediaAssets?: Prisma.MediaAssetCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateInput = {
@@ -254,6 +258,7 @@ export type OrganizationUncheckedCreateInput = {
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
   courses?: Prisma.CourseUncheckedCreateNestedManyWithoutOrganizationInput
+  mediaAssets?: Prisma.MediaAssetUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUpdateInput = {
@@ -265,6 +270,7 @@ export type OrganizationUpdateInput = {
   memberships?: Prisma.MembershipUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
   courses?: Prisma.CourseUpdateManyWithoutOrganizationNestedInput
+  mediaAssets?: Prisma.MediaAssetUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateInput = {
@@ -276,6 +282,7 @@ export type OrganizationUncheckedUpdateInput = {
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   courses?: Prisma.CourseUncheckedUpdateManyWithoutOrganizationNestedInput
+  mediaAssets?: Prisma.MediaAssetUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateManyInput = {
@@ -373,6 +380,20 @@ export type OrganizationUpdateOneRequiredWithoutCoursesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutCoursesInput, Prisma.OrganizationUpdateWithoutCoursesInput>, Prisma.OrganizationUncheckedUpdateWithoutCoursesInput>
 }
 
+export type OrganizationCreateNestedOneWithoutMediaAssetsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutMediaAssetsInput, Prisma.OrganizationUncheckedCreateWithoutMediaAssetsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutMediaAssetsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutMediaAssetsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutMediaAssetsInput, Prisma.OrganizationUncheckedCreateWithoutMediaAssetsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutMediaAssetsInput
+  upsert?: Prisma.OrganizationUpsertWithoutMediaAssetsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutMediaAssetsInput, Prisma.OrganizationUpdateWithoutMediaAssetsInput>, Prisma.OrganizationUncheckedUpdateWithoutMediaAssetsInput>
+}
+
 export type OrganizationCreateWithoutMembershipsInput = {
   id?: string
   name: string
@@ -381,6 +402,7 @@ export type OrganizationCreateWithoutMembershipsInput = {
   updatedAt?: Date | string
   invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
   courses?: Prisma.CourseCreateNestedManyWithoutOrganizationInput
+  mediaAssets?: Prisma.MediaAssetCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutMembershipsInput = {
@@ -391,6 +413,7 @@ export type OrganizationUncheckedCreateWithoutMembershipsInput = {
   updatedAt?: Date | string
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
   courses?: Prisma.CourseUncheckedCreateNestedManyWithoutOrganizationInput
+  mediaAssets?: Prisma.MediaAssetUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutMembershipsInput = {
@@ -417,6 +440,7 @@ export type OrganizationUpdateWithoutMembershipsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
   courses?: Prisma.CourseUpdateManyWithoutOrganizationNestedInput
+  mediaAssets?: Prisma.MediaAssetUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutMembershipsInput = {
@@ -427,6 +451,7 @@ export type OrganizationUncheckedUpdateWithoutMembershipsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   courses?: Prisma.CourseUncheckedUpdateManyWithoutOrganizationNestedInput
+  mediaAssets?: Prisma.MediaAssetUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutInvitationsInput = {
@@ -437,6 +462,7 @@ export type OrganizationCreateWithoutInvitationsInput = {
   updatedAt?: Date | string
   memberships?: Prisma.MembershipCreateNestedManyWithoutOrganizationInput
   courses?: Prisma.CourseCreateNestedManyWithoutOrganizationInput
+  mediaAssets?: Prisma.MediaAssetCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutInvitationsInput = {
@@ -447,6 +473,7 @@ export type OrganizationUncheckedCreateWithoutInvitationsInput = {
   updatedAt?: Date | string
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutOrganizationInput
   courses?: Prisma.CourseUncheckedCreateNestedManyWithoutOrganizationInput
+  mediaAssets?: Prisma.MediaAssetUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutInvitationsInput = {
@@ -473,6 +500,7 @@ export type OrganizationUpdateWithoutInvitationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUpdateManyWithoutOrganizationNestedInput
   courses?: Prisma.CourseUpdateManyWithoutOrganizationNestedInput
+  mediaAssets?: Prisma.MediaAssetUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
@@ -483,6 +511,7 @@ export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutOrganizationNestedInput
   courses?: Prisma.CourseUncheckedUpdateManyWithoutOrganizationNestedInput
+  mediaAssets?: Prisma.MediaAssetUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutCoursesInput = {
@@ -493,6 +522,7 @@ export type OrganizationCreateWithoutCoursesInput = {
   updatedAt?: Date | string
   memberships?: Prisma.MembershipCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  mediaAssets?: Prisma.MediaAssetCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutCoursesInput = {
@@ -503,6 +533,7 @@ export type OrganizationUncheckedCreateWithoutCoursesInput = {
   updatedAt?: Date | string
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutOrganizationInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  mediaAssets?: Prisma.MediaAssetUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutCoursesInput = {
@@ -529,6 +560,7 @@ export type OrganizationUpdateWithoutCoursesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  mediaAssets?: Prisma.MediaAssetUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutCoursesInput = {
@@ -539,6 +571,67 @@ export type OrganizationUncheckedUpdateWithoutCoursesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutOrganizationNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  mediaAssets?: Prisma.MediaAssetUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutMediaAssetsInput = {
+  id?: string
+  name: string
+  slug: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.MembershipCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  courses?: Prisma.CourseCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutMediaAssetsInput = {
+  id?: string
+  name: string
+  slug: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  courses?: Prisma.CourseUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutMediaAssetsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutMediaAssetsInput, Prisma.OrganizationUncheckedCreateWithoutMediaAssetsInput>
+}
+
+export type OrganizationUpsertWithoutMediaAssetsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutMediaAssetsInput, Prisma.OrganizationUncheckedUpdateWithoutMediaAssetsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutMediaAssetsInput, Prisma.OrganizationUncheckedCreateWithoutMediaAssetsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutMediaAssetsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutMediaAssetsInput, Prisma.OrganizationUncheckedUpdateWithoutMediaAssetsInput>
+}
+
+export type OrganizationUpdateWithoutMediaAssetsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.MembershipUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  courses?: Prisma.CourseUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutMediaAssetsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  courses?: Prisma.CourseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 
@@ -550,12 +643,14 @@ export type OrganizationCountOutputType = {
   memberships: number
   invitations: number
   courses: number
+  mediaAssets: number
 }
 
 export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   memberships?: boolean | OrganizationCountOutputTypeCountMembershipsArgs
   invitations?: boolean | OrganizationCountOutputTypeCountInvitationsArgs
   courses?: boolean | OrganizationCountOutputTypeCountCoursesArgs
+  mediaAssets?: boolean | OrganizationCountOutputTypeCountMediaAssetsArgs
 }
 
 /**
@@ -589,6 +684,13 @@ export type OrganizationCountOutputTypeCountCoursesArgs<ExtArgs extends runtime.
   where?: Prisma.CourseWhereInput
 }
 
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountMediaAssetsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MediaAssetWhereInput
+}
+
 
 export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -599,6 +701,7 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   memberships?: boolean | Prisma.Organization$membershipsArgs<ExtArgs>
   invitations?: boolean | Prisma.Organization$invitationsArgs<ExtArgs>
   courses?: boolean | Prisma.Organization$coursesArgs<ExtArgs>
+  mediaAssets?: boolean | Prisma.Organization$mediaAssetsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organization"]>
 
@@ -631,6 +734,7 @@ export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   memberships?: boolean | Prisma.Organization$membershipsArgs<ExtArgs>
   invitations?: boolean | Prisma.Organization$invitationsArgs<ExtArgs>
   courses?: boolean | Prisma.Organization$coursesArgs<ExtArgs>
+  mediaAssets?: boolean | Prisma.Organization$mediaAssetsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -642,6 +746,7 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     memberships: Prisma.$MembershipPayload<ExtArgs>[]
     invitations: Prisma.$InvitationPayload<ExtArgs>[]
     courses: Prisma.$CoursePayload<ExtArgs>[]
+    mediaAssets: Prisma.$MediaAssetPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1046,6 +1151,7 @@ export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends run
   memberships<T extends Prisma.Organization$membershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$membershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MembershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   invitations<T extends Prisma.Organization$invitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   courses<T extends Prisma.Organization$coursesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$coursesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  mediaAssets<T extends Prisma.Organization$mediaAssetsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$mediaAssetsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MediaAssetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1542,6 +1648,30 @@ export type Organization$coursesArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.CourseScalarFieldEnum | Prisma.CourseScalarFieldEnum[]
+}
+
+/**
+ * Organization.mediaAssets
+ */
+export type Organization$mediaAssetsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MediaAsset
+   */
+  select?: Prisma.MediaAssetSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MediaAsset
+   */
+  omit?: Prisma.MediaAssetOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MediaAssetInclude<ExtArgs> | null
+  where?: Prisma.MediaAssetWhereInput
+  orderBy?: Prisma.MediaAssetOrderByWithRelationInput | Prisma.MediaAssetOrderByWithRelationInput[]
+  cursor?: Prisma.MediaAssetWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MediaAssetScalarFieldEnum | Prisma.MediaAssetScalarFieldEnum[]
 }
 
 /**

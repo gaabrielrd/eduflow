@@ -53,3 +53,13 @@ export const LessonStatus = {
 } as const
 
 export type LessonStatus = (typeof LessonStatus)[keyof typeof LessonStatus]
+
+
+export const MediaAssetStatus = {
+  PENDING: 'PENDING',
+  READY: 'READY',
+  FAILED: 'FAILED',
+  DELETED: 'DELETED'
+} as const
+
+export type MediaAssetStatus = (typeof MediaAssetStatus)[keyof typeof MediaAssetStatus]

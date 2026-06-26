@@ -57,3 +57,8 @@ export type CourseModule = Prisma.CourseModuleModel
  * 
  */
 export type Lesson = Prisma.LessonModel
+/**
+ * Model MediaAsset
+ * 
+ */
+export type MediaAsset = Prisma.MediaAssetModel

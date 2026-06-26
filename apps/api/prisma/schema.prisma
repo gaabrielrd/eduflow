@@ -38,16 +38,24 @@ enum LessonStatus {
   ARCHIVED
 }
 
+enum MediaAssetStatus {
+  PENDING
+  READY
+  FAILED
+  DELETED
+}
+
 model User {
-  id             String       @id @default(cuid())
-  name           String
-  email          String       @unique
-  passwordHash   String
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  authSessions   AuthSession[]
-  memberships    Membership[]
-  createdCourses Course[]     @relation("CourseCreatedBy")
+  id                 String       @id @default(cuid())
+  name               String
+  email              String       @unique
+  passwordHash       String
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  authSessions       AuthSession[]
+  memberships        Membership[]
+  createdCourses     Course[]     @relation("CourseCreatedBy")
+  uploadedMediaAssets MediaAsset[] @relation("MediaAssetUploadedBy")
 }
 
 model Organization {
@@ -59,6 +67,7 @@ model Organization {
   memberships Membership[]
   invitations Invitation[]
   courses     Course[]
+  mediaAssets MediaAsset[]
 }
 
 model Membership {
@@ -158,4 +167,25 @@ model Lesson {
 
   @@unique([moduleId, position])
   @@index([moduleId])
+}
+
+model MediaAsset {
+  id             String           @id @default(cuid())
+  organizationId String
+  uploadedById   String
+  fileName       String
+  originalName   String
+  mimeType       String
+  sizeBytes      Int
+  storageKey     String
+  status         MediaAssetStatus @default(PENDING)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  uploadedBy     User             @relation("MediaAssetUploadedBy", fields: [uploadedById], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([organizationId])
+  @@index([uploadedById])
+  @@index([status])
+  @@index([organizationId, status])
 }
