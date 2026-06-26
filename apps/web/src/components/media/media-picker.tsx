@@ -1,6 +1,13 @@
 "use client";
 
-import { isValidElement, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  isValidElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode
+} from "react";
 
 import {
   Button,
@@ -70,7 +77,7 @@ export function MediaPicker({
     mediaAssets.find((asset) => asset.id === selectedAssetId) ??
     null;
 
-  async function loadMediaLibrary() {
+  const loadMediaLibrary = useCallback(async () => {
     setIsLoading(true);
 
     try {
@@ -87,15 +94,25 @@ export function MediaPicker({
     } finally {
       setIsLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     if (!isOpen) {
       return;
     }
 
-    void loadMediaLibrary();
-  }, [isOpen]);
+    let cancelled = false;
+
+    queueMicrotask(() => {
+      if (!cancelled) {
+        void loadMediaLibrary();
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, loadMediaLibrary]);
 
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {

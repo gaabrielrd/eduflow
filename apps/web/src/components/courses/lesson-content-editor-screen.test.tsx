@@ -33,7 +33,6 @@ vi.mock("@/lib/media/media-library-service", () => ({
 vi.mock("@/components/courses/rich-text-block-editor", () => ({
   RichTextBlockEditor: ({
     ariaLabel,
-    controls: _controls,
     onChange,
     value
   }: {

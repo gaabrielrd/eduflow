@@ -6,8 +6,6 @@ import request from "supertest";
 
 import { PrismaService } from "../database/prisma.service.js";
 import { MediaAssetStatus, Role } from "../generated/prisma/enums.js";
-import { STORAGE_SERVICE } from "../storage/storage.constants.js";
-import type { StorageService } from "../storage/storage.service.js";
 import {
   bootstrapTestApp,
   closeTestApp,
@@ -19,7 +17,6 @@ import {
 
 let app: INestApplication;
 let prisma: PrismaService;
-let storageService: StorageService;
 
 before(async () => {
   process.env.MEDIA_UPLOAD_MAX_SIZE_BYTES = "10485760";
@@ -27,7 +24,6 @@ before(async () => {
   const testContext = await bootstrapTestApp();
   app = testContext.app;
   prisma = testContext.prisma;
-  storageService = app.get<StorageService>(STORAGE_SERVICE);
 });
 
 beforeEach(async () => {
