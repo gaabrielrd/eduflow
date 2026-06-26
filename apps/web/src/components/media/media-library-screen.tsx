@@ -34,36 +34,11 @@ import {
 } from "@/lib/media/media-library-service";
 import type { MediaAsset } from "@/lib/media/media-types";
 
+import { formatMediaDate, formatMediaType } from "./media-formatters";
+import { MediaPickerDemo } from "./media-picker-demo";
 import { MediaUploader } from "./media-uploader";
 
 const authoringRoles = new Set(["OWNER", "ADMIN", "INSTRUCTOR", "MANAGER"]);
-
-function formatMediaType(mimeType: string) {
-  if (mimeType === "image/jpeg") {
-    return "JPG";
-  }
-
-  if (mimeType === "image/png") {
-    return "PNG";
-  }
-
-  if (mimeType === "image/webp") {
-    return "WEBP";
-  }
-
-  if (mimeType === "application/pdf") {
-    return "PDF";
-  }
-
-  return mimeType;
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short"
-  }).format(new Date(value));
-}
 
 export function MediaLibraryScreen() {
   const { activeOrganizationId, organizations } = useSession();
@@ -247,6 +222,8 @@ export function MediaLibraryScreen() {
               <p>Remocao marca o asset como deletado e oculta da lista.</p>
             </CardContent>
           </Card>
+
+          <MediaPickerDemo />
         </div>
       </div>
 
@@ -316,7 +293,7 @@ export function MediaLibraryScreen() {
                     </TableCell>
                     <TableCell>{formatMediaType(asset.mimeType)}</TableCell>
                     <TableCell>{formatFileSize(asset.sizeBytes)}</TableCell>
-                    <TableCell>{formatDate(asset.createdAt)}</TableCell>
+                    <TableCell>{formatMediaDate(asset.createdAt)}</TableCell>
                     <TableCell className="text-right">
                       {canManageMedia ? (
                         <Button
