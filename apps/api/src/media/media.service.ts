@@ -2,7 +2,7 @@ import {
   BadRequestException,
   Inject,
   Injectable,
-  NotFoundException
+  NotFoundException,
 } from "@nestjs/common";
 
 import type { AuthenticatedUser } from "../auth/types/authenticated-user.interface.js";
@@ -14,14 +14,18 @@ import { STORAGE_SERVICE } from "../storage/storage.constants.js";
 import { StorageConfigService } from "../storage/storage-config.service.js";
 import type { StorageService } from "../storage/storage.service.js";
 import type { CompleteMediaDto } from "./dto/complete-media.dto.js";
+import type { ListMediaDto, MediaMimeGroup } from "./dto/list-media.dto.js";
 import type { PresignMediaDto } from "./dto/presign-media.dto.js";
 
 const SUPPORTED_MEDIA_MIME_TYPES = new Set([
   "image/png",
   "image/jpeg",
   "image/webp",
-  "application/pdf"
+  "application/pdf",
 ]);
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 20;
+const MAX_PAGE_SIZE = 100;
 
 const mediaAssetSelect = {
   id: true,
@@ -34,7 +38,7 @@ const mediaAssetSelect = {
   storageKey: true,
   status: true,
   createdAt: true,
-  updatedAt: true
+  updatedAt: true,
 } satisfies Prisma.MediaAssetSelect;
 
 type MediaAssetRecord = Prisma.MediaAssetGetPayload<{
@@ -47,13 +51,50 @@ export class MediaService {
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(STORAGE_SERVICE) private readonly storageService: StorageService,
     @Inject(StorageConfigService)
-    private readonly storageConfigService: StorageConfigService
+    private readonly storageConfigService: StorageConfigService,
   ) {}
+
+  async listMedia(context: OrganizationContext, dto: ListMediaDto) {
+    const page = dto.page ?? DEFAULT_PAGE;
+    const pageSize = Math.min(dto.pageSize ?? DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE);
+    const where = this.buildListWhereInput(context, dto);
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.mediaAsset.findMany({
+        where,
+        select: mediaAssetSelect,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.prisma.mediaAsset.count({ where }),
+    ]);
+
+    return {
+      items: items.map((item) => this.toMediaResponse(item)),
+      page,
+      pageSize,
+      total,
+    };
+  }
+
+  async getMediaById(context: OrganizationContext, id: string) {
+    const mediaAsset = await this.prisma.mediaAsset.findFirst({
+      where: this.buildActiveMediaWhereInput(context, id),
+      select: mediaAssetSelect,
+    });
+
+    if (!mediaAsset) {
+      throw new NotFoundException("Media asset not found");
+    }
+
+    return this.toMediaResponse(mediaAsset);
+  }
 
   async createPresignedUpload(
     context: OrganizationContext,
     user: AuthenticatedUser,
-    dto: PresignMediaDto
+    dto: PresignMediaDto,
   ) {
     const originalName = this.normalizeOriginalName(dto.fileName);
     const mimeType = this.normalizeMimeType(dto.mimeType);
@@ -67,7 +108,7 @@ export class MediaService {
       organizationId: context.organizationId,
       category: "media",
       filename: originalName,
-      contentType: mimeType
+      contentType: mimeType,
     });
 
     const mediaAsset = await this.prisma.mediaAsset.create({
@@ -79,18 +120,18 @@ export class MediaService {
         mimeType,
         sizeBytes: dto.sizeBytes,
         storageKey: upload.object.key,
-        status: MediaAssetStatus.PENDING
+        status: MediaAssetStatus.PENDING,
       },
       select: {
-        id: true
-      }
+        id: true,
+      },
     });
 
     return {
       id: mediaAsset.id,
       uploadUrl: upload.url,
       method: upload.method,
-      headers: upload.headers
+      headers: upload.headers,
     };
   }
 
@@ -98,9 +139,9 @@ export class MediaService {
     const mediaAsset = await this.prisma.mediaAsset.findFirst({
       where: {
         id: dto.mediaId,
-        organizationId: context.organizationId
+        organizationId: context.organizationId,
       },
-      select: mediaAssetSelect
+      select: mediaAssetSelect,
     });
 
     if (!mediaAsset) {
@@ -109,72 +150,51 @@ export class MediaService {
 
     if (mediaAsset.status !== MediaAssetStatus.PENDING) {
       throw new BadRequestException(
-        "Only pending media assets can be completed"
+        "Only pending media assets can be completed",
       );
     }
 
-    const updatedAsset = await this.prisma.mediaAsset.update({
+    const updatedMediaAsset = await this.prisma.mediaAsset.update({
       where: {
-        id: mediaAsset.id
+        id: mediaAsset.id,
       },
       data: {
-        status: MediaAssetStatus.READY
+        status: MediaAssetStatus.READY,
       },
-      select: mediaAssetSelect
+      select: mediaAssetSelect,
     });
 
-    return this.toMediaAssetResponse(updatedAsset);
+    return this.toMediaResponse(updatedMediaAsset);
   }
 
-  async listMediaAssets(context: OrganizationContext) {
-    const mediaAssets = await this.prisma.mediaAsset.findMany({
-      where: {
-        organizationId: context.organizationId,
-        status: {
-          not: MediaAssetStatus.DELETED
-        }
-      },
-      orderBy: {
-        createdAt: "desc"
-      },
-      select: mediaAssetSelect
-    });
-
-    return mediaAssets.map((asset) => this.toMediaAssetResponse(asset));
-  }
-
-  async deleteMediaAsset(context: OrganizationContext, mediaId: string) {
+  async deleteMedia(context: OrganizationContext, id: string) {
     const mediaAsset = await this.prisma.mediaAsset.findFirst({
       where: {
-        id: mediaId,
+        id,
         organizationId: context.organizationId,
-        status: {
-          not: MediaAssetStatus.DELETED
-        }
       },
-      select: mediaAssetSelect
+      select: mediaAssetSelect,
     });
 
     if (!mediaAsset) {
       throw new NotFoundException("Media asset not found");
     }
 
-    await this.storageService.deleteObject({
-      organizationId: mediaAsset.organizationId,
-      key: mediaAsset.storageKey
-    });
+    if (mediaAsset.status === MediaAssetStatus.DELETED) {
+      return this.toMediaResponse(mediaAsset);
+    }
 
-    const deletedAsset = await this.prisma.mediaAsset.update({
+    const deletedMediaAsset = await this.prisma.mediaAsset.update({
       where: {
-        id: mediaAsset.id
+        id: mediaAsset.id,
       },
       data: {
-        status: MediaAssetStatus.DELETED
+        status: MediaAssetStatus.DELETED,
       },
-      select: mediaAssetSelect
+      select: mediaAssetSelect,
     });
 
-    return this.toMediaAssetResponse(deletedAsset);
+    return this.toMediaResponse(deletedMediaAsset);
   }
 
   private normalizeOriginalName(fileName: string) {
@@ -206,7 +226,7 @@ export class MediaService {
   private validateSize(sizeBytes: number, maxSizeBytes: number) {
     if (sizeBytes <= 0 || sizeBytes > maxSizeBytes) {
       throw new BadRequestException(
-        `File size must be between 1 and ${maxSizeBytes} bytes`
+        `File size must be between 1 and ${maxSizeBytes} bytes`,
       );
     }
   }
@@ -217,7 +237,57 @@ export class MediaService {
     return filename.replace(/^[0-9a-f-]+-/, "");
   }
 
-  private toMediaAssetResponse(mediaAsset: MediaAssetRecord) {
+  private buildActiveMediaWhereInput(
+    context: OrganizationContext,
+    id?: string,
+  ) {
+    return {
+      organizationId: context.organizationId,
+      ...(id ? { id } : {}),
+      status: {
+        not: MediaAssetStatus.DELETED,
+      },
+    } satisfies Prisma.MediaAssetWhereInput;
+  }
+
+  private buildListWhereInput(context: OrganizationContext, dto: ListMediaDto) {
+    const normalizedSearch = dto.search?.trim();
+    const where: Prisma.MediaAssetWhereInput =
+      this.buildActiveMediaWhereInput(context);
+
+    if (normalizedSearch) {
+      where.originalName = {
+        contains: normalizedSearch,
+        mode: "insensitive",
+      };
+    }
+
+    const mimeTypeFilter = this.buildMimeTypeFilter(dto.mimeGroup);
+
+    if (mimeTypeFilter) {
+      where.mimeType = mimeTypeFilter;
+    }
+
+    return where;
+  }
+
+  private buildMimeTypeFilter(mimeGroup?: MediaMimeGroup) {
+    if (mimeGroup === "image") {
+      return {
+        startsWith: "image/",
+      } satisfies Prisma.StringFilter<"MediaAsset">;
+    }
+
+    if (mimeGroup === "document") {
+      return {
+        equals: "application/pdf",
+      } satisfies Prisma.StringFilter<"MediaAsset">;
+    }
+
+    return undefined;
+  }
+
+  private toMediaResponse(mediaAsset: MediaAssetRecord) {
     return {
       id: mediaAsset.id,
       fileName: mediaAsset.fileName,
@@ -229,8 +299,8 @@ export class MediaService {
       updatedAt: mediaAsset.updatedAt,
       readUrl: this.storageService.getReadUrl({
         organizationId: mediaAsset.organizationId,
-        key: mediaAsset.storageKey
-      })
+        key: mediaAsset.storageKey,
+      }),
     };
   }
 }
