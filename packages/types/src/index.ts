@@ -8,3 +8,4 @@ export interface WorkspacePlaceholder {
 }
 
 export * from "./content-contract";
+export * from "./course-version-snapshot";

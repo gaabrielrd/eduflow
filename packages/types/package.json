@@ -11,7 +11,7 @@
     "build": "node ../../node_modules/typescript/bin/tsc -p tsconfig.json",
     "lint": "node -e \"console.log('lint placeholder for @eduflow/types')\"",
     "typecheck": "node ../../node_modules/typescript/bin/tsc -p tsconfig.json --noEmit",
-    "test": "node ../../node_modules/typescript/bin/tsc -p tsconfig.json && node content-contract.test.mjs"
+    "test": "node ../../node_modules/typescript/bin/tsc -p tsconfig.json && node content-contract.test.mjs && node course-version-snapshot.test.mjs"
   },
   "dependencies": {
     "zod": "^4.4.3"

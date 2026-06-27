@@ -99,7 +99,7 @@ O guia operacional de interface e experiencia desta base vive em `docs/ui.md`. E
 
 ## Banco de dados
 
-PostgreSQL e o banco principal planejado e o Prisma e a camada de acesso escolhida. Nesta fase, o schema Prisma ja cobre identidade, tenancy e a estrutura inicial de autoria de cursos, com `Course`, `CourseModule` e `Lesson`. A decisao de publicacao continua separando a entidade editavel `Course` do futuro `CourseVersion`, que entrara em sprint posterior para snapshots publicados e imutaveis.
+PostgreSQL e o banco principal planejado e o Prisma e a camada de acesso escolhida. Nesta fase, o schema Prisma ja cobre identidade, tenancy, a estrutura inicial de autoria de cursos com `Course`, `CourseModule` e `Lesson`, e o modelo `CourseVersion` para snapshots publicados e imutaveis.
 
 ### Estrutura atual de cursos e lessons
 
@@ -124,6 +124,8 @@ Cada lesson tambem possui:
 - `isPreview`: indicador para acesso de preview
 
 O contrato do campo `contentJson` fica em `@eduflow/types` e esta descrito em [docs/content-contract.md](/E:/OneDrive/Dev/eduflow/docs/content-contract.md). Esse guia concentra a fonte de verdade para formato, blocos suportados, validacao, limitacoes atuais e extensao do editor. Hoje ele permanece independente do transporte HTTP e do banco: Nest valida a presenca de um objeto JSON, enquanto o schema versionado compartilhado define a estrutura esperada pelo editor e pelo renderer. Na iteracao atual do editor de lessons, os blocos textuais de `contentJson.version = 1` continuam com `props.text` como `string`, mas o frontend passa a aceitar tanto texto simples legado quanto HTML rico persistido pelo editor inline.
+
+O formato de `CourseVersion.snapshotJson` fica em `@eduflow/types` e esta descrito em [docs/course-version-snapshot.md](./course-version-snapshot.md). O snapshot v1 separa o outline publicado do curso de `lessonDetails`: `lessons` contem apenas metadados ordenados, enquanto `lessonDetails` contem `contentJson` e midias minimas para carregamento individual de uma lesson publicada.
 
 ## Tenancy inicial
 
@@ -151,7 +153,6 @@ Os testes ainda sao comandos temporarios nos apps. A etapa existe desde ja para 
 
 Ainda nao existem:
 
-- modelo `CourseVersion` no banco
 - Redis, BullMQ e jobs assincronos
 - integracao real com LLM
 - relatorios e certificados

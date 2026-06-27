@@ -18,6 +18,8 @@ Separar `Course` de `CourseVersion`.
 
 Matriculas devem apontar para uma versao publicada, nao para o rascunho editavel do curso.
 
+O formato v1 de `CourseVersion.snapshotJson` fica documentado em [CourseVersion snapshot v1](../course-version-snapshot.md). Ele separa o outline publicado do curso de `lessonDetails`: `lessons` nao carrega `contentJson` nem midias, e o detalhe individual da lesson guarda o conteudo e as midias minimas necessarias para o player.
+
 ## Consequencias positivas
 
 - protege alunos de mudancas inesperadas em cursos ja publicados
