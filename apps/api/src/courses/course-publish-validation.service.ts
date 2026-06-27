@@ -1,7 +1,12 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import {
   contentDocumentSchema,
+  type ContentBlock,
   type ContentDocument
+} from "@eduflow/types";
+import type {
+  CoursePublishValidationError,
+  CoursePublishValidationResult
 } from "@eduflow/types";
 
 import {
@@ -13,65 +18,177 @@ import type {
   PublishMediaAsset
 } from "./course-publish.types.js";
 
+export type PublishMediaReference = {
+  id: string;
+  path: string;
+};
+
+export type PublishDraftStructureValidation = {
+  contentByLessonId: Map<string, ContentDocument>;
+  mediaReferences: PublishMediaReference[];
+  validation: CoursePublishValidationResult;
+};
+
 @Injectable()
 export class CoursePublishValidationService {
-  validateDraftStructure(course: CoursePublishDraft) {
+  validateDraftStructure(
+    course: CoursePublishDraft
+  ): PublishDraftStructureValidation {
+    const errors: CoursePublishValidationError[] = [];
+    const contentByLessonId = new Map<string, ContentDocument>();
+    const mediaReferences: PublishMediaReference[] = [];
+
+    if (!course.title.trim()) {
+      errors.push({
+        code: "COURSE_TITLE_REQUIRED",
+        message: "Course must have a title.",
+        path: "title"
+      });
+    }
+
     if (course.status === CourseStatus.ARCHIVED) {
-      throw new BadRequestException("Archived courses cannot be published");
+      errors.push({
+        code: "COURSE_ARCHIVED",
+        message: "Archived courses cannot be published.",
+        path: "status"
+      });
     }
 
     if (course.modules.length === 0) {
-      throw new BadRequestException(
-        "Course must contain at least one active module"
-      );
+      errors.push({
+        code: "COURSE_WITHOUT_MODULES",
+        message: "Course must contain at least one active module.",
+        path: "modules"
+      });
     }
 
-    const contentByLessonId = new Map<string, ContentDocument>();
-
-    for (const module of course.modules) {
+    for (const [moduleIndex, module] of course.modules.entries()) {
       if (module.lessons.length === 0) {
-        throw new BadRequestException(
-          `Module "${module.title}" must contain at least one active lesson`
-        );
+        errors.push({
+          code: "MODULE_WITHOUT_LESSONS",
+          message: "Module must contain at least one active lesson.",
+          path: `modules.${moduleIndex}`
+        });
       }
 
-      for (const lesson of module.lessons) {
+      for (const [lessonIndex, lesson] of module.lessons.entries()) {
+        const lessonPath = `modules.${moduleIndex}.lessons.${lessonIndex}`;
+
+        if (!lesson.title.trim()) {
+          errors.push({
+            code: "LESSON_TITLE_REQUIRED",
+            message: "Lesson must have a title.",
+            path: `${lessonPath}.title`
+          });
+        }
+
         const result = contentDocumentSchema.safeParse(lesson.contentJson);
 
         if (!result.success) {
-          throw new BadRequestException(
-            `Lesson "${lesson.title}" has invalid contentJson`
-          );
+          errors.push({
+            code: "LESSON_CONTENT_INVALID",
+            message: "Lesson content JSON is invalid.",
+            path: `${lessonPath}.contentJson`
+          });
+          continue;
         }
 
         contentByLessonId.set(lesson.id, result.data);
+        mediaReferences.push(
+          ...this.getMediaReferencesFromBlocks(
+            result.data.blocks,
+            `${lessonPath}.contentJson.blocks`
+          )
+        );
       }
     }
 
-    return contentByLessonId;
+    return {
+      contentByLessonId,
+      mediaReferences,
+      validation: this.toValidationResult(errors)
+    };
   }
 
   validateReferencedMedia(params: {
     organizationId: string;
-    referencedMediaIds: readonly string[];
+    mediaReferences: readonly PublishMediaReference[];
     mediaAssets: readonly PublishMediaAsset[];
-  }) {
+  }): CoursePublishValidationResult {
+    const errors: CoursePublishValidationError[] = [];
     const mediaAssetsById = new Map(
       params.mediaAssets.map((mediaAsset) => [mediaAsset.id, mediaAsset])
     );
 
-    for (const mediaId of params.referencedMediaIds) {
-      const mediaAsset = mediaAssetsById.get(mediaId);
+    for (const mediaReference of params.mediaReferences) {
+      const mediaAsset = mediaAssetsById.get(mediaReference.id);
 
-      if (
-        !mediaAsset ||
-        mediaAsset.organizationId !== params.organizationId ||
-        mediaAsset.status !== MediaAssetStatus.READY
-      ) {
-        throw new BadRequestException(
-          `Referenced media asset "${mediaId}" is unavailable`
-        );
+      if (!mediaAsset) {
+        errors.push({
+          code: "MEDIA_ASSET_MISSING",
+          message: `Referenced media asset "${mediaReference.id}" does not exist.`,
+          path: mediaReference.path
+        });
+        continue;
+      }
+
+      if (mediaAsset.organizationId !== params.organizationId) {
+        errors.push({
+          code: "MEDIA_ASSET_WRONG_ORGANIZATION",
+          message: `Referenced media asset "${mediaReference.id}" belongs to another organization.`,
+          path: mediaReference.path
+        });
+        continue;
+      }
+
+      if (mediaAsset.status !== MediaAssetStatus.READY) {
+        errors.push({
+          code: "MEDIA_ASSET_UNAVAILABLE",
+          message: `Referenced media asset "${mediaReference.id}" is unavailable.`,
+          path: mediaReference.path
+        });
       }
     }
+
+    return this.toValidationResult(errors);
+  }
+
+  combineValidationResults(
+    ...results: readonly CoursePublishValidationResult[]
+  ): CoursePublishValidationResult {
+    return this.toValidationResult(results.flatMap((result) => result.errors));
+  }
+
+  private toValidationResult(
+    errors: CoursePublishValidationError[]
+  ): CoursePublishValidationResult {
+    return {
+      valid: errors.length === 0,
+      errors
+    };
+  }
+
+  private getMediaReferencesFromBlocks(
+    blocks: readonly ContentBlock[],
+    blocksPath: string
+  ) {
+    const mediaReferences: PublishMediaReference[] = [];
+    const seenMediaIds = new Set<string>();
+
+    for (const [blockIndex, block] of blocks.entries()) {
+      if (
+        (block.type === "image" || block.type === "file") &&
+        block.props.assetId !== undefined &&
+        !seenMediaIds.has(block.props.assetId)
+      ) {
+        mediaReferences.push({
+          id: block.props.assetId,
+          path: `${blocksPath}.${blockIndex}.props.assetId`
+        });
+        seenMediaIds.add(block.props.assetId);
+      }
+    }
+
+    return mediaReferences;
   }
 }

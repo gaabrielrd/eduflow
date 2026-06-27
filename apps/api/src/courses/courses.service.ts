@@ -8,7 +8,7 @@ import {
 import type { AuthenticatedUser } from "../auth/types/authenticated-user.interface.js";
 import type { OrganizationContext } from "../auth/types/organization-context.interface.js";
 import { PrismaService } from "../database/prisma.service.js";
-import { Prisma } from "../generated/prisma/client.js";
+import { Prisma, type PrismaClient } from "../generated/prisma/client.js";
 import {
   CourseModuleStatus,
   CourseVersionStatus,
@@ -18,6 +18,7 @@ import {
 import { courseModuleSelect } from "../course-modules/course-modules.service.js";
 import { lessonSelect } from "../lessons/lessons.service.js";
 import {
+  type CoursePublishDraft,
   coursePublishDraftSelect,
   courseVersionMetadataSelect,
   publishMediaAssetSelect
@@ -26,6 +27,11 @@ import { CoursePublishValidationService } from "./course-publish-validation.serv
 import { CourseVersionSnapshotService } from "./course-version-snapshot.service.js";
 import type { CreateCourseDto } from "./dto/create-course.dto.js";
 import type { UpdateCourseDto } from "./dto/update-course.dto.js";
+
+type PublishValidationClient = Pick<
+  Prisma.TransactionClient | PrismaClient,
+  "course" | "mediaAsset"
+>;
 
 const courseSelect = {
   id: true,
@@ -196,6 +202,19 @@ export class CoursesService {
     });
   }
 
+  async validateCourseForPublish(
+    context: OrganizationContext,
+    courseId: string
+  ) {
+    const validationData = await this.getCoursePublishValidationData(
+      this.prisma,
+      context,
+      courseId
+    );
+
+    return validationData.validation;
+  }
+
   async publishCourse(
     context: OrganizationContext,
     user: AuthenticatedUser,
@@ -216,36 +235,27 @@ export class CoursesService {
             throw new NotFoundException("Course not found");
           }
 
-          const contentByLessonId =
-            this.publishValidationService.validateDraftStructure(course);
-          const referencedMediaIds =
-            this.courseVersionSnapshotService.getReferencedMediaIds(
-              contentByLessonId
+          const validationData =
+            await this.getCoursePublishValidationDataFromCourse(
+              tx,
+              context,
+              course
             );
-          const mediaAssets =
-            referencedMediaIds.length > 0
-              ? await tx.mediaAsset.findMany({
-                  where: {
-                    id: {
-                      in: referencedMediaIds
-                    }
-                  },
-                  select: publishMediaAssetSelect
-                })
-              : [];
 
-          this.publishValidationService.validateReferencedMedia({
-            organizationId: context.organizationId,
-            referencedMediaIds,
-            mediaAssets
-          });
+          if (!validationData.validation.valid) {
+            throw new BadRequestException({
+              message: "Course cannot be published",
+              error: "Bad Request",
+              validation: validationData.validation
+            });
+          }
 
           const publishedAt = new Date();
           const snapshot =
             this.courseVersionSnapshotService.buildSnapshot({
               course,
-              contentByLessonId,
-              mediaAssets,
+              contentByLessonId: validationData.contentByLessonId,
+              mediaAssets: validationData.mediaAssets,
               publishedAt,
               publishedBy: user
             });
@@ -370,5 +380,72 @@ export class CoursesService {
     }
 
     throw error;
+  }
+
+  private async getCoursePublishValidationData(
+    client: PublishValidationClient,
+    context: OrganizationContext,
+    courseId: string
+  ) {
+    const course = await client.course.findFirst({
+      where: {
+        id: courseId,
+        organizationId: context.organizationId
+      },
+      select: coursePublishDraftSelect
+    });
+
+    if (!course) {
+      throw new NotFoundException("Course not found");
+    }
+
+    return this.getCoursePublishValidationDataFromCourse(
+      client,
+      context,
+      course
+    );
+  }
+
+  private async getCoursePublishValidationDataFromCourse(
+    client: PublishValidationClient,
+    context: OrganizationContext,
+    course: CoursePublishDraft
+  ) {
+    const structureValidation =
+      this.publishValidationService.validateDraftStructure(course);
+    const referencedMediaIds = [
+      ...new Set(
+        structureValidation.mediaReferences.map(
+          (mediaReference) => mediaReference.id
+        )
+      )
+    ];
+    const mediaAssets =
+      referencedMediaIds.length > 0
+        ? await client.mediaAsset.findMany({
+            where: {
+              id: {
+                in: referencedMediaIds
+              }
+            },
+            select: publishMediaAssetSelect
+          })
+        : [];
+    const mediaValidation =
+      this.publishValidationService.validateReferencedMedia({
+        organizationId: context.organizationId,
+        mediaReferences: structureValidation.mediaReferences,
+        mediaAssets
+      });
+    const validation = this.publishValidationService.combineValidationResults(
+      structureValidation.validation,
+      mediaValidation
+    );
+
+    return {
+      contentByLessonId: structureValidation.contentByLessonId,
+      mediaAssets,
+      validation
+    };
   }
 }

@@ -1,4 +1,9 @@
 import type { ContentDocument } from "@eduflow/types";
+export type {
+  CoursePublishValidationError,
+  CoursePublishValidationErrorCode,
+  CoursePublishValidationResult
+} from "@eduflow/types";
 
 export type CourseStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 export type ModuleStatus = "ACTIVE" | "ARCHIVED";

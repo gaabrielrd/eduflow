@@ -28,13 +28,29 @@ export class AllExceptionsFilter implements ExceptionFilter {
       const message = Array.isArray((errorPayload as { message?: unknown }).message)
         ? (errorPayload as { message: unknown[] }).message.join(", ")
         : String((errorPayload as { message?: unknown }).message ?? exception.message);
+      const extraPayload =
+        errorPayload && typeof errorPayload === "object"
+          ? Object.fromEntries(
+              Object.entries(errorPayload).filter(
+                ([key]) =>
+                  ![
+                    "error",
+                    "message",
+                    "path",
+                    "statusCode",
+                    "timestamp"
+                  ].includes(key)
+              )
+            )
+          : {};
 
       response.status(statusCode).json({
         statusCode,
         message,
         error: String((errorPayload as { error?: unknown }).error ?? exception.name),
         path: request.url,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        ...extraPayload
       });
       return;
     }

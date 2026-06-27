@@ -5,6 +5,7 @@ import type {
   CreateLessonPayload,
   CreateModulePayload,
   CreateCoursePayload,
+  CoursePublishValidationResult,
   LessonNode,
   CourseModuleNode,
   UpdateLessonPayload,
@@ -38,6 +39,13 @@ export async function getCourseCurriculum(courseId: string) {
   return apiClient<CourseCurriculum>({
     method: "GET",
     path: `/api/courses/${courseId}/curriculum`
+  });
+}
+
+export async function validateCoursePublish(courseId: string) {
+  return apiClient<CoursePublishValidationResult>({
+    method: "GET",
+    path: `/api/courses/${courseId}/publish-validation`
   });
 }
 

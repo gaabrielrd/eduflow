@@ -59,6 +59,14 @@ export class CoursesController {
     return this.coursesService.getCourseCurriculum(context, id);
   }
 
+  @Get(":id/publish-validation")
+  getPublishValidation(
+    @CurrentOrganizationContext() context: OrganizationContext,
+    @Param("id") id: string
+  ) {
+    return this.coursesService.validateCourseForPublish(context, id);
+  }
+
   @Patch(":id")
   @Roles(...AUTHORING_ROLES)
   @UseGuards(RolesGuard)

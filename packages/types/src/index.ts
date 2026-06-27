@@ -8,4 +8,5 @@ export interface WorkspacePlaceholder {
 }
 
 export * from "./content-contract.js";
+export * from "./course-publish-validation.js";
 export * from "./course-version-snapshot.js";

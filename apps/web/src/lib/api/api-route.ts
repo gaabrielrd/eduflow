@@ -8,7 +8,12 @@ export function toApiRouteErrorResponse(error: unknown) {
       {
         details: error.details,
         error: error.error,
-        message: error.message
+        message: error.message,
+        ...(error.payload &&
+        typeof error.payload === "object" &&
+        "validation" in error.payload
+          ? { validation: error.payload.validation }
+          : {})
       },
       { status: error.statusCode }
     );

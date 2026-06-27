@@ -3,7 +3,8 @@ export class ApiError extends Error {
     message: string,
     readonly statusCode: number,
     readonly error: string,
-    readonly details: string[]
+    readonly details: string[],
+    readonly payload?: Record<string, unknown> | null
   ) {
     super(message);
     this.name = "ApiError";
@@ -96,7 +97,13 @@ async function executeRequest<T>({
         ? payload.error
         : "Request failed";
 
-    throw new ApiError(details[0] ?? "Request failed", response.status, error, details);
+    throw new ApiError(
+      details[0] ?? "Request failed",
+      response.status,
+      error,
+      details,
+      payload
+    );
   }
 
   return payload as T;

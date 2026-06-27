@@ -61,6 +61,7 @@ async function createPublishableCourse(params: {
   organizationId: string;
   createdById: string;
   title?: string;
+  lessonTitle?: string;
   slug?: string;
   contentJson?: object;
 }) {
@@ -86,7 +87,7 @@ async function createPublishableCourse(params: {
   const lesson = await prisma.lesson.create({
     data: {
       moduleId: module.id,
-      title: "Welcome",
+      title: params.lessonTitle ?? "Welcome",
       description: "Introduction",
       contentType: LessonContentType.TEXT,
       contentJson: params.contentJson ?? createValidContentDocument(),
@@ -117,6 +118,24 @@ async function createMediaAsset(params: {
       status: params.status ?? MediaAssetStatus.READY
     }
   });
+}
+
+function assertValidationError(
+  validation: {
+    valid: boolean;
+    errors: Array<{ code: string; path: string }>;
+  },
+  code: string,
+  path?: string
+) {
+  assert.equal(validation.valid, false);
+  const error = validation.errors.find((item) => item.code === code);
+
+  assert.ok(error, `Expected validation error ${code}`);
+
+  if (path !== undefined) {
+    assert.equal(error.path, path);
+  }
 }
 
 before(async () => {
@@ -632,6 +651,241 @@ test("POST /courses/:courseId/publish creates immutable course versions from the
   assert.equal(otherResponse.body.versionNumber, 1);
 });
 
+test("GET /courses/:courseId/publish-validation returns a valid result for publishable courses", async () => {
+  const instructor = await createUserAndToken(app, `course-validate-valid.${Date.now()}@courses.test`);
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: instructor.user.id,
+    name: "Validate Valid Org",
+    slug: `validate-valid-org-${uniqueSuffix()}`,
+    role: Role.INSTRUCTOR
+  });
+  const { course } = await createPublishableCourse({
+    organizationId: organization.id,
+    createdById: instructor.user.id
+  });
+
+  const response = await request(app.getHttpServer())
+    .get(`/courses/${course.id}/publish-validation`)
+    .set("Authorization", `Bearer ${instructor.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(200);
+
+  assert.deepEqual(response.body, {
+    valid: true,
+    errors: []
+  });
+});
+
+test("GET /courses/:courseId/publish-validation rejects missing and cross-organization courses", async () => {
+  const owner = await createUserAndToken(app, `course-validate-404.${Date.now()}@courses.test`);
+  const outsider = await createUserAndToken(app, `course-validate-foreign.${Date.now()}@courses.test`);
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: owner.user.id,
+    name: "Validate Current Org",
+    slug: `validate-current-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const foreignOrganization = await createOrganizationForUser({
+    prisma,
+    userId: outsider.user.id,
+    name: "Validate Foreign Org",
+    slug: `validate-foreign-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const foreignCourse = await createPublishableCourse({
+    organizationId: foreignOrganization.id,
+    createdById: outsider.user.id
+  });
+
+  const missingResponse = await request(app.getHttpServer())
+    .get(`/courses/missing-course-${uniqueSuffix()}/publish-validation`)
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(404);
+  const foreignResponse = await request(app.getHttpServer())
+    .get(`/courses/${foreignCourse.course.id}/publish-validation`)
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(404);
+
+  assert.equal(missingResponse.body.message, "Course not found");
+  assert.equal(foreignResponse.body.message, "Course not found");
+});
+
+test("GET /courses/:courseId/publish-validation reports structured course and lesson errors", async () => {
+  const owner = await createUserAndToken(app, `course-validate-invalid.${Date.now()}@courses.test`);
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: owner.user.id,
+    name: "Validate Invalid Org",
+    slug: `validate-invalid-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const noTitleCourse = await createPublishableCourse({
+    organizationId: organization.id,
+    createdById: owner.user.id,
+    title: "   "
+  });
+  const emptyCourse = await prisma.course.create({
+    data: {
+      organizationId: organization.id,
+      title: "Empty Course",
+      slug: `validation-empty-course-${uniqueSuffix()}`,
+      status: CourseStatus.DRAFT,
+      createdById: owner.user.id
+    }
+  });
+  const moduleOnlyCourse = await prisma.course.create({
+    data: {
+      organizationId: organization.id,
+      title: "Module Only Course",
+      slug: `validation-module-only-course-${uniqueSuffix()}`,
+      status: CourseStatus.DRAFT,
+      createdById: owner.user.id
+    }
+  });
+  await prisma.courseModule.create({
+    data: {
+      courseId: moduleOnlyCourse.id,
+      title: "Empty Module",
+      position: 1,
+      status: CourseModuleStatus.ACTIVE
+    }
+  });
+  const blankLessonTitleCourse = await createPublishableCourse({
+    organizationId: organization.id,
+    createdById: owner.user.id,
+    title: "Blank Lesson Title Course",
+    lessonTitle: "   "
+  });
+  const invalidContentCourse = await createPublishableCourse({
+    organizationId: organization.id,
+    createdById: owner.user.id,
+    title: "Invalid Content Course",
+    contentJson: { type: "doc", content: [] }
+  });
+  const archivedCourse = await createPublishableCourse({
+    organizationId: organization.id,
+    createdById: owner.user.id,
+    title: "Archived Validation Course"
+  });
+  await prisma.course.update({
+    where: {
+      id: archivedCourse.course.id
+    },
+    data: {
+      status: CourseStatus.ARCHIVED
+    }
+  });
+
+  const cases = [
+    {
+      courseId: noTitleCourse.course.id,
+      code: "COURSE_TITLE_REQUIRED",
+      path: "title"
+    },
+    {
+      courseId: emptyCourse.id,
+      code: "COURSE_WITHOUT_MODULES",
+      path: "modules"
+    },
+    {
+      courseId: moduleOnlyCourse.id,
+      code: "MODULE_WITHOUT_LESSONS",
+      path: "modules.0"
+    },
+    {
+      courseId: blankLessonTitleCourse.course.id,
+      code: "LESSON_TITLE_REQUIRED",
+      path: "modules.0.lessons.0.title"
+    },
+    {
+      courseId: invalidContentCourse.course.id,
+      code: "LESSON_CONTENT_INVALID",
+      path: "modules.0.lessons.0.contentJson"
+    },
+    {
+      courseId: archivedCourse.course.id,
+      code: "COURSE_ARCHIVED",
+      path: "status"
+    }
+  ];
+
+  for (const testCase of cases) {
+    const response = await request(app.getHttpServer())
+      .get(`/courses/${testCase.courseId}/publish-validation`)
+      .set("Authorization", `Bearer ${owner.accessToken}`)
+      .set("X-Organization-Id", organization.id)
+      .expect(200);
+
+    assertValidationError(response.body, testCase.code, testCase.path);
+  }
+});
+
+test("GET /courses/:courseId/publish-validation reports structured media reference errors", async () => {
+  const owner = await createUserAndToken(app, `course-validate-media.${Date.now()}@courses.test`);
+  const outsider = await createUserAndToken(app, `course-validate-media-outsider.${Date.now()}@courses.test`);
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: owner.user.id,
+    name: "Validate Media Org",
+    slug: `validate-media-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const foreignOrganization = await createOrganizationForUser({
+    prisma,
+    userId: outsider.user.id,
+    name: "Validate Media Foreign Org",
+    slug: `validate-media-foreign-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const pendingMedia = await createMediaAsset({
+    organizationId: organization.id,
+    uploadedById: owner.user.id,
+    status: MediaAssetStatus.PENDING
+  });
+  const foreignMedia = await createMediaAsset({
+    organizationId: foreignOrganization.id,
+    uploadedById: outsider.user.id
+  });
+  const cases = [
+    {
+      mediaId: `missing-media-${uniqueSuffix()}`,
+      code: "MEDIA_ASSET_MISSING"
+    },
+    {
+      mediaId: foreignMedia.id,
+      code: "MEDIA_ASSET_WRONG_ORGANIZATION"
+    },
+    {
+      mediaId: pendingMedia.id,
+      code: "MEDIA_ASSET_UNAVAILABLE"
+    }
+  ];
+
+  for (const testCase of cases) {
+    const { course } = await createPublishableCourse({
+      organizationId: organization.id,
+      createdById: owner.user.id,
+      title: `Media Validation Course ${testCase.mediaId}`,
+      contentJson: createImageContentDocument(testCase.mediaId)
+    });
+    const response = await request(app.getHttpServer())
+      .get(`/courses/${course.id}/publish-validation`)
+      .set("Authorization", `Bearer ${owner.accessToken}`)
+      .set("X-Organization-Id", organization.id)
+      .expect(200);
+
+    assertValidationError(
+      response.body,
+      testCase.code,
+      "modules.0.lessons.0.contentJson.blocks.0.props.assetId"
+    );
+  }
+});
+
 test("POST /courses/:courseId/publish rejects missing and cross-organization courses", async () => {
   const owner = await createUserAndToken(app, `course-publish-404.${Date.now()}@courses.test`);
   const outsider = await createUserAndToken(app, `course-publish-foreign.${Date.now()}@courses.test`);
@@ -755,19 +1009,23 @@ test("POST /courses/:courseId/publish rejects invalid course structures without 
   const cases = [
     {
       courseId: emptyCourse.id,
-      message: "Course must contain at least one active module"
+      code: "COURSE_WITHOUT_MODULES",
+      path: "modules"
     },
     {
       courseId: moduleOnlyCourse.id,
-      message: /must contain at least one active lesson/
+      code: "MODULE_WITHOUT_LESSONS",
+      path: "modules.0"
     },
     {
       courseId: invalidContentCourse.course.id,
-      message: /has invalid contentJson/
+      code: "LESSON_CONTENT_INVALID",
+      path: "modules.0.lessons.0.contentJson"
     },
     {
       courseId: archivedCourse.course.id,
-      message: "Archived courses cannot be published"
+      code: "COURSE_ARCHIVED",
+      path: "status"
     }
   ];
 
@@ -778,11 +1036,8 @@ test("POST /courses/:courseId/publish rejects invalid course structures without 
       .set("X-Organization-Id", organization.id)
       .expect(400);
 
-    if (typeof testCase.message === "string") {
-      assert.equal(response.body.message, testCase.message);
-    } else {
-      assert.match(response.body.message, testCase.message);
-    }
+    assert.equal(response.body.message, "Course cannot be published");
+    assertValidationError(response.body.validation, testCase.code, testCase.path);
   }
 
   const versionCount = await prisma.courseVersion.count();
@@ -821,19 +1076,31 @@ test("POST /courses/:courseId/publish rejects unavailable referenced media witho
     organizationId: foreignOrganization.id,
     uploadedById: outsider.user.id
   });
-  const unavailableMediaIds = [
-    `missing-media-${uniqueSuffix()}`,
-    pendingMedia.id,
-    deletedMedia.id,
-    foreignMedia.id
+  const unavailableMediaCases = [
+    {
+      mediaId: `missing-media-${uniqueSuffix()}`,
+      code: "MEDIA_ASSET_MISSING"
+    },
+    {
+      mediaId: pendingMedia.id,
+      code: "MEDIA_ASSET_UNAVAILABLE"
+    },
+    {
+      mediaId: deletedMedia.id,
+      code: "MEDIA_ASSET_UNAVAILABLE"
+    },
+    {
+      mediaId: foreignMedia.id,
+      code: "MEDIA_ASSET_WRONG_ORGANIZATION"
+    }
   ];
 
-  for (const mediaId of unavailableMediaIds) {
+  for (const testCase of unavailableMediaCases) {
     const { course } = await createPublishableCourse({
       organizationId: organization.id,
       createdById: owner.user.id,
-      title: `Unavailable Media Course ${mediaId}`,
-      contentJson: createImageContentDocument(mediaId)
+      title: `Unavailable Media Course ${testCase.mediaId}`,
+      contentJson: createImageContentDocument(testCase.mediaId)
     });
     const response = await request(app.getHttpServer())
       .post(`/courses/${course.id}/publish`)
@@ -841,9 +1108,11 @@ test("POST /courses/:courseId/publish rejects unavailable referenced media witho
       .set("X-Organization-Id", organization.id)
       .expect(400);
 
-    assert.equal(
-      response.body.message,
-      `Referenced media asset "${mediaId}" is unavailable`
+    assert.equal(response.body.message, "Course cannot be published");
+    assertValidationError(
+      response.body.validation,
+      testCase.code,
+      "modules.0.lessons.0.contentJson.blocks.0.props.assetId"
     );
   }
 
