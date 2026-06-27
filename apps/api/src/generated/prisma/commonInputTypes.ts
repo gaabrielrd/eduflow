@@ -264,6 +264,40 @@ export type EnumCourseVersionStatusWithAggregatesFilter<$PrismaModel = never> = 
   _max?: Prisma.NestedEnumCourseVersionStatusFilter<$PrismaModel>
 }
 
+export type EnumEnrollmentStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.EnrollmentStatus | Prisma.EnumEnrollmentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EnrollmentStatus[] | Prisma.ListEnumEnrollmentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EnrollmentStatus[] | Prisma.ListEnumEnrollmentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEnrollmentStatusFilter<$PrismaModel> | $Enums.EnrollmentStatus
+}
+
+export type EnumEnrollmentStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EnrollmentStatus | Prisma.EnumEnrollmentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EnrollmentStatus[] | Prisma.ListEnumEnrollmentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EnrollmentStatus[] | Prisma.ListEnumEnrollmentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEnrollmentStatusWithAggregatesFilter<$PrismaModel> | $Enums.EnrollmentStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEnrollmentStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEnrollmentStatusFilter<$PrismaModel>
+}
+
+export type EnumLessonProgressStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.LessonProgressStatus | Prisma.EnumLessonProgressStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.LessonProgressStatus[] | Prisma.ListEnumLessonProgressStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LessonProgressStatus[] | Prisma.ListEnumLessonProgressStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLessonProgressStatusFilter<$PrismaModel> | $Enums.LessonProgressStatus
+}
+
+export type EnumLessonProgressStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LessonProgressStatus | Prisma.EnumLessonProgressStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.LessonProgressStatus[] | Prisma.ListEnumLessonProgressStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LessonProgressStatus[] | Prisma.ListEnumLessonProgressStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLessonProgressStatusWithAggregatesFilter<$PrismaModel> | $Enums.LessonProgressStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLessonProgressStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLessonProgressStatusFilter<$PrismaModel>
+}
+
 export type EnumCourseModuleStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.CourseModuleStatus | Prisma.EnumCourseModuleStatusFieldRefInput<$PrismaModel>
   in?: $Enums.CourseModuleStatus[] | Prisma.ListEnumCourseModuleStatusFieldRefInput<$PrismaModel>
@@ -606,6 +640,40 @@ export type NestedEnumCourseVersionStatusWithAggregatesFilter<$PrismaModel = nev
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumCourseVersionStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumCourseVersionStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumEnrollmentStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.EnrollmentStatus | Prisma.EnumEnrollmentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EnrollmentStatus[] | Prisma.ListEnumEnrollmentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EnrollmentStatus[] | Prisma.ListEnumEnrollmentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEnrollmentStatusFilter<$PrismaModel> | $Enums.EnrollmentStatus
+}
+
+export type NestedEnumEnrollmentStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EnrollmentStatus | Prisma.EnumEnrollmentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EnrollmentStatus[] | Prisma.ListEnumEnrollmentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EnrollmentStatus[] | Prisma.ListEnumEnrollmentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEnrollmentStatusWithAggregatesFilter<$PrismaModel> | $Enums.EnrollmentStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEnrollmentStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEnrollmentStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumLessonProgressStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.LessonProgressStatus | Prisma.EnumLessonProgressStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.LessonProgressStatus[] | Prisma.ListEnumLessonProgressStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LessonProgressStatus[] | Prisma.ListEnumLessonProgressStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLessonProgressStatusFilter<$PrismaModel> | $Enums.LessonProgressStatus
+}
+
+export type NestedEnumLessonProgressStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LessonProgressStatus | Prisma.EnumLessonProgressStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.LessonProgressStatus[] | Prisma.ListEnumLessonProgressStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.LessonProgressStatus[] | Prisma.ListEnumLessonProgressStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumLessonProgressStatusWithAggregatesFilter<$PrismaModel> | $Enums.LessonProgressStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLessonProgressStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLessonProgressStatusFilter<$PrismaModel>
 }
 
 export type NestedEnumCourseModuleStatusFilter<$PrismaModel = never> = {

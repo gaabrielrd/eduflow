@@ -391,6 +391,8 @@ export const ModelName = {
   AuthSession: 'AuthSession',
   Course: 'Course',
   CourseVersion: 'CourseVersion',
+  Enrollment: 'Enrollment',
+  LessonProgress: 'LessonProgress',
   CourseModule: 'CourseModule',
   Lesson: 'Lesson',
   MediaAsset: 'MediaAsset'
@@ -409,7 +411,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "membership" | "invitation" | "authSession" | "course" | "courseVersion" | "courseModule" | "lesson" | "mediaAsset"
+    modelProps: "user" | "organization" | "membership" | "invitation" | "authSession" | "course" | "courseVersion" | "enrollment" | "lessonProgress" | "courseModule" | "lesson" | "mediaAsset"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -931,6 +933,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Enrollment: {
+      payload: Prisma.$EnrollmentPayload<ExtArgs>
+      fields: Prisma.EnrollmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EnrollmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EnrollmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentPayload>
+        }
+        findFirst: {
+          args: Prisma.EnrollmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EnrollmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentPayload>
+        }
+        findMany: {
+          args: Prisma.EnrollmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentPayload>[]
+        }
+        create: {
+          args: Prisma.EnrollmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentPayload>
+        }
+        createMany: {
+          args: Prisma.EnrollmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EnrollmentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentPayload>[]
+        }
+        delete: {
+          args: Prisma.EnrollmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentPayload>
+        }
+        update: {
+          args: Prisma.EnrollmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.EnrollmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EnrollmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EnrollmentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentPayload>[]
+        }
+        upsert: {
+          args: Prisma.EnrollmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EnrollmentPayload>
+        }
+        aggregate: {
+          args: Prisma.EnrollmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEnrollment>
+        }
+        groupBy: {
+          args: Prisma.EnrollmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EnrollmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EnrollmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EnrollmentCountAggregateOutputType> | number
+        }
+      }
+    }
+    LessonProgress: {
+      payload: Prisma.$LessonProgressPayload<ExtArgs>
+      fields: Prisma.LessonProgressFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LessonProgressFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonProgressPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LessonProgressFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonProgressPayload>
+        }
+        findFirst: {
+          args: Prisma.LessonProgressFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonProgressPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LessonProgressFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonProgressPayload>
+        }
+        findMany: {
+          args: Prisma.LessonProgressFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonProgressPayload>[]
+        }
+        create: {
+          args: Prisma.LessonProgressCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonProgressPayload>
+        }
+        createMany: {
+          args: Prisma.LessonProgressCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LessonProgressCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonProgressPayload>[]
+        }
+        delete: {
+          args: Prisma.LessonProgressDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonProgressPayload>
+        }
+        update: {
+          args: Prisma.LessonProgressUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonProgressPayload>
+        }
+        deleteMany: {
+          args: Prisma.LessonProgressDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LessonProgressUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LessonProgressUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonProgressPayload>[]
+        }
+        upsert: {
+          args: Prisma.LessonProgressUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonProgressPayload>
+        }
+        aggregate: {
+          args: Prisma.LessonProgressAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLessonProgress>
+        }
+        groupBy: {
+          args: Prisma.LessonProgressGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LessonProgressGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LessonProgressCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LessonProgressCountAggregateOutputType> | number
+        }
+      }
+    }
     CourseModule: {
       payload: Prisma.$CourseModulePayload<ExtArgs>
       fields: Prisma.CourseModuleFieldRefs
@@ -1288,6 +1438,37 @@ export const CourseVersionScalarFieldEnum = {
 export type CourseVersionScalarFieldEnum = (typeof CourseVersionScalarFieldEnum)[keyof typeof CourseVersionScalarFieldEnum]
 
 
+export const EnrollmentScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  courseVersionId: 'courseVersionId',
+  status: 'status',
+  enrolledAt: 'enrolledAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EnrollmentScalarFieldEnum = (typeof EnrollmentScalarFieldEnum)[keyof typeof EnrollmentScalarFieldEnum]
+
+
+export const LessonProgressScalarFieldEnum = {
+  id: 'id',
+  enrollmentId: 'enrollmentId',
+  lessonId: 'lessonId',
+  status: 'status',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  lastAccessedAt: 'lastAccessedAt',
+  timeSpentSeconds: 'timeSpentSeconds',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LessonProgressScalarFieldEnum = (typeof LessonProgressScalarFieldEnum)[keyof typeof LessonProgressScalarFieldEnum]
+
+
 export const CourseModuleScalarFieldEnum = {
   id: 'id',
   courseId: 'courseId',
@@ -1478,6 +1659,34 @@ export type EnumCourseVersionStatusFieldRefInput<$PrismaModel> = FieldRefInputTy
  * Reference to a field of type 'CourseVersionStatus[]'
  */
 export type ListEnumCourseVersionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CourseVersionStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'EnrollmentStatus'
+ */
+export type EnumEnrollmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EnrollmentStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'EnrollmentStatus[]'
+ */
+export type ListEnumEnrollmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EnrollmentStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'LessonProgressStatus'
+ */
+export type EnumLessonProgressStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LessonProgressStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'LessonProgressStatus[]'
+ */
+export type ListEnumLessonProgressStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LessonProgressStatus[]'>
     
 
 
@@ -1674,6 +1883,8 @@ export type GlobalOmitConfig = {
   authSession?: Prisma.AuthSessionOmit
   course?: Prisma.CourseOmit
   courseVersion?: Prisma.CourseVersionOmit
+  enrollment?: Prisma.EnrollmentOmit
+  lessonProgress?: Prisma.LessonProgressOmit
   courseModule?: Prisma.CourseModuleOmit
   lesson?: Prisma.LessonOmit
   mediaAsset?: Prisma.MediaAssetOmit

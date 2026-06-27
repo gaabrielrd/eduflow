@@ -58,6 +58,8 @@ export const ModelName = {
   AuthSession: 'AuthSession',
   Course: 'Course',
   CourseVersion: 'CourseVersion',
+  Enrollment: 'Enrollment',
+  LessonProgress: 'LessonProgress',
   CourseModule: 'CourseModule',
   Lesson: 'Lesson',
   MediaAsset: 'MediaAsset'
@@ -173,6 +175,37 @@ export const CourseVersionScalarFieldEnum = {
 } as const
 
 export type CourseVersionScalarFieldEnum = (typeof CourseVersionScalarFieldEnum)[keyof typeof CourseVersionScalarFieldEnum]
+
+
+export const EnrollmentScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  courseVersionId: 'courseVersionId',
+  status: 'status',
+  enrolledAt: 'enrolledAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EnrollmentScalarFieldEnum = (typeof EnrollmentScalarFieldEnum)[keyof typeof EnrollmentScalarFieldEnum]
+
+
+export const LessonProgressScalarFieldEnum = {
+  id: 'id',
+  enrollmentId: 'enrollmentId',
+  lessonId: 'lessonId',
+  status: 'status',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  lastAccessedAt: 'lastAccessedAt',
+  timeSpentSeconds: 'timeSpentSeconds',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LessonProgressScalarFieldEnum = (typeof LessonProgressScalarFieldEnum)[keyof typeof LessonProgressScalarFieldEnum]
 
 
 export const CourseModuleScalarFieldEnum = {

@@ -37,6 +37,24 @@ export const CourseVersionStatus = {
 export type CourseVersionStatus = (typeof CourseVersionStatus)[keyof typeof CourseVersionStatus]
 
 
+export const EnrollmentStatus = {
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type EnrollmentStatus = (typeof EnrollmentStatus)[keyof typeof EnrollmentStatus]
+
+
+export const LessonProgressStatus = {
+  NOT_STARTED: 'NOT_STARTED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED'
+} as const
+
+export type LessonProgressStatus = (typeof LessonProgressStatus)[keyof typeof LessonProgressStatus]
+
+
 export const LessonContentType = {
   TEXT: 'TEXT',
   VIDEO: 'VIDEO',

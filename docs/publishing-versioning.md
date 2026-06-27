@@ -57,6 +57,12 @@ Depois de criado, `snapshotJson` nao deve mudar. A migracao que introduziu `Cour
 
 Endpoints de listagem e inspecao de versoes nao devem expor o snapshot completo sem uma necessidade explicita. A listagem de versoes permanece leve e a tela de inspecao mostra apenas metadados seguros.
 
+## Matriculas e progresso
+
+`Enrollment` aponta para `CourseVersion`, nao para `Course`, para que a matricula permaneca vinculada ao conteudo publicado que o aluno recebeu. O banco permite multiplas matriculas historicas canceladas ou concluidas para a mesma versao, mas a migracao de matriculas cria um indice unico parcial em PostgreSQL para impedir mais de uma matricula `ACTIVE` por par `userId` e `courseVersionId`.
+
+`LessonProgress` pertence a uma `Enrollment` e guarda `lessonId` como `String`, usando o ID congelado presente no snapshot publicado. Esse campo nao deve referenciar a tabela mutavel `Lesson`; fluxos de player/progresso devem validar o ID contra `CourseVersion.snapshotJson.lessons` ou `lessonDetails` antes de persistir ou consultar progresso.
+
 ## Cobertura de testes
 
 A cobertura principal esta em `apps/api/src/courses/courses.test.ts`:
@@ -81,6 +87,7 @@ Esses testes entram na CI porque `.github/workflows/ci.yml` executa `pnpm test` 
 - Nao existe UI de diff entre versoes.
 - Nao existe fluxo de despublicacao ou arquivamento operacional de versoes.
 - O player do aluno ainda nao consome `CourseVersion`.
-- Matriculas, progresso, relatorios e certificados ainda nao apontam para versoes publicadas.
+- Matriculas e progresso ja apontam para versoes publicadas no modelo de dados, mas ainda nao possuem endpoints ou UI de player.
+- Relatorios e certificados ainda nao apontam para versoes publicadas.
 - Nao existe estrategia de backfill, migracao ou conversao para snapshots antigos alem da regra de manter leitores compativeis.
 - O snapshot v1 congela URLs publicas de midia; mudancas nessa semantica exigem novo `schemaVersion`.

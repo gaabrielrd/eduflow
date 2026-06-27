@@ -80,6 +80,8 @@ Para o fluxo operacional de publicacao, regras de validacao, incremento de versa
 - Cada item em `lessons` deve ter exatamente um item correspondente em `lessonDetails`.
 - Os metadados duplicados entre lesson summary e lesson detail devem ser identicos.
 - IDs no snapshot sao copias congeladas. Consumidores podem usa-los como IDs locais do snapshot, mas nao devem ler registros editaveis para renderizar o curso publicado.
+- `LessonProgress.lessonId` persiste esse ID congelado como `String`; ele nao possui chave estrangeira para `Lesson`, porque `Lesson` continua sendo a entidade mutavel de autoria.
+- Codigo de player e progresso deve validar `lessonId` contra `CourseVersion.snapshotJson.lessons` ou `lessonDetails` na borda da aplicacao antes de gravar ou ler progresso.
 
 ## Lesson detail
 

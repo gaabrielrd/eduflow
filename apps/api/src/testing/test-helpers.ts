@@ -58,6 +58,8 @@ export async function bootstrapTestApp(
 
 export async function resetDatabase(prisma: PrismaService) {
   await prisma.$transaction([
+    prisma.lessonProgress.deleteMany(),
+    prisma.enrollment.deleteMany(),
     prisma.authSession.deleteMany(),
     prisma.mediaAsset.deleteMany(),
     prisma.lesson.deleteMany(),
