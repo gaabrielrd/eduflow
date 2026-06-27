@@ -37,19 +37,36 @@ function createSnapshot(params: {
   };
   publishedById: string;
   lessonCount?: number;
+  moduleLessonCounts?: number[];
 }) {
-  const lessonCount = params.lessonCount ?? 1;
-  const moduleId = `snapshot-module-${uniqueSuffix()}`;
-  const lessons = Array.from({ length: lessonCount }, (_item, index) => ({
-    id: `snapshot-lesson-${uniqueSuffix()}`,
-    moduleId,
-    title: `Lesson ${index + 1}`,
-    description: null,
-    contentType: "TEXT",
-    position: index + 1,
-    estimatedDurationMinutes: 5,
-    isPreview: false
-  }));
+  const moduleLessonCounts =
+    params.moduleLessonCounts ?? [params.lessonCount ?? 1];
+  const modules = moduleLessonCounts.map((lessonCount, moduleIndex) => {
+    const moduleId = `snapshot-module-${uniqueSuffix()}`;
+    const lessonIds = Array.from({ length: lessonCount }, () =>
+      `snapshot-lesson-${uniqueSuffix()}`
+    );
+
+    return {
+      id: moduleId,
+      title: `Module ${moduleIndex + 1}`,
+      description: null,
+      position: moduleIndex + 1,
+      lessonIds
+    };
+  });
+  const lessons = modules.flatMap((module) =>
+    module.lessonIds.map((lessonId, lessonIndex) => ({
+      id: lessonId,
+      moduleId: module.id,
+      title: `${module.title} Lesson ${lessonIndex + 1}`,
+      description: null,
+      contentType: "TEXT",
+      position: lessonIndex + 1,
+      estimatedDurationMinutes: 5,
+      isPreview: false
+    }))
+  );
 
   return {
     schemaVersion: 1,
@@ -65,15 +82,7 @@ function createSnapshot(params: {
       slug: params.course.slug,
       description: params.course.description
     },
-    modules: [
-      {
-        id: moduleId,
-        title: "Getting Started",
-        description: null,
-        position: 1,
-        lessonIds: lessons.map((lesson) => lesson.id)
-      }
-    ],
+    modules,
     lessons,
     lessonDetails: lessons.map((lesson) => ({
       ...lesson,
@@ -149,6 +158,7 @@ async function createCourseVersionForCourse(params: {
   description: string | null;
   slug: string;
   lessonCount?: number;
+  moduleLessonCounts?: number[];
   status?: CourseVersionStatus;
 }) {
   const snapshot = createSnapshot({
@@ -160,7 +170,8 @@ async function createCourseVersionForCourse(params: {
       description: params.description
     },
     publishedById: params.userId,
-    lessonCount: params.lessonCount
+    lessonCount: params.lessonCount,
+    moduleLessonCounts: params.moduleLessonCounts
   });
 
   const courseVersion = await prisma.courseVersion.create({
@@ -545,45 +556,237 @@ test("POST /courses/:courseId/enroll rejects cross-organization courses", async 
   assert.equal(response.body.message, "Course not found");
 });
 
-test("GET /learning/enrollments/:enrollmentId returns enrollment snapshot metadata", async () => {
-  const { learner, organization, courseVersion } = await createLearnerContext();
-  const enrollmentResponse = await request(app.getHttpServer())
-    .post(`/courses/${courseVersion.courseId}/enroll`)
-    .set("Authorization", `Bearer ${learner.accessToken}`)
-    .set("X-Organization-Id", organization.id)
-    .expect(201);
+test("GET /learning/my-courses lists only the current user's current-organization enrollments", async () => {
+  const learner = await createUserAndToken(
+    app,
+    `my-courses.${uniqueSuffix()}@courses.test`
+  );
+  const otherLearner = await createUserAndToken(
+    app,
+    `my-courses-other.${uniqueSuffix()}@courses.test`
+  );
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: learner.user.id,
+    name: "My Courses Org",
+    slug: `my-courses-org-${uniqueSuffix()}`,
+    role: Role.STUDENT
+  });
+  await prisma.membership.create({
+    data: {
+      userId: otherLearner.user.id,
+      organizationId: organization.id,
+      role: Role.STUDENT
+    }
+  });
+  const otherOrganization = await createOrganizationForUser({
+    prisma,
+    userId: learner.user.id,
+    name: "Other My Courses Org",
+    slug: `other-my-courses-org-${uniqueSuffix()}`,
+    role: Role.STUDENT
+  });
+  const first = await createPublishedCourseVersion({
+    organizationId: organization.id,
+    userId: learner.user.id
+  });
+  const second = await createPublishedCourseVersion({
+    organizationId: organization.id,
+    userId: learner.user.id
+  });
+  const otherUserCourse = await createPublishedCourseVersion({
+    organizationId: organization.id,
+    userId: otherLearner.user.id
+  });
+  const otherOrgCourse = await createPublishedCourseVersion({
+    organizationId: otherOrganization.id,
+    userId: learner.user.id
+  });
+  const firstEnrollment = await prisma.enrollment.create({
+    data: {
+      userId: learner.user.id,
+      organizationId: organization.id,
+      courseVersionId: first.courseVersion.id,
+      enrolledAt: new Date("2026-06-27T12:00:00.000Z")
+    }
+  });
+  const secondEnrollment = await prisma.enrollment.create({
+    data: {
+      userId: learner.user.id,
+      organizationId: organization.id,
+      courseVersionId: second.courseVersion.id,
+      enrolledAt: new Date("2026-06-27T13:00:00.000Z")
+    }
+  });
+
+  await prisma.enrollment.create({
+    data: {
+      userId: otherLearner.user.id,
+      organizationId: organization.id,
+      courseVersionId: otherUserCourse.courseVersion.id
+    }
+  });
+  await prisma.enrollment.create({
+    data: {
+      userId: learner.user.id,
+      organizationId: otherOrganization.id,
+      courseVersionId: otherOrgCourse.courseVersion.id
+    }
+  });
+  await prisma.lessonProgress.createMany({
+    data: [
+      {
+        enrollmentId: firstEnrollment.id,
+        lessonId: first.snapshotLessonId,
+        status: LessonProgressStatus.COMPLETED
+      },
+      {
+        enrollmentId: secondEnrollment.id,
+        lessonId: second.snapshotLessonId,
+        status: LessonProgressStatus.NOT_STARTED
+      }
+    ]
+  });
 
   const response = await request(app.getHttpServer())
-    .get(`/learning/enrollments/${enrollmentResponse.body.id}`)
+    .get("/learning/my-courses")
     .set("Authorization", `Bearer ${learner.accessToken}`)
     .set("X-Organization-Id", organization.id)
     .expect(200);
 
-  assert.equal(response.body.id, enrollmentResponse.body.id);
-  assert.equal(response.body.userId, learner.user.id);
-  assert.equal(response.body.courseVersionId, courseVersion.id);
-  assert.equal(response.body.courseVersion.snapshotJson, undefined);
-  assert.equal(response.body.snapshotMetadata.course.id, courseVersion.courseId);
-  assert.equal(response.body.snapshotMetadata.lessonCount, 1);
-  assert.equal(response.body.progressSummary.totalLessons, 1);
-  assert.equal(response.body.lessonProgress.length, 1);
+  assert.equal(response.body.length, 2);
+  assert.deepEqual(
+    response.body.map((course: { id: string }) => course.id),
+    [secondEnrollment.id, firstEnrollment.id]
+  );
+  assert.deepEqual(response.body[1], {
+    id: firstEnrollment.id,
+    courseTitle: first.course.title,
+    courseDescription: first.course.description,
+    versionNumber: first.courseVersion.versionNumber,
+    status: EnrollmentStatus.ACTIVE,
+    progressPercentage: 100,
+    enrolledAt: firstEnrollment.enrolledAt.toISOString(),
+    completedAt: null
+  });
+  assert.equal(response.body[0].progressPercentage, 0);
 });
 
-test("GET /learning/enrollments/:enrollmentId rejects cross-user or cross-organization access", async () => {
+test("GET /learning/enrollments/:enrollmentId returns learner snapshot detail", async () => {
+  const learner = await createUserAndToken(
+    app,
+    `learning-detail.${uniqueSuffix()}@courses.test`
+  );
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: learner.user.id,
+    name: "Learning Detail Org",
+    slug: `learning-detail-org-${uniqueSuffix()}`,
+    role: Role.STUDENT
+  });
+  const course = await prisma.course.create({
+    data: {
+      organizationId: organization.id,
+      title: "Learning Detail Course",
+      slug: `learning-detail-course-${uniqueSuffix()}`,
+      description: "Rendered from the published snapshot",
+      status: CourseStatus.PUBLISHED,
+      createdById: learner.user.id
+    }
+  });
+  const { courseVersion, snapshot } = await createCourseVersionForCourse({
+    organizationId: organization.id,
+    userId: learner.user.id,
+    courseId: course.id,
+    versionNumber: 1,
+    title: course.title,
+    description: course.description,
+    slug: course.slug,
+    moduleLessonCounts: [1, 2]
+  });
+  const enrollment = await prisma.enrollment.create({
+    data: {
+      userId: learner.user.id,
+      organizationId: organization.id,
+      courseVersionId: courseVersion.id
+    }
+  });
+
+  await prisma.lessonProgress.createMany({
+    data: [
+      {
+        enrollmentId: enrollment.id,
+        lessonId: snapshot.lessons[0].id,
+        status: LessonProgressStatus.COMPLETED,
+        completedAt: new Date("2026-06-27T14:00:00.000Z"),
+        timeSpentSeconds: 120
+      },
+      {
+        enrollmentId: enrollment.id,
+        lessonId: snapshot.lessons[1].id,
+        status: LessonProgressStatus.IN_PROGRESS,
+        startedAt: new Date("2026-06-27T14:05:00.000Z"),
+        timeSpentSeconds: 30
+      },
+      {
+        enrollmentId: enrollment.id,
+        lessonId: snapshot.lessons[2].id,
+        status: LessonProgressStatus.NOT_STARTED
+      }
+    ]
+  });
+
+  const response = await request(app.getHttpServer())
+    .get(`/learning/enrollments/${enrollment.id}`)
+    .set("Authorization", `Bearer ${learner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(200);
+
+  assert.equal(response.body.id, enrollment.id);
+  assert.equal(response.body.courseVersionId, courseVersion.id);
+  assert.equal(response.body.userId, undefined);
+  assert.equal(response.body.organizationId, undefined);
+  assert.equal(response.body.courseVersion, undefined);
+  assert.equal(response.body.snapshotJson, undefined);
+  assert.deepEqual(
+    response.body.modules.map((module: { id: string }) => module.id),
+    snapshot.modules.map((module) => module.id)
+  );
+  assert.deepEqual(
+    response.body.lessons.map((lesson: { id: string }) => lesson.id),
+    snapshot.lessons.map((lesson) => lesson.id)
+  );
+  assert.equal(response.body.snapshotMetadata.course.id, course.id);
+  assert.equal(response.body.snapshotMetadata.lessonCount, 3);
+  assert.equal(response.body.progressPercentage, 33);
+  assert.equal(
+    response.body.lessonProgress[snapshot.lessons[0].id].status,
+    LessonProgressStatus.COMPLETED
+  );
+  assert.equal(
+    response.body.lessonProgress[snapshot.lessons[1].id].status,
+    LessonProgressStatus.IN_PROGRESS
+  );
+  assert.equal(
+    response.body.lessonProgress[snapshot.lessons[2].id].status,
+    LessonProgressStatus.NOT_STARTED
+  );
+  assert.equal(response.body.lessons[0].contentJson, undefined);
+});
+
+test("GET /learning/enrollments/:enrollmentId rejects another user's enrollment", async () => {
   const { learner, organization, courseVersion } = await createLearnerContext();
   const outsider = await createUserAndToken(
     app,
     `enrollment-outsider.${uniqueSuffix()}@courses.test`
   );
-
-  await createOrganizationForUser({
-    prisma,
-    userId: outsider.user.id,
-    name: "Outsider Enrollment Org",
-    slug: `outsider-enrollment-org-${uniqueSuffix()}`,
-    role: Role.STUDENT
+  await prisma.membership.create({
+    data: {
+      userId: outsider.user.id,
+      organizationId: organization.id,
+      role: Role.STUDENT
+    }
   });
-
   const enrollment = await prisma.enrollment.create({
     data: {
       userId: learner.user.id,
@@ -596,7 +799,33 @@ test("GET /learning/enrollments/:enrollmentId rejects cross-user or cross-organi
     .get(`/learning/enrollments/${enrollment.id}`)
     .set("Authorization", `Bearer ${outsider.accessToken}`)
     .set("X-Organization-Id", organization.id)
-    .expect(403);
+    .expect(404);
 
-  assert.equal(response.body.message, "Organization access denied");
+  assert.equal(response.body.message, "Enrollment not found");
+});
+
+test("GET /learning/enrollments/:enrollmentId rejects cross-organization access", async () => {
+  const { learner, organization, courseVersion } = await createLearnerContext();
+  const otherOrganization = await createOrganizationForUser({
+    prisma,
+    userId: learner.user.id,
+    name: "Cross Organization Learning Org",
+    slug: `cross-organization-learning-org-${uniqueSuffix()}`,
+    role: Role.STUDENT
+  });
+  const enrollment = await prisma.enrollment.create({
+    data: {
+      userId: learner.user.id,
+      organizationId: organization.id,
+      courseVersionId: courseVersion.id
+    }
+  });
+
+  const response = await request(app.getHttpServer())
+    .get(`/learning/enrollments/${enrollment.id}`)
+    .set("Authorization", `Bearer ${learner.accessToken}`)
+    .set("X-Organization-Id", otherOrganization.id)
+    .expect(404);
+
+  assert.equal(response.body.message, "Enrollment not found");
 });

@@ -10,6 +10,7 @@ import {
   EnrollmentStatus,
   LessonProgressStatus
 } from "../generated/prisma/enums.js";
+import { LearningSnapshotService } from "./learning-snapshot.service.js";
 
 const enrollmentDetailSelect = {
   id: true,
@@ -70,7 +71,10 @@ type EnrollmentClient = Prisma.TransactionClient | PrismaService;
 
 @Injectable()
 export class EnrollmentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly learningSnapshotService: LearningSnapshotService
+  ) {}
 
   async enrollInLatestPublishedVersion(
     context: OrganizationContext,
@@ -170,7 +174,20 @@ export class EnrollmentsService {
       throw new NotFoundException("Enrollment not found");
     }
 
-    return this.formatEnrollment(enrollment);
+    return this.formatLearningEnrollment(enrollment);
+  }
+
+  async listMyCourses(context: OrganizationContext, user: AuthenticatedUser) {
+    const enrollments = await this.prisma.enrollment.findMany({
+      where: {
+        userId: user.id,
+        organizationId: context.organizationId
+      },
+      select: enrollmentDetailSelect,
+      orderBy: [{ enrolledAt: "desc" }, { id: "asc" }]
+    });
+
+    return enrollments.map((enrollment) => this.formatMyCourse(enrollment));
   }
 
   private async findOrCreateActiveEnrollment(
@@ -296,11 +313,8 @@ export class EnrollmentsService {
       throw new NotFoundException("Enrollment not found");
     }
 
-    const snapshot =
-      enrollment.courseVersion.snapshotJson as unknown as CourseVersionSnapshot;
-    const mediaCount = snapshot.lessonDetails.reduce(
-      (total, lessonDetail) => total + lessonDetail.media.length,
-      0
+    const snapshot = this.learningSnapshotService.parseSnapshot(
+      enrollment.courseVersion.snapshotJson
     );
     const courseVersion: Partial<typeof enrollment.courseVersion> = {
       ...enrollment.courseVersion
@@ -310,24 +324,57 @@ export class EnrollmentsService {
     return {
       ...enrollment,
       courseVersion,
-      snapshotMetadata: {
-        schemaVersion: snapshot.schemaVersion,
-        course: {
-          id: snapshot.course.id,
-          title: snapshot.course.title,
-          slug: snapshot.course.slug,
-          description: snapshot.course.description
-        },
-        moduleCount: snapshot.modules.length,
-        lessonCount: snapshot.lessons.length,
-        mediaCount
-      },
+      snapshotMetadata: this.learningSnapshotService.getSnapshotMetadata(snapshot),
       progressSummary: {
         totalLessons: enrollment.lessonProgress.length,
         completedLessons: enrollment.lessonProgress.filter(
           (progress) => progress.status === LessonProgressStatus.COMPLETED
         ).length
       }
+    };
+  }
+
+  private formatMyCourse(enrollment: EnrollmentDetail) {
+    const snapshot = this.learningSnapshotService.parseSnapshot(
+      enrollment.courseVersion.snapshotJson
+    );
+
+    return {
+      id: enrollment.id,
+      courseTitle: snapshot.course.title,
+      courseDescription: snapshot.course.description,
+      versionNumber: enrollment.courseVersion.versionNumber,
+      status: enrollment.status,
+      progressPercentage: this.learningSnapshotService.getProgressPercentage(
+        snapshot,
+        enrollment.lessonProgress
+      ),
+      enrolledAt: enrollment.enrolledAt,
+      completedAt: enrollment.completedAt
+    };
+  }
+
+  private formatLearningEnrollment(enrollment: EnrollmentDetail) {
+    const snapshot = this.learningSnapshotService.parseSnapshot(
+      enrollment.courseVersion.snapshotJson
+    );
+
+    return {
+      id: enrollment.id,
+      status: enrollment.status,
+      enrolledAt: enrollment.enrolledAt,
+      completedAt: enrollment.completedAt,
+      courseVersionId: enrollment.courseVersionId,
+      snapshotMetadata: this.learningSnapshotService.getSnapshotMetadata(snapshot),
+      modules: this.learningSnapshotService.getOrderedModules(snapshot),
+      lessons: this.learningSnapshotService.getOrderedLessons(snapshot),
+      lessonProgress: this.learningSnapshotService.getLessonProgressMap(
+        enrollment.lessonProgress
+      ),
+      progressPercentage: this.learningSnapshotService.getProgressPercentage(
+        snapshot,
+        enrollment.lessonProgress
+      )
     };
   }
 

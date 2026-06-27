@@ -8,12 +8,20 @@ import type { AuthenticatedUser } from "../auth/types/authenticated-user.interfa
 import type { OrganizationContext } from "../auth/types/organization-context.interface.js";
 import { EnrollmentsService } from "./enrollments.service.js";
 
-@Controller("learning/enrollments")
+@Controller("learning")
 @UseGuards(JwtAuthGuard, OrganizationContextGuard)
 export class LearningEnrollmentsController {
   constructor(private readonly enrollmentsService: EnrollmentsService) {}
 
-  @Get(":enrollmentId")
+  @Get("my-courses")
+  listMyCourses(
+    @CurrentOrganizationContext() context: OrganizationContext,
+    @CurrentUser() user: AuthenticatedUser
+  ) {
+    return this.enrollmentsService.listMyCourses(context, user);
+  }
+
+  @Get("enrollments/:enrollmentId")
   getById(
     @CurrentOrganizationContext() context: OrganizationContext,
     @CurrentUser() user: AuthenticatedUser,

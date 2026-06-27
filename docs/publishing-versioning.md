@@ -65,6 +65,8 @@ Endpoints de listagem e inspecao de versoes nao devem expor o snapshot completo 
 
 `POST /courses/:courseId/enroll` matricula o usuario na versao publicada mais recente do curso dentro da organizacao atual. O endpoint e idempotente para matriculas ativas: se ja existir `Enrollment ACTIVE` para o mesmo usuario e `CourseVersion`, a API retorna essa matricula em vez de criar outra. A criacao da matricula inicializa eagermente uma linha `LessonProgress NOT_STARTED` por lesson do snapshot, na mesma transacao, para que o player e telas de aprendizado possam consultar progresso sem criar linhas sob demanda.
 
+`GET /learning/my-courses` lista apenas matriculas do usuario autenticado na organizacao atual, com metadados resumidos do snapshot e percentual de progresso. `GET /learning/enrollments/:enrollmentId` carrega a experiencia de aprendizado de uma matricula propria, retornando modulos e lessons ordenados a partir de `CourseVersion.snapshotJson`, alem de um mapa de progresso por `lessonId`. Esses endpoints nao usam `CourseModule` ou `Lesson` editaveis para renderizacao do aluno.
+
 ## Cobertura de testes
 
 A cobertura principal esta em `apps/api/src/courses/courses.test.ts`:
