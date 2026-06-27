@@ -7,6 +7,7 @@ import { validateEnv } from "./config/env.schema.js";
 import { CourseModulesModule } from "./course-modules/course-modules.module.js";
 import { CoursesModule } from "./courses/courses.module.js";
 import { DatabaseModule } from "./database/database.module.js";
+import { EnrollmentsModule } from "./enrollments/enrollments.module.js";
 import { HealthModule } from "./health/health.module.js";
 import { InvitationsModule } from "./invitations/invitations.module.js";
 import { LessonsModule } from "./lessons/lessons.module.js";
@@ -24,6 +25,7 @@ import { StorageModule } from "./storage/storage.module.js";
     AuthModule,
     CourseModulesModule,
     DatabaseModule,
+    EnrollmentsModule,
     CoursesModule,
     HealthModule,
     InvitationsModule,

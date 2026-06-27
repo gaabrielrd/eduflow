@@ -63,6 +63,8 @@ Endpoints de listagem e inspecao de versoes nao devem expor o snapshot completo 
 
 `LessonProgress` pertence a uma `Enrollment` e guarda `lessonId` como `String`, usando o ID congelado presente no snapshot publicado. Esse campo nao deve referenciar a tabela mutavel `Lesson`; fluxos de player/progresso devem validar o ID contra `CourseVersion.snapshotJson.lessons` ou `lessonDetails` antes de persistir ou consultar progresso.
 
+`POST /courses/:courseId/enroll` matricula o usuario na versao publicada mais recente do curso dentro da organizacao atual. O endpoint e idempotente para matriculas ativas: se ja existir `Enrollment ACTIVE` para o mesmo usuario e `CourseVersion`, a API retorna essa matricula em vez de criar outra. A criacao da matricula inicializa eagermente uma linha `LessonProgress NOT_STARTED` por lesson do snapshot, na mesma transacao, para que o player e telas de aprendizado possam consultar progresso sem criar linhas sob demanda.
+
 ## Cobertura de testes
 
 A cobertura principal esta em `apps/api/src/courses/courses.test.ts`:
