@@ -2,6 +2,7 @@ import { apiClient } from "@/lib/api/api-client";
 import type {
   Course,
   CourseCurriculum,
+  CourseVersionDetails,
   CourseVersionMetadata,
   CreateLessonPayload,
   CreateModulePayload,
@@ -54,6 +55,13 @@ export async function listCourseVersions(courseId: string) {
   return apiClient<CourseVersionMetadata[]>({
     method: "GET",
     path: `/api/courses/${courseId}/versions`
+  });
+}
+
+export async function getCourseVersion(courseId: string, versionId: string) {
+  return apiClient<CourseVersionDetails>({
+    method: "GET",
+    path: `/api/courses/${courseId}/versions/${versionId}`
   });
 }
 

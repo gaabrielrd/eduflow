@@ -15,10 +15,12 @@ import {
   CourseStatus,
   LessonStatus
 } from "../generated/prisma/enums.js";
+import type { CourseVersionSnapshot } from "@eduflow/types";
 import { courseModuleSelect } from "../course-modules/course-modules.service.js";
 import { lessonSelect } from "../lessons/lessons.service.js";
 import {
   type CoursePublishDraft,
+  courseVersionDetailSelect,
   coursePublishDraftSelect,
   courseVersionMetadataSelect,
   publishMediaAssetSelect
@@ -155,6 +157,50 @@ export class CoursesService {
       select: courseVersionMetadataSelect,
       orderBy: [{ versionNumber: "desc" }, { publishedAt: "desc" }]
     });
+  }
+
+  async getCourseVersionById(
+    context: OrganizationContext,
+    courseId: string,
+    versionId: string
+  ) {
+    await this.ensureCourseExists(context, courseId);
+
+    const version = await this.prisma.courseVersion.findFirst({
+      where: {
+        id: versionId,
+        courseId,
+        organizationId: context.organizationId
+      },
+      select: courseVersionDetailSelect
+    });
+
+    if (!version) {
+      throw new NotFoundException("Course version not found");
+    }
+
+    const snapshot = version.snapshotJson as unknown as CourseVersionSnapshot;
+    const mediaCount = snapshot.lessonDetails.reduce(
+      (total, lessonDetail) => total + lessonDetail.media.length,
+      0
+    );
+    const metadata = this.omitSnapshotJson(version);
+
+    return {
+      ...metadata,
+      snapshotMetadata: {
+        schemaVersion: snapshot.schemaVersion,
+        course: {
+          id: snapshot.course.id,
+          title: snapshot.course.title,
+          slug: snapshot.course.slug,
+          description: snapshot.course.description
+        },
+        moduleCount: snapshot.modules.length,
+        lessonCount: snapshot.lessons.length,
+        mediaCount
+      }
+    };
   }
 
   async updateCourse(
@@ -335,6 +381,14 @@ export class CoursesService {
     }
 
     return course;
+  }
+
+  private omitSnapshotJson<T extends { snapshotJson: unknown }>(value: T) {
+    const copy: Partial<T> = { ...value };
+
+    delete copy.snapshotJson;
+
+    return copy as Omit<T, "snapshotJson">;
   }
 
   private normalizeSlug(slug: string) {

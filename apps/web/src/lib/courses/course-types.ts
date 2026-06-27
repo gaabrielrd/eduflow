@@ -31,9 +31,32 @@ export type CourseVersionMetadata = {
   description: string | null;
   status: "PUBLISHED" | "ARCHIVED";
   publishedById: string;
+  publishedBy?: {
+    id: string;
+    name: string;
+  };
   publishedAt: string;
   createdAt: string;
   updatedAt: string;
+};
+
+export type CourseVersionDetails = CourseVersionMetadata & {
+  publishedBy: {
+    id: string;
+    name: string;
+  };
+  snapshotMetadata: {
+    schemaVersion: 1;
+    course: {
+      id: string;
+      title: string;
+      slug: string;
+      description: string | null;
+    };
+    moduleCount: number;
+    lessonCount: number;
+    mediaCount: number;
+  };
 };
 
 export type CreateCoursePayload = {

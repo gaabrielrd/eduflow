@@ -75,6 +75,19 @@ export class CoursesController {
     return this.coursesService.listCourseVersions(context, id);
   }
 
+  @Get(":courseId/versions/:versionId")
+  getVersionById(
+    @CurrentOrganizationContext() context: OrganizationContext,
+    @Param("courseId") courseId: string,
+    @Param("versionId") versionId: string
+  ) {
+    return this.coursesService.getCourseVersionById(
+      context,
+      courseId,
+      versionId
+    );
+  }
+
   @Patch(":id")
   @Roles(...AUTHORING_ROLES)
   @UseGuards(RolesGuard)

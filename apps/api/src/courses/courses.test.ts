@@ -704,6 +704,10 @@ test("GET /courses/:courseId/versions lists current-organization versions newest
     ]
   );
   assert.equal(response.body[0].snapshotJson, undefined);
+  assert.deepEqual(response.body[0].publishedBy, {
+    id: instructor.user.id,
+    name: instructor.user.name
+  });
 });
 
 test("GET /courses/:courseId/versions rejects missing and cross-organization courses", async () => {
@@ -741,6 +745,128 @@ test("GET /courses/:courseId/versions rejects missing and cross-organization cou
 
   assert.equal(missingResponse.body.message, "Course not found");
   assert.equal(foreignResponse.body.message, "Course not found");
+});
+
+test("GET /courses/:courseId/versions/:versionId returns safe snapshot metadata", async () => {
+  const instructor = await createUserAndToken(app, `course-version-detail.${Date.now()}@courses.test`);
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: instructor.user.id,
+    name: "Version Detail Org",
+    slug: `version-detail-org-${uniqueSuffix()}`,
+    role: Role.INSTRUCTOR
+  });
+  const mediaAsset = await createMediaAsset({
+    organizationId: organization.id,
+    uploadedById: instructor.user.id
+  });
+  const { course } = await createPublishableCourse({
+    organizationId: organization.id,
+    createdById: instructor.user.id,
+    title: "Inspectable Course",
+    contentJson: createImageContentDocument(mediaAsset.id)
+  });
+
+  const publishedResponse = await request(app.getHttpServer())
+    .post(`/courses/${course.id}/publish`)
+    .set("Authorization", `Bearer ${instructor.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(201);
+
+  const response = await request(app.getHttpServer())
+    .get(`/courses/${course.id}/versions/${publishedResponse.body.id}`)
+    .set("Authorization", `Bearer ${instructor.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(200);
+
+  assert.equal(response.body.id, publishedResponse.body.id);
+  assert.equal(response.body.courseId, course.id);
+  assert.equal(response.body.versionNumber, 1);
+  assert.equal(response.body.title, "Inspectable Course");
+  assert.equal(response.body.publishedById, instructor.user.id);
+  assert.deepEqual(response.body.publishedBy, {
+    id: instructor.user.id,
+    name: instructor.user.name
+  });
+  assert.deepEqual(response.body.snapshotMetadata, {
+    schemaVersion: 1,
+    course: {
+      id: course.id,
+      title: "Inspectable Course",
+      slug: course.slug,
+      description: course.description
+    },
+    moduleCount: 1,
+    lessonCount: 1,
+    mediaCount: 1
+  });
+  assert.equal(response.body.snapshotJson, undefined);
+  assert.equal(response.body.lessonDetails, undefined);
+  assert.equal(response.body.contentJson, undefined);
+  assert.equal(JSON.stringify(response.body).includes(mediaAsset.storageKey), false);
+});
+
+test("GET /courses/:courseId/versions/:versionId rejects missing and cross-organization access", async () => {
+  const owner = await createUserAndToken(app, `course-version-detail-404.${Date.now()}@courses.test`);
+  const outsider = await createUserAndToken(app, `course-version-detail-foreign.${Date.now()}@courses.test`);
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: owner.user.id,
+    name: "Version Detail Current Org",
+    slug: `version-detail-current-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const foreignOrganization = await createOrganizationForUser({
+    prisma,
+    userId: outsider.user.id,
+    name: "Version Detail Foreign Org",
+    slug: `version-detail-foreign-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const currentCourse = await createPublishableCourse({
+    organizationId: organization.id,
+    createdById: owner.user.id
+  });
+  const foreignCourse = await createPublishableCourse({
+    organizationId: foreignOrganization.id,
+    createdById: outsider.user.id
+  });
+  const currentVersion = await request(app.getHttpServer())
+    .post(`/courses/${currentCourse.course.id}/publish`)
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(201);
+  const foreignVersion = await request(app.getHttpServer())
+    .post(`/courses/${foreignCourse.course.id}/publish`)
+    .set("Authorization", `Bearer ${outsider.accessToken}`)
+    .set("X-Organization-Id", foreignOrganization.id)
+    .expect(201);
+
+  const missingCourseResponse = await request(app.getHttpServer())
+    .get(`/courses/missing-course-${uniqueSuffix()}/versions/${currentVersion.body.id}`)
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(404);
+  const foreignCourseResponse = await request(app.getHttpServer())
+    .get(`/courses/${foreignCourse.course.id}/versions/${foreignVersion.body.id}`)
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(404);
+  const missingVersionResponse = await request(app.getHttpServer())
+    .get(`/courses/${currentCourse.course.id}/versions/missing-version-${uniqueSuffix()}`)
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(404);
+  const foreignVersionResponse = await request(app.getHttpServer())
+    .get(`/courses/${currentCourse.course.id}/versions/${foreignVersion.body.id}`)
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(404);
+
+  assert.equal(missingCourseResponse.body.message, "Course not found");
+  assert.equal(foreignCourseResponse.body.message, "Course not found");
+  assert.equal(missingVersionResponse.body.message, "Course version not found");
+  assert.equal(foreignVersionResponse.body.message, "Course version not found");
 });
 
 test("GET /courses/:courseId/publish-validation returns a valid result for publishable courses", async () => {

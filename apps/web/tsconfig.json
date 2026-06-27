@@ -9,12 +9,6 @@
     ],
     "jsx": "react-jsx",
     "paths": {
-      "@eduflow/types": [
-        "../../../packages/types/src/index.ts"
-      ],
-      "@eduflow/types/*": [
-        "../../../packages/types/src/*"
-      ],
       "@eduflow/ui": [
         "../../../packages/ui/src/index.ts"
       ],

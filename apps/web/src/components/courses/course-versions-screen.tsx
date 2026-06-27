@@ -156,6 +156,13 @@ export function CourseVersionsScreen({ courseId }: { courseId: string }) {
                     {version.title}
                   </p>
                 </div>
+                <Button asChild variant="secondary">
+                  <Link
+                    href={`/app/courses/${course.id}/versions/${version.id}`}
+                  >
+                    Inspecionar metadados
+                  </Link>
+                </Button>
               </CardHeader>
               <CardContent className="grid gap-3 border-t border-border/70 pt-5 sm:grid-cols-3">
                 <div>
@@ -171,7 +178,7 @@ export function CourseVersionsScreen({ courseId }: { courseId: string }) {
                     Publicada por
                   </p>
                   <p className="mt-2 text-sm text-foreground">
-                    {version.publishedById}
+                    {version.publishedBy?.name ?? version.publishedById}
                   </p>
                 </div>
                 <div>

@@ -51,9 +51,20 @@ export const courseVersionMetadataSelect = {
   description: true,
   status: true,
   publishedById: true,
+  publishedBy: {
+    select: {
+      id: true,
+      name: true
+    }
+  },
   publishedAt: true,
   createdAt: true,
   updatedAt: true
+} satisfies Prisma.CourseVersionSelect;
+
+export const courseVersionDetailSelect = {
+  ...courseVersionMetadataSelect,
+  snapshotJson: true
 } satisfies Prisma.CourseVersionSelect;
 
 export const publishMediaAssetSelect = {
