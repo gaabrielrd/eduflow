@@ -7,30 +7,34 @@ import { ApiError } from "@/lib/api/api-client";
 import {
   getCourseById,
   publishCourse,
-  validateCoursePublish
+  validateCoursePublish,
 } from "@/lib/courses/course-service";
-import type {
-  Course,
-  CourseVersionMetadata
-} from "@/lib/courses/course-types";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import type { Course, CourseVersionMetadata } from "@/lib/courses/course-types";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 vi.mock("next/link", () => ({
-  default: ({ children, href, ...props }: { children: ReactNode; href: string }) => (
+  default: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: ReactNode;
+    href: string;
+  }) => (
     <a href={href} {...props}>
       {children}
     </a>
-  )
+  ),
 }));
 
 vi.mock("@/hooks/use-session", () => ({
-  useSession: vi.fn()
+  useSession: vi.fn(),
 }));
 
 vi.mock("@/lib/courses/course-service", () => ({
   getCourseById: vi.fn(),
   publishCourse: vi.fn(),
-  validateCoursePublish: vi.fn()
+  validateCoursePublish: vi.fn(),
 }));
 
 const useSessionMock = vi.mocked(useSession);
@@ -47,7 +51,7 @@ function deferredPromise<T>() {
 
   return {
     promise,
-    resolve: resolvePromise
+    resolve: resolvePromise,
   };
 }
 
@@ -60,13 +64,13 @@ const baseCourse: Course = {
   slug: "curso-publicavel",
   status: "DRAFT",
   title: "Curso publicavel",
-  updatedAt: "2026-06-22T13:00:00.000Z"
+  updatedAt: "2026-06-22T13:00:00.000Z",
 };
 
 const publishedCourse: Course = {
   ...baseCourse,
   status: "PUBLISHED",
-  updatedAt: "2026-06-22T14:00:00.000Z"
+  updatedAt: "2026-06-22T14:00:00.000Z",
 };
 
 const publishedVersion: CourseVersionMetadata = {
@@ -80,7 +84,7 @@ const publishedVersion: CourseVersionMetadata = {
   status: "PUBLISHED",
   title: "Curso publicavel",
   updatedAt: "2026-06-22T14:00:00.000Z",
-  versionNumber: 3
+  versionNumber: 3,
 };
 
 function mockSession(role: string) {
@@ -97,8 +101,8 @@ function mockSession(role: string) {
         id: "org-1",
         name: "EduFlow Studio",
         role,
-        slug: "eduflow-studio"
-      }
+        slug: "eduflow-studio",
+      },
     ],
     refreshSession: vi.fn(),
     register: vi.fn(),
@@ -107,8 +111,8 @@ function mockSession(role: string) {
     user: {
       email: "user@eduflow.dev",
       id: "user-1",
-      name: "User"
-    }
+      name: "User",
+    },
   });
 }
 
@@ -119,7 +123,7 @@ describe("CourseDetailsScreen publish workflow", () => {
     getCourseByIdMock.mockResolvedValue(baseCourse);
     validateCoursePublishMock.mockResolvedValue({
       errors: [],
-      valid: true
+      valid: true,
     });
     publishCourseMock.mockResolvedValue(publishedVersion);
   });
@@ -128,7 +132,7 @@ describe("CourseDetailsScreen publish workflow", () => {
     render(createElement(CourseDetailsScreen, { courseId: "course-1" }));
 
     expect(
-      await screen.findByRole("heading", { name: "Curso publicavel" })
+      await screen.findByRole("heading", { name: "Curso publicavel" }),
     ).toBeTruthy();
     expect(screen.getByRole("button", { name: "Publicar" })).toBeTruthy();
   });
@@ -139,7 +143,7 @@ describe("CourseDetailsScreen publish workflow", () => {
     render(createElement(CourseDetailsScreen, { courseId: "course-1" }));
 
     expect(
-      await screen.findByRole("heading", { name: "Curso publicavel" })
+      await screen.findByRole("heading", { name: "Curso publicavel" }),
     ).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Publicar" })).toBeNull();
   });
@@ -150,16 +154,13 @@ describe("CourseDetailsScreen publish workflow", () => {
     render(createElement(CourseDetailsScreen, { courseId: "course-1" }));
 
     expect(
-      await screen.findByRole("heading", { name: "Curso publicavel" })
+      await screen.findByRole("heading", { name: "Curso publicavel" }),
     ).toBeTruthy();
     expect(screen.getByRole("button", { name: "Publicar" })).toBeTruthy();
   });
 
   it("loads validation when publish dialog opens", async () => {
-    const validationRequest = deferredPromise({
-      errors: [],
-      valid: true
-    });
+    const validationRequest = deferredPromise();
     validateCoursePublishMock.mockReturnValue(validationRequest.promise);
 
     render(createElement(CourseDetailsScreen, { courseId: "course-1" }));
@@ -167,11 +168,16 @@ describe("CourseDetailsScreen publish workflow", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Publicar" }));
 
     expect(screen.getByText("Verificando prontidao")).toBeTruthy();
-    expect(validateCoursePublishMock).toHaveBeenCalledWith("course-1");
 
-    validationRequest.resolve({
-      errors: [],
-      valid: true
+    await waitFor(() => {
+      expect(validateCoursePublishMock).toHaveBeenCalledWith("course-1");
+    });
+
+    await act(async () => {
+      validationRequest.resolve({
+        errors: [],
+        valid: true,
+      });
     });
 
     expect(await screen.findByText("Checklist aprovado")).toBeTruthy();
@@ -183,10 +189,10 @@ describe("CourseDetailsScreen publish workflow", () => {
         {
           code: "COURSE_WITHOUT_MODULES",
           message: "Course must contain at least one active module.",
-          path: "modules"
-        }
+          path: "modules",
+        },
       ],
-      valid: false
+      valid: false,
     });
 
     render(createElement(CourseDetailsScreen, { courseId: "course-1" }));
@@ -195,7 +201,9 @@ describe("CourseDetailsScreen publish workflow", () => {
 
     expect(await screen.findByText("Criar pelo menos um modulo")).toBeTruthy();
     expect(screen.getByText("modules")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Confirmar publicacao" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Confirmar publicacao" }),
+    );
 
     expect(publishCourseMock).not.toHaveBeenCalled();
   });
@@ -210,17 +218,20 @@ describe("CourseDetailsScreen publish workflow", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Publicar" }));
     expect(await screen.findByText("Checklist aprovado")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Confirmar publicacao" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Confirmar publicacao" }),
+    );
 
     await waitFor(() => {
       expect(publishCourseMock).toHaveBeenCalledWith("course-1");
     });
 
-    expect(await screen.findByText("Versao 3 criada com sucesso.")).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Ver historico de versoes" })).toHaveAttribute(
-      "href",
-      "/app/courses/course-1/versions"
-    );
+    expect(
+      await screen.findByText("Versao 3 criada com sucesso."),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: "Ver historico de versoes" }),
+    ).toHaveAttribute("href", "/app/courses/course-1/versions");
     expect(await screen.findByText("Publicado")).toBeTruthy();
   });
 
@@ -231,34 +242,42 @@ describe("CourseDetailsScreen publish workflow", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: "Publicar" }));
     expect(await screen.findByText("Checklist aprovado")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Confirmar publicacao" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Confirmar publicacao" }),
+    );
 
     expect(await screen.findByText("Falha ao publicar")).toBeTruthy();
   });
 
   it("shows backend validation returned by publish failure", async () => {
     publishCourseMock.mockRejectedValue(
-      new ApiError("Course cannot be published", 400, "Bad Request", [
-        "Course cannot be published"
-      ], {
-        validation: {
-          errors: [
-            {
-              code: "LESSON_CONTENT_INVALID",
-              message: "Lesson content JSON is invalid.",
-              path: "modules.0.lessons.0.contentJson"
-            }
-          ],
-          valid: false
-        }
-      })
+      new ApiError(
+        "Course cannot be published",
+        400,
+        "Bad Request",
+        ["Course cannot be published"],
+        {
+          validation: {
+            errors: [
+              {
+                code: "LESSON_CONTENT_INVALID",
+                message: "Lesson content JSON is invalid.",
+                path: "modules.0.lessons.0.contentJson",
+              },
+            ],
+            valid: false,
+          },
+        },
+      ),
     );
 
     render(createElement(CourseDetailsScreen, { courseId: "course-1" }));
 
     fireEvent.click(await screen.findByRole("button", { name: "Publicar" }));
     expect(await screen.findByText("Checklist aprovado")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Confirmar publicacao" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Confirmar publicacao" }),
+    );
 
     expect(await screen.findByText("Course cannot be published")).toBeTruthy();
     expect(await screen.findByText("Corrigir conteudo das aulas")).toBeTruthy();
