@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { CourseSettingsScreen } from "@/components/courses/course-settings-screen";
 import { getInitialServerSession } from "@/lib/auth/auth-server";
 
-const allowedRoles = new Set(["OWNER", "ADMIN", "MANAGER"]);
+const allowedRoles = new Set(["OWNER", "ADMIN", "INSTRUCTOR", "MANAGER"]);
 
 type CourseSettingsPageProps = {
   params: Promise<{

@@ -22,6 +22,20 @@ export type Course = {
   updatedAt: string;
 };
 
+export type CourseVersionMetadata = {
+  id: string;
+  courseId: string;
+  organizationId: string;
+  versionNumber: number;
+  title: string;
+  description: string | null;
+  status: "PUBLISHED" | "ARCHIVED";
+  publishedById: string;
+  publishedAt: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type CreateCoursePayload = {
   title: string;
   slug: string;

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { CreateCourseScreen } from "@/components/courses/create-course-screen";
 import { getInitialServerSession } from "@/lib/auth/auth-server";
 
-const allowedRoles = new Set(["OWNER", "ADMIN", "MANAGER"]);
+const allowedRoles = new Set(["OWNER", "ADMIN", "INSTRUCTOR", "MANAGER"]);
 
 export default async function NewCoursePage() {
   const session = await getInitialServerSession();

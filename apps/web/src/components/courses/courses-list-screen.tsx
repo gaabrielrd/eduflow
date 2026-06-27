@@ -24,7 +24,7 @@ import {
 import { listCourses } from "@/lib/courses/course-service";
 import type { Course } from "@/lib/courses/course-types";
 
-const authoringRoles = new Set(["OWNER", "ADMIN", "MANAGER"]);
+const authoringRoles = new Set(["OWNER", "ADMIN", "INSTRUCTOR", "MANAGER"]);
 
 export function CoursesListScreen() {
   const { activeOrganizationId, organizations } = useSession();

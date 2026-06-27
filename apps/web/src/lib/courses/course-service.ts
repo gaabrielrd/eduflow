@@ -2,6 +2,7 @@ import { apiClient } from "@/lib/api/api-client";
 import type {
   Course,
   CourseCurriculum,
+  CourseVersionMetadata,
   CreateLessonPayload,
   CreateModulePayload,
   CreateCoursePayload,
@@ -46,6 +47,20 @@ export async function validateCoursePublish(courseId: string) {
   return apiClient<CoursePublishValidationResult>({
     method: "GET",
     path: `/api/courses/${courseId}/publish-validation`
+  });
+}
+
+export async function listCourseVersions(courseId: string) {
+  return apiClient<CourseVersionMetadata[]>({
+    method: "GET",
+    path: `/api/courses/${courseId}/versions`
+  });
+}
+
+export async function publishCourse(courseId: string) {
+  return apiClient<CourseVersionMetadata>({
+    method: "POST",
+    path: `/api/courses/${courseId}/publish`
   });
 }
 

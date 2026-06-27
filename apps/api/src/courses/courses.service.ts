@@ -144,6 +144,19 @@ export class CoursesService {
     return course;
   }
 
+  async listCourseVersions(context: OrganizationContext, courseId: string) {
+    await this.ensureCourseExists(context, courseId);
+
+    return this.prisma.courseVersion.findMany({
+      where: {
+        courseId,
+        organizationId: context.organizationId
+      },
+      select: courseVersionMetadataSelect,
+      orderBy: [{ versionNumber: "desc" }, { publishedAt: "desc" }]
+    });
+  }
+
   async updateCourse(
     context: OrganizationContext,
     id: string,

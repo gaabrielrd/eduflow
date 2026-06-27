@@ -47,7 +47,7 @@ import type {
   LessonNode
 } from "@/lib/courses/course-types";
 
-const authoringRoles = new Set(["OWNER", "ADMIN", "MANAGER"]);
+const authoringRoles = new Set(["OWNER", "ADMIN", "INSTRUCTOR", "MANAGER"]);
 
 function GripIcon() {
   return (
