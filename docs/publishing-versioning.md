@@ -67,6 +67,8 @@ Endpoints de listagem e inspecao de versoes nao devem expor o snapshot completo 
 
 `GET /learning/my-courses` lista apenas matriculas do usuario autenticado na organizacao atual, com metadados resumidos do snapshot e percentual de progresso. `GET /learning/enrollments/:enrollmentId` carrega a experiencia de aprendizado de uma matricula propria, retornando modulos e lessons ordenados a partir de `CourseVersion.snapshotJson`, alem de um mapa de progresso por `lessonId`. Esses endpoints nao usam `CourseModule` ou `Lesson` editaveis para renderizacao do aluno.
 
+`POST /learning/enrollments/:enrollmentId/lessons/:lessonId/start` cria ou atualiza o progresso da lesson do snapshot, marcando acesso e inicio quando aplicavel. `POST /learning/enrollments/:enrollmentId/lessons/:lessonId/complete` marca a lesson como concluida, preserva conclusoes existentes de forma idempotente e conclui a `Enrollment` quando todas as lessons do snapshot estiverem completas. `GET /learning/enrollments/:enrollmentId/progress` retorna contagem concluida, total do snapshot, percentual e mapa de progresso por `lessonId`.
+
 ## Cobertura de testes
 
 A cobertura principal esta em `apps/api/src/courses/courses.test.ts`:

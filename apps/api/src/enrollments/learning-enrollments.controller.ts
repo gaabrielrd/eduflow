@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from "@nestjs/common";
+import { Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
 
 import { CurrentOrganizationContext } from "../auth/decorators/current-organization-context.decorator.js";
 import { CurrentUser } from "../auth/decorators/current-user.decorator.js";
@@ -32,5 +32,44 @@ export class LearningEnrollmentsController {
       user,
       enrollmentId
     );
+  }
+
+  @Post("enrollments/:enrollmentId/lessons/:lessonId/start")
+  startLesson(
+    @CurrentOrganizationContext() context: OrganizationContext,
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("enrollmentId") enrollmentId: string,
+    @Param("lessonId") lessonId: string
+  ) {
+    return this.enrollmentsService.startLesson(
+      context,
+      user,
+      enrollmentId,
+      lessonId
+    );
+  }
+
+  @Post("enrollments/:enrollmentId/lessons/:lessonId/complete")
+  completeLesson(
+    @CurrentOrganizationContext() context: OrganizationContext,
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("enrollmentId") enrollmentId: string,
+    @Param("lessonId") lessonId: string
+  ) {
+    return this.enrollmentsService.completeLesson(
+      context,
+      user,
+      enrollmentId,
+      lessonId
+    );
+  }
+
+  @Get("enrollments/:enrollmentId/progress")
+  getProgress(
+    @CurrentOrganizationContext() context: OrganizationContext,
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("enrollmentId") enrollmentId: string
+  ) {
+    return this.enrollmentsService.getProgress(context, user, enrollmentId);
   }
 }

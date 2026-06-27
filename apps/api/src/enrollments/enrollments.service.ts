@@ -190,6 +190,157 @@ export class EnrollmentsService {
     return enrollments.map((enrollment) => this.formatMyCourse(enrollment));
   }
 
+  async startLesson(
+    context: OrganizationContext,
+    user: AuthenticatedUser,
+    enrollmentId: string,
+    lessonId: string
+  ) {
+    return this.prisma.$transaction(async (transaction) => {
+      const enrollment = await this.findEnrollmentById(transaction, {
+        context,
+        user,
+        enrollmentId
+      });
+      const { enrollment: validatedEnrollment, snapshot } =
+        this.getValidatedSnapshotLesson(enrollment, lessonId);
+      const now = new Date();
+      const existingProgress = validatedEnrollment.lessonProgress.find(
+        (progress) => progress.lessonId === lessonId
+      );
+
+      if (!existingProgress) {
+        await transaction.lessonProgress.create({
+          data: {
+            enrollmentId,
+            lessonId,
+            status: LessonProgressStatus.IN_PROGRESS,
+            startedAt: now,
+            lastAccessedAt: now
+          }
+        });
+      } else {
+        await transaction.lessonProgress.update({
+          where: {
+            enrollmentId_lessonId: {
+              enrollmentId,
+              lessonId
+            }
+          },
+          data: {
+            status:
+              existingProgress.status === LessonProgressStatus.NOT_STARTED
+                ? LessonProgressStatus.IN_PROGRESS
+                : existingProgress.status,
+            startedAt: existingProgress.startedAt ?? now,
+            lastAccessedAt: now
+          }
+        });
+      }
+
+      const updatedEnrollment = await this.findEnrollmentById(transaction, {
+        context,
+        user,
+        enrollmentId
+      });
+
+      return this.formatProgress(updatedEnrollment, snapshot);
+    });
+  }
+
+  async completeLesson(
+    context: OrganizationContext,
+    user: AuthenticatedUser,
+    enrollmentId: string,
+    lessonId: string
+  ) {
+    return this.prisma.$transaction(async (transaction) => {
+      const enrollment = await this.findEnrollmentById(transaction, {
+        context,
+        user,
+        enrollmentId
+      });
+      const { enrollment: validatedEnrollment, snapshot } =
+        this.getValidatedSnapshotLesson(enrollment, lessonId);
+      const now = new Date();
+      const existingProgress = validatedEnrollment.lessonProgress.find(
+        (progress) => progress.lessonId === lessonId
+      );
+
+      if (!existingProgress) {
+        await transaction.lessonProgress.create({
+          data: {
+            enrollmentId,
+            lessonId,
+            status: LessonProgressStatus.COMPLETED,
+            startedAt: now,
+            completedAt: now,
+            lastAccessedAt: now
+          }
+        });
+      } else {
+        await transaction.lessonProgress.update({
+          where: {
+            enrollmentId_lessonId: {
+              enrollmentId,
+              lessonId
+            }
+          },
+          data: {
+            status: LessonProgressStatus.COMPLETED,
+            startedAt: existingProgress.startedAt ?? now,
+            completedAt: existingProgress.completedAt ?? now,
+            lastAccessedAt: now
+          }
+        });
+      }
+
+      const updatedEnrollment = await this.findEnrollmentById(transaction, {
+        context,
+        user,
+        enrollmentId
+      });
+
+      if (!updatedEnrollment) {
+        throw new NotFoundException("Enrollment not found");
+      }
+
+      if (this.isEnrollmentComplete(snapshot, updatedEnrollment.lessonProgress)) {
+        await transaction.enrollment.update({
+          where: {
+            id: enrollmentId
+          },
+          data: {
+            status: EnrollmentStatus.COMPLETED,
+            completedAt: updatedEnrollment.completedAt ?? now
+          }
+        });
+      }
+
+      const finalEnrollment = await this.findEnrollmentById(transaction, {
+        context,
+        user,
+        enrollmentId
+      });
+
+      return this.formatProgress(finalEnrollment, snapshot);
+    });
+  }
+
+  async getProgress(
+    context: OrganizationContext,
+    user: AuthenticatedUser,
+    enrollmentId: string
+  ) {
+    const enrollment = await this.findEnrollmentById(this.prisma, {
+      context,
+      user,
+      enrollmentId
+    });
+
+    return this.formatProgress(enrollment);
+  }
+
   private async findOrCreateActiveEnrollment(
     client: EnrollmentClient,
     params: {
@@ -308,6 +459,25 @@ export class EnrollmentsService {
     });
   }
 
+  private getValidatedSnapshotLesson(
+    enrollment: EnrollmentDetail | null,
+    lessonId: string
+  ) {
+    if (!enrollment) {
+      throw new NotFoundException("Enrollment not found");
+    }
+
+    const snapshot = this.learningSnapshotService.parseSnapshot(
+      enrollment.courseVersion.snapshotJson
+    );
+
+    if (!this.learningSnapshotService.hasLesson(snapshot, lessonId)) {
+      throw new NotFoundException("Lesson not found");
+    }
+
+    return { enrollment, snapshot };
+  }
+
   private formatEnrollment(enrollment: EnrollmentDetail | null) {
     if (!enrollment) {
       throw new NotFoundException("Enrollment not found");
@@ -376,6 +546,52 @@ export class EnrollmentsService {
         enrollment.lessonProgress
       )
     };
+  }
+
+  private formatProgress(
+    enrollment: EnrollmentDetail | null,
+    snapshotOverride?: CourseVersionSnapshot
+  ) {
+    if (!enrollment) {
+      throw new NotFoundException("Enrollment not found");
+    }
+
+    const snapshot =
+      snapshotOverride ??
+      this.learningSnapshotService.parseSnapshot(enrollment.courseVersion.snapshotJson);
+    const completedCount = this.learningSnapshotService.getCompletedLessonCount(
+      snapshot,
+      enrollment.lessonProgress
+    );
+    const totalCount = this.learningSnapshotService.getTotalLessonCount(snapshot);
+
+    return {
+      enrollmentId: enrollment.id,
+      status: enrollment.status,
+      completedCount,
+      totalCount,
+      percentage: this.learningSnapshotService.getProgressPercentage(
+        snapshot,
+        enrollment.lessonProgress
+      ),
+      completedAt: enrollment.completedAt,
+      lessonProgress: this.learningSnapshotService.getLessonProgressMap(
+        enrollment.lessonProgress
+      )
+    };
+  }
+
+  private isEnrollmentComplete(
+    snapshot: CourseVersionSnapshot,
+    lessonProgress: EnrollmentDetail["lessonProgress"]
+  ) {
+    const totalCount = this.learningSnapshotService.getTotalLessonCount(snapshot);
+
+    return (
+      totalCount > 0 &&
+      this.learningSnapshotService.getCompletedLessonCount(snapshot, lessonProgress) ===
+        totalCount
+    );
   }
 
   private isUniqueEnrollmentRace(error: unknown) {

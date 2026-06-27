@@ -829,3 +829,315 @@ test("GET /learning/enrollments/:enrollmentId rejects cross-organization access"
 
   assert.equal(response.body.message, "Enrollment not found");
 });
+
+test("POST /learning/enrollments/:enrollmentId/lessons/:lessonId/start creates missing progress", async () => {
+  const { learner, organization, courseVersion, snapshotLessonId } =
+    await createLearnerContext();
+  const enrollment = await prisma.enrollment.create({
+    data: {
+      userId: learner.user.id,
+      organizationId: organization.id,
+      courseVersionId: courseVersion.id
+    }
+  });
+
+  const response = await request(app.getHttpServer())
+    .post(`/learning/enrollments/${enrollment.id}/lessons/${snapshotLessonId}/start`)
+    .set("Authorization", `Bearer ${learner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(201);
+
+  assert.equal(response.body.enrollmentId, enrollment.id);
+  assert.equal(response.body.completedCount, 0);
+  assert.equal(response.body.totalCount, 1);
+  assert.equal(response.body.percentage, 0);
+  assert.equal(
+    response.body.lessonProgress[snapshotLessonId].status,
+    LessonProgressStatus.IN_PROGRESS
+  );
+  assert.ok(response.body.lessonProgress[snapshotLessonId].startedAt);
+  assert.ok(response.body.lessonProgress[snapshotLessonId].lastAccessedAt);
+});
+
+test("POST /learning/enrollments/:enrollmentId/lessons/:lessonId/start updates existing progress access", async () => {
+  const { learner, organization, courseVersion, snapshotLessonId } =
+    await createLearnerContext();
+  const enrollment = await prisma.enrollment.create({
+    data: {
+      userId: learner.user.id,
+      organizationId: organization.id,
+      courseVersionId: courseVersion.id
+    }
+  });
+  const progress = await prisma.lessonProgress.create({
+    data: {
+      enrollmentId: enrollment.id,
+      lessonId: snapshotLessonId,
+      status: LessonProgressStatus.NOT_STARTED,
+      lastAccessedAt: new Date("2026-06-27T12:00:00.000Z")
+    }
+  });
+
+  await request(app.getHttpServer())
+    .post(`/learning/enrollments/${enrollment.id}/lessons/${snapshotLessonId}/start`)
+    .set("Authorization", `Bearer ${learner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(201);
+
+  const updatedProgress = await prisma.lessonProgress.findUniqueOrThrow({
+    where: {
+      id: progress.id
+    }
+  });
+
+  assert.equal(updatedProgress.status, LessonProgressStatus.IN_PROGRESS);
+  assert.ok(updatedProgress.startedAt);
+  assert.ok(updatedProgress.lastAccessedAt);
+  assert.ok(
+    updatedProgress.lastAccessedAt.getTime() >
+      new Date("2026-06-27T12:00:00.000Z").getTime()
+  );
+});
+
+test("POST /learning/enrollments/:enrollmentId/lessons/:lessonId/start rejects invalid lesson and unauthorized enrollment access", async () => {
+  const { learner, organization, courseVersion } = await createLearnerContext();
+  const outsider = await createUserAndToken(
+    app,
+    `start-outsider.${uniqueSuffix()}@courses.test`
+  );
+  await prisma.membership.create({
+    data: {
+      userId: outsider.user.id,
+      organizationId: organization.id,
+      role: Role.STUDENT
+    }
+  });
+  const otherOrganization = await createOrganizationForUser({
+    prisma,
+    userId: learner.user.id,
+    name: "Start Cross Org",
+    slug: `start-cross-org-${uniqueSuffix()}`,
+    role: Role.STUDENT
+  });
+  const enrollment = await prisma.enrollment.create({
+    data: {
+      userId: learner.user.id,
+      organizationId: organization.id,
+      courseVersionId: courseVersion.id
+    }
+  });
+
+  const invalidLessonResponse = await request(app.getHttpServer())
+    .post(`/learning/enrollments/${enrollment.id}/lessons/missing-lesson/start`)
+    .set("Authorization", `Bearer ${learner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(404);
+  const anotherUserResponse = await request(app.getHttpServer())
+    .post(`/learning/enrollments/${enrollment.id}/lessons/missing-lesson/start`)
+    .set("Authorization", `Bearer ${outsider.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(404);
+  const crossOrganizationResponse = await request(app.getHttpServer())
+    .post(`/learning/enrollments/${enrollment.id}/lessons/missing-lesson/start`)
+    .set("Authorization", `Bearer ${learner.accessToken}`)
+    .set("X-Organization-Id", otherOrganization.id)
+    .expect(404);
+
+  assert.equal(invalidLessonResponse.body.message, "Lesson not found");
+  assert.equal(anotherUserResponse.body.message, "Enrollment not found");
+  assert.equal(crossOrganizationResponse.body.message, "Enrollment not found");
+});
+
+test("POST /learning/enrollments/:enrollmentId/lessons/:lessonId/complete completes lessons and enrollment", async () => {
+  const learner = await createUserAndToken(
+    app,
+    `complete-lessons.${uniqueSuffix()}@courses.test`
+  );
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: learner.user.id,
+    name: "Complete Lessons Org",
+    slug: `complete-lessons-org-${uniqueSuffix()}`,
+    role: Role.STUDENT
+  });
+  const course = await prisma.course.create({
+    data: {
+      organizationId: organization.id,
+      title: "Complete Lessons Course",
+      slug: `complete-lessons-course-${uniqueSuffix()}`,
+      description: null,
+      status: CourseStatus.PUBLISHED,
+      createdById: learner.user.id
+    }
+  });
+  const { courseVersion, snapshot } = await createCourseVersionForCourse({
+    organizationId: organization.id,
+    userId: learner.user.id,
+    courseId: course.id,
+    versionNumber: 1,
+    title: course.title,
+    description: course.description,
+    slug: course.slug,
+    lessonCount: 2
+  });
+  const enrollment = await prisma.enrollment.create({
+    data: {
+      userId: learner.user.id,
+      organizationId: organization.id,
+      courseVersionId: courseVersion.id
+    }
+  });
+
+  const firstResponse = await request(app.getHttpServer())
+    .post(`/learning/enrollments/${enrollment.id}/lessons/${snapshot.lessons[0].id}/complete`)
+    .set("Authorization", `Bearer ${learner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(201);
+
+  assert.equal(firstResponse.body.completedCount, 1);
+  assert.equal(firstResponse.body.totalCount, 2);
+  assert.equal(firstResponse.body.percentage, 50);
+  assert.equal(firstResponse.body.status, EnrollmentStatus.ACTIVE);
+  assert.equal(
+    firstResponse.body.lessonProgress[snapshot.lessons[0].id].status,
+    LessonProgressStatus.COMPLETED
+  );
+  assert.ok(firstResponse.body.lessonProgress[snapshot.lessons[0].id].completedAt);
+
+  const secondResponse = await request(app.getHttpServer())
+    .post(`/learning/enrollments/${enrollment.id}/lessons/${snapshot.lessons[1].id}/complete`)
+    .set("Authorization", `Bearer ${learner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(201);
+
+  assert.equal(secondResponse.body.completedCount, 2);
+  assert.equal(secondResponse.body.totalCount, 2);
+  assert.equal(secondResponse.body.percentage, 100);
+  assert.equal(secondResponse.body.status, EnrollmentStatus.COMPLETED);
+  assert.ok(secondResponse.body.completedAt);
+
+  const completedEnrollment = await prisma.enrollment.findUniqueOrThrow({
+    where: {
+      id: enrollment.id
+    }
+  });
+
+  assert.equal(completedEnrollment.status, EnrollmentStatus.COMPLETED);
+  assert.ok(completedEnrollment.completedAt);
+});
+
+test("POST /learning/enrollments/:enrollmentId/lessons/:lessonId/complete preserves existing completion timestamp", async () => {
+  const { learner, organization, courseVersion, snapshotLessonId } =
+    await createLearnerContext();
+  const completedAt = new Date("2026-06-27T12:30:00.000Z");
+  const enrollment = await prisma.enrollment.create({
+    data: {
+      userId: learner.user.id,
+      organizationId: organization.id,
+      courseVersionId: courseVersion.id
+    }
+  });
+  const progress = await prisma.lessonProgress.create({
+    data: {
+      enrollmentId: enrollment.id,
+      lessonId: snapshotLessonId,
+      status: LessonProgressStatus.COMPLETED,
+      startedAt: new Date("2026-06-27T12:00:00.000Z"),
+      completedAt,
+      lastAccessedAt: completedAt
+    }
+  });
+
+  await request(app.getHttpServer())
+    .post(`/learning/enrollments/${enrollment.id}/lessons/${snapshotLessonId}/complete`)
+    .set("Authorization", `Bearer ${learner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(201);
+
+  const updatedProgress = await prisma.lessonProgress.findUniqueOrThrow({
+    where: {
+      id: progress.id
+    }
+  });
+
+  assert.equal(updatedProgress.status, LessonProgressStatus.COMPLETED);
+  assert.equal(updatedProgress.completedAt?.toISOString(), completedAt.toISOString());
+  assert.ok(updatedProgress.lastAccessedAt);
+  assert.ok(updatedProgress.lastAccessedAt.getTime() > completedAt.getTime());
+});
+
+test("GET /learning/enrollments/:enrollmentId/progress returns progress summary from snapshot totals", async () => {
+  const learner = await createUserAndToken(
+    app,
+    `progress-summary.${uniqueSuffix()}@courses.test`
+  );
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: learner.user.id,
+    name: "Progress Summary Org",
+    slug: `progress-summary-org-${uniqueSuffix()}`,
+    role: Role.STUDENT
+  });
+  const course = await prisma.course.create({
+    data: {
+      organizationId: organization.id,
+      title: "Progress Summary Course",
+      slug: `progress-summary-course-${uniqueSuffix()}`,
+      description: null,
+      status: CourseStatus.PUBLISHED,
+      createdById: learner.user.id
+    }
+  });
+  const { courseVersion, snapshot } = await createCourseVersionForCourse({
+    organizationId: organization.id,
+    userId: learner.user.id,
+    courseId: course.id,
+    versionNumber: 1,
+    title: course.title,
+    description: course.description,
+    slug: course.slug,
+    lessonCount: 3
+  });
+  const enrollment = await prisma.enrollment.create({
+    data: {
+      userId: learner.user.id,
+      organizationId: organization.id,
+      courseVersionId: courseVersion.id
+    }
+  });
+
+  await prisma.lessonProgress.createMany({
+    data: [
+      {
+        enrollmentId: enrollment.id,
+        lessonId: snapshot.lessons[0].id,
+        status: LessonProgressStatus.COMPLETED
+      },
+      {
+        enrollmentId: enrollment.id,
+        lessonId: snapshot.lessons[1].id,
+        status: LessonProgressStatus.IN_PROGRESS
+      }
+    ]
+  });
+
+  const response = await request(app.getHttpServer())
+    .get(`/learning/enrollments/${enrollment.id}/progress`)
+    .set("Authorization", `Bearer ${learner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(200);
+
+  assert.equal(response.body.enrollmentId, enrollment.id);
+  assert.equal(response.body.status, EnrollmentStatus.ACTIVE);
+  assert.equal(response.body.completedCount, 1);
+  assert.equal(response.body.totalCount, 3);
+  assert.equal(response.body.percentage, 33);
+  assert.equal(
+    response.body.lessonProgress[snapshot.lessons[0].id].status,
+    LessonProgressStatus.COMPLETED
+  );
+  assert.equal(
+    response.body.lessonProgress[snapshot.lessons[1].id].status,
+    LessonProgressStatus.IN_PROGRESS
+  );
+});
