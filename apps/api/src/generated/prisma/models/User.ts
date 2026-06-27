@@ -193,6 +193,7 @@ export type UserWhereInput = {
   authSessions?: Prisma.AuthSessionListRelationFilter
   memberships?: Prisma.MembershipListRelationFilter
   createdCourses?: Prisma.CourseListRelationFilter
+  publishedVersions?: Prisma.CourseVersionListRelationFilter
   uploadedMediaAssets?: Prisma.MediaAssetListRelationFilter
 }
 
@@ -206,6 +207,7 @@ export type UserOrderByWithRelationInput = {
   authSessions?: Prisma.AuthSessionOrderByRelationAggregateInput
   memberships?: Prisma.MembershipOrderByRelationAggregateInput
   createdCourses?: Prisma.CourseOrderByRelationAggregateInput
+  publishedVersions?: Prisma.CourseVersionOrderByRelationAggregateInput
   uploadedMediaAssets?: Prisma.MediaAssetOrderByRelationAggregateInput
 }
 
@@ -222,6 +224,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   authSessions?: Prisma.AuthSessionListRelationFilter
   memberships?: Prisma.MembershipListRelationFilter
   createdCourses?: Prisma.CourseListRelationFilter
+  publishedVersions?: Prisma.CourseVersionListRelationFilter
   uploadedMediaAssets?: Prisma.MediaAssetListRelationFilter
 }, "id" | "email">
 
@@ -259,6 +262,7 @@ export type UserCreateInput = {
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   createdCourses?: Prisma.CourseCreateNestedManyWithoutCreatedByInput
+  publishedVersions?: Prisma.CourseVersionCreateNestedManyWithoutPublishedByInput
   uploadedMediaAssets?: Prisma.MediaAssetCreateNestedManyWithoutUploadedByInput
 }
 
@@ -272,6 +276,7 @@ export type UserUncheckedCreateInput = {
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   createdCourses?: Prisma.CourseUncheckedCreateNestedManyWithoutCreatedByInput
+  publishedVersions?: Prisma.CourseVersionUncheckedCreateNestedManyWithoutPublishedByInput
   uploadedMediaAssets?: Prisma.MediaAssetUncheckedCreateNestedManyWithoutUploadedByInput
 }
 
@@ -285,6 +290,7 @@ export type UserUpdateInput = {
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   createdCourses?: Prisma.CourseUpdateManyWithoutCreatedByNestedInput
+  publishedVersions?: Prisma.CourseVersionUpdateManyWithoutPublishedByNestedInput
   uploadedMediaAssets?: Prisma.MediaAssetUpdateManyWithoutUploadedByNestedInput
 }
 
@@ -298,6 +304,7 @@ export type UserUncheckedUpdateInput = {
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   createdCourses?: Prisma.CourseUncheckedUpdateManyWithoutCreatedByNestedInput
+  publishedVersions?: Prisma.CourseVersionUncheckedUpdateManyWithoutPublishedByNestedInput
   uploadedMediaAssets?: Prisma.MediaAssetUncheckedUpdateManyWithoutUploadedByNestedInput
 }
 
@@ -410,6 +417,20 @@ export type UserUpdateOneRequiredWithoutCreatedCoursesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreatedCoursesInput, Prisma.UserUpdateWithoutCreatedCoursesInput>, Prisma.UserUncheckedUpdateWithoutCreatedCoursesInput>
 }
 
+export type UserCreateNestedOneWithoutPublishedVersionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPublishedVersionsInput, Prisma.UserUncheckedCreateWithoutPublishedVersionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPublishedVersionsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPublishedVersionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPublishedVersionsInput, Prisma.UserUncheckedCreateWithoutPublishedVersionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPublishedVersionsInput
+  upsert?: Prisma.UserUpsertWithoutPublishedVersionsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPublishedVersionsInput, Prisma.UserUpdateWithoutPublishedVersionsInput>, Prisma.UserUncheckedUpdateWithoutPublishedVersionsInput>
+}
+
 export type UserCreateNestedOneWithoutUploadedMediaAssetsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutUploadedMediaAssetsInput, Prisma.UserUncheckedCreateWithoutUploadedMediaAssetsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutUploadedMediaAssetsInput
@@ -433,6 +454,7 @@ export type UserCreateWithoutMembershipsInput = {
   updatedAt?: Date | string
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   createdCourses?: Prisma.CourseCreateNestedManyWithoutCreatedByInput
+  publishedVersions?: Prisma.CourseVersionCreateNestedManyWithoutPublishedByInput
   uploadedMediaAssets?: Prisma.MediaAssetCreateNestedManyWithoutUploadedByInput
 }
 
@@ -445,6 +467,7 @@ export type UserUncheckedCreateWithoutMembershipsInput = {
   updatedAt?: Date | string
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   createdCourses?: Prisma.CourseUncheckedCreateNestedManyWithoutCreatedByInput
+  publishedVersions?: Prisma.CourseVersionUncheckedCreateNestedManyWithoutPublishedByInput
   uploadedMediaAssets?: Prisma.MediaAssetUncheckedCreateNestedManyWithoutUploadedByInput
 }
 
@@ -473,6 +496,7 @@ export type UserUpdateWithoutMembershipsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   createdCourses?: Prisma.CourseUpdateManyWithoutCreatedByNestedInput
+  publishedVersions?: Prisma.CourseVersionUpdateManyWithoutPublishedByNestedInput
   uploadedMediaAssets?: Prisma.MediaAssetUpdateManyWithoutUploadedByNestedInput
 }
 
@@ -485,6 +509,7 @@ export type UserUncheckedUpdateWithoutMembershipsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   createdCourses?: Prisma.CourseUncheckedUpdateManyWithoutCreatedByNestedInput
+  publishedVersions?: Prisma.CourseVersionUncheckedUpdateManyWithoutPublishedByNestedInput
   uploadedMediaAssets?: Prisma.MediaAssetUncheckedUpdateManyWithoutUploadedByNestedInput
 }
 
@@ -497,6 +522,7 @@ export type UserCreateWithoutAuthSessionsInput = {
   updatedAt?: Date | string
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   createdCourses?: Prisma.CourseCreateNestedManyWithoutCreatedByInput
+  publishedVersions?: Prisma.CourseVersionCreateNestedManyWithoutPublishedByInput
   uploadedMediaAssets?: Prisma.MediaAssetCreateNestedManyWithoutUploadedByInput
 }
 
@@ -509,6 +535,7 @@ export type UserUncheckedCreateWithoutAuthSessionsInput = {
   updatedAt?: Date | string
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   createdCourses?: Prisma.CourseUncheckedCreateNestedManyWithoutCreatedByInput
+  publishedVersions?: Prisma.CourseVersionUncheckedCreateNestedManyWithoutPublishedByInput
   uploadedMediaAssets?: Prisma.MediaAssetUncheckedCreateNestedManyWithoutUploadedByInput
 }
 
@@ -537,6 +564,7 @@ export type UserUpdateWithoutAuthSessionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   createdCourses?: Prisma.CourseUpdateManyWithoutCreatedByNestedInput
+  publishedVersions?: Prisma.CourseVersionUpdateManyWithoutPublishedByNestedInput
   uploadedMediaAssets?: Prisma.MediaAssetUpdateManyWithoutUploadedByNestedInput
 }
 
@@ -549,6 +577,7 @@ export type UserUncheckedUpdateWithoutAuthSessionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   createdCourses?: Prisma.CourseUncheckedUpdateManyWithoutCreatedByNestedInput
+  publishedVersions?: Prisma.CourseVersionUncheckedUpdateManyWithoutPublishedByNestedInput
   uploadedMediaAssets?: Prisma.MediaAssetUncheckedUpdateManyWithoutUploadedByNestedInput
 }
 
@@ -561,6 +590,7 @@ export type UserCreateWithoutCreatedCoursesInput = {
   updatedAt?: Date | string
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
+  publishedVersions?: Prisma.CourseVersionCreateNestedManyWithoutPublishedByInput
   uploadedMediaAssets?: Prisma.MediaAssetCreateNestedManyWithoutUploadedByInput
 }
 
@@ -573,6 +603,7 @@ export type UserUncheckedCreateWithoutCreatedCoursesInput = {
   updatedAt?: Date | string
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
+  publishedVersions?: Prisma.CourseVersionUncheckedCreateNestedManyWithoutPublishedByInput
   uploadedMediaAssets?: Prisma.MediaAssetUncheckedCreateNestedManyWithoutUploadedByInput
 }
 
@@ -601,6 +632,7 @@ export type UserUpdateWithoutCreatedCoursesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
+  publishedVersions?: Prisma.CourseVersionUpdateManyWithoutPublishedByNestedInput
   uploadedMediaAssets?: Prisma.MediaAssetUpdateManyWithoutUploadedByNestedInput
 }
 
@@ -613,6 +645,75 @@ export type UserUncheckedUpdateWithoutCreatedCoursesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
+  publishedVersions?: Prisma.CourseVersionUncheckedUpdateManyWithoutPublishedByNestedInput
+  uploadedMediaAssets?: Prisma.MediaAssetUncheckedUpdateManyWithoutUploadedByNestedInput
+}
+
+export type UserCreateWithoutPublishedVersionsInput = {
+  id?: string
+  name: string
+  email: string
+  passwordHash: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
+  createdCourses?: Prisma.CourseCreateNestedManyWithoutCreatedByInput
+  uploadedMediaAssets?: Prisma.MediaAssetCreateNestedManyWithoutUploadedByInput
+}
+
+export type UserUncheckedCreateWithoutPublishedVersionsInput = {
+  id?: string
+  name: string
+  email: string
+  passwordHash: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
+  memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
+  createdCourses?: Prisma.CourseUncheckedCreateNestedManyWithoutCreatedByInput
+  uploadedMediaAssets?: Prisma.MediaAssetUncheckedCreateNestedManyWithoutUploadedByInput
+}
+
+export type UserCreateOrConnectWithoutPublishedVersionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPublishedVersionsInput, Prisma.UserUncheckedCreateWithoutPublishedVersionsInput>
+}
+
+export type UserUpsertWithoutPublishedVersionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPublishedVersionsInput, Prisma.UserUncheckedUpdateWithoutPublishedVersionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPublishedVersionsInput, Prisma.UserUncheckedCreateWithoutPublishedVersionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPublishedVersionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPublishedVersionsInput, Prisma.UserUncheckedUpdateWithoutPublishedVersionsInput>
+}
+
+export type UserUpdateWithoutPublishedVersionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
+  createdCourses?: Prisma.CourseUpdateManyWithoutCreatedByNestedInput
+  uploadedMediaAssets?: Prisma.MediaAssetUpdateManyWithoutUploadedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPublishedVersionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
+  memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
+  createdCourses?: Prisma.CourseUncheckedUpdateManyWithoutCreatedByNestedInput
   uploadedMediaAssets?: Prisma.MediaAssetUncheckedUpdateManyWithoutUploadedByNestedInput
 }
 
@@ -626,6 +727,7 @@ export type UserCreateWithoutUploadedMediaAssetsInput = {
   authSessions?: Prisma.AuthSessionCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipCreateNestedManyWithoutUserInput
   createdCourses?: Prisma.CourseCreateNestedManyWithoutCreatedByInput
+  publishedVersions?: Prisma.CourseVersionCreateNestedManyWithoutPublishedByInput
 }
 
 export type UserUncheckedCreateWithoutUploadedMediaAssetsInput = {
@@ -638,6 +740,7 @@ export type UserUncheckedCreateWithoutUploadedMediaAssetsInput = {
   authSessions?: Prisma.AuthSessionUncheckedCreateNestedManyWithoutUserInput
   memberships?: Prisma.MembershipUncheckedCreateNestedManyWithoutUserInput
   createdCourses?: Prisma.CourseUncheckedCreateNestedManyWithoutCreatedByInput
+  publishedVersions?: Prisma.CourseVersionUncheckedCreateNestedManyWithoutPublishedByInput
 }
 
 export type UserCreateOrConnectWithoutUploadedMediaAssetsInput = {
@@ -666,6 +769,7 @@ export type UserUpdateWithoutUploadedMediaAssetsInput = {
   authSessions?: Prisma.AuthSessionUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUpdateManyWithoutUserNestedInput
   createdCourses?: Prisma.CourseUpdateManyWithoutCreatedByNestedInput
+  publishedVersions?: Prisma.CourseVersionUpdateManyWithoutPublishedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutUploadedMediaAssetsInput = {
@@ -678,6 +782,7 @@ export type UserUncheckedUpdateWithoutUploadedMediaAssetsInput = {
   authSessions?: Prisma.AuthSessionUncheckedUpdateManyWithoutUserNestedInput
   memberships?: Prisma.MembershipUncheckedUpdateManyWithoutUserNestedInput
   createdCourses?: Prisma.CourseUncheckedUpdateManyWithoutCreatedByNestedInput
+  publishedVersions?: Prisma.CourseVersionUncheckedUpdateManyWithoutPublishedByNestedInput
 }
 
 
@@ -689,6 +794,7 @@ export type UserCountOutputType = {
   authSessions: number
   memberships: number
   createdCourses: number
+  publishedVersions: number
   uploadedMediaAssets: number
 }
 
@@ -696,6 +802,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   authSessions?: boolean | UserCountOutputTypeCountAuthSessionsArgs
   memberships?: boolean | UserCountOutputTypeCountMembershipsArgs
   createdCourses?: boolean | UserCountOutputTypeCountCreatedCoursesArgs
+  publishedVersions?: boolean | UserCountOutputTypeCountPublishedVersionsArgs
   uploadedMediaAssets?: boolean | UserCountOutputTypeCountUploadedMediaAssetsArgs
 }
 
@@ -733,6 +840,13 @@ export type UserCountOutputTypeCountCreatedCoursesArgs<ExtArgs extends runtime.T
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountPublishedVersionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CourseVersionWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountUploadedMediaAssetsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.MediaAssetWhereInput
 }
@@ -748,6 +862,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   authSessions?: boolean | Prisma.User$authSessionsArgs<ExtArgs>
   memberships?: boolean | Prisma.User$membershipsArgs<ExtArgs>
   createdCourses?: boolean | Prisma.User$createdCoursesArgs<ExtArgs>
+  publishedVersions?: boolean | Prisma.User$publishedVersionsArgs<ExtArgs>
   uploadedMediaAssets?: boolean | Prisma.User$uploadedMediaAssetsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
@@ -784,6 +899,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   authSessions?: boolean | Prisma.User$authSessionsArgs<ExtArgs>
   memberships?: boolean | Prisma.User$membershipsArgs<ExtArgs>
   createdCourses?: boolean | Prisma.User$createdCoursesArgs<ExtArgs>
+  publishedVersions?: boolean | Prisma.User$publishedVersionsArgs<ExtArgs>
   uploadedMediaAssets?: boolean | Prisma.User$uploadedMediaAssetsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -796,6 +912,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     authSessions: Prisma.$AuthSessionPayload<ExtArgs>[]
     memberships: Prisma.$MembershipPayload<ExtArgs>[]
     createdCourses: Prisma.$CoursePayload<ExtArgs>[]
+    publishedVersions: Prisma.$CourseVersionPayload<ExtArgs>[]
     uploadedMediaAssets: Prisma.$MediaAssetPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1202,6 +1319,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   authSessions<T extends Prisma.User$authSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$authSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuthSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   memberships<T extends Prisma.User$membershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$membershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MembershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdCourses<T extends Prisma.User$createdCoursesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdCoursesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  publishedVersions<T extends Prisma.User$publishedVersionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$publishedVersionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CourseVersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   uploadedMediaAssets<T extends Prisma.User$uploadedMediaAssetsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$uploadedMediaAssetsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MediaAssetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1700,6 +1818,30 @@ export type User$createdCoursesArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.CourseScalarFieldEnum | Prisma.CourseScalarFieldEnum[]
+}
+
+/**
+ * User.publishedVersions
+ */
+export type User$publishedVersionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CourseVersion
+   */
+  select?: Prisma.CourseVersionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CourseVersion
+   */
+  omit?: Prisma.CourseVersionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CourseVersionInclude<ExtArgs> | null
+  where?: Prisma.CourseVersionWhereInput
+  orderBy?: Prisma.CourseVersionOrderByWithRelationInput | Prisma.CourseVersionOrderByWithRelationInput[]
+  cursor?: Prisma.CourseVersionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CourseVersionScalarFieldEnum | Prisma.CourseVersionScalarFieldEnum[]
 }
 
 /**

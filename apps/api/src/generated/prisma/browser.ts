@@ -48,6 +48,11 @@ export type AuthSession = Prisma.AuthSessionModel
  */
 export type Course = Prisma.CourseModel
 /**
+ * Model CourseVersion
+ * 
+ */
+export type CourseVersion = Prisma.CourseVersionModel
+/**
  * Model CourseModule
  * 
  */

@@ -57,6 +57,7 @@ export const ModelName = {
   Invitation: 'Invitation',
   AuthSession: 'AuthSession',
   Course: 'Course',
+  CourseVersion: 'CourseVersion',
   CourseModule: 'CourseModule',
   Lesson: 'Lesson',
   MediaAsset: 'MediaAsset'
@@ -154,6 +155,24 @@ export const CourseScalarFieldEnum = {
 } as const
 
 export type CourseScalarFieldEnum = (typeof CourseScalarFieldEnum)[keyof typeof CourseScalarFieldEnum]
+
+
+export const CourseVersionScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  organizationId: 'organizationId',
+  versionNumber: 'versionNumber',
+  title: 'title',
+  description: 'description',
+  snapshotJson: 'snapshotJson',
+  status: 'status',
+  publishedById: 'publishedById',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CourseVersionScalarFieldEnum = (typeof CourseVersionScalarFieldEnum)[keyof typeof CourseVersionScalarFieldEnum]
 
 
 export const CourseModuleScalarFieldEnum = {

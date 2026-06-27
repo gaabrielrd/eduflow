@@ -390,6 +390,7 @@ export const ModelName = {
   Invitation: 'Invitation',
   AuthSession: 'AuthSession',
   Course: 'Course',
+  CourseVersion: 'CourseVersion',
   CourseModule: 'CourseModule',
   Lesson: 'Lesson',
   MediaAsset: 'MediaAsset'
@@ -408,7 +409,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "membership" | "invitation" | "authSession" | "course" | "courseModule" | "lesson" | "mediaAsset"
+    modelProps: "user" | "organization" | "membership" | "invitation" | "authSession" | "course" | "courseVersion" | "courseModule" | "lesson" | "mediaAsset"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -856,6 +857,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    CourseVersion: {
+      payload: Prisma.$CourseVersionPayload<ExtArgs>
+      fields: Prisma.CourseVersionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CourseVersionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CourseVersionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CourseVersionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CourseVersionPayload>
+        }
+        findFirst: {
+          args: Prisma.CourseVersionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CourseVersionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CourseVersionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CourseVersionPayload>
+        }
+        findMany: {
+          args: Prisma.CourseVersionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CourseVersionPayload>[]
+        }
+        create: {
+          args: Prisma.CourseVersionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CourseVersionPayload>
+        }
+        createMany: {
+          args: Prisma.CourseVersionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CourseVersionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CourseVersionPayload>[]
+        }
+        delete: {
+          args: Prisma.CourseVersionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CourseVersionPayload>
+        }
+        update: {
+          args: Prisma.CourseVersionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CourseVersionPayload>
+        }
+        deleteMany: {
+          args: Prisma.CourseVersionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CourseVersionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CourseVersionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CourseVersionPayload>[]
+        }
+        upsert: {
+          args: Prisma.CourseVersionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CourseVersionPayload>
+        }
+        aggregate: {
+          args: Prisma.CourseVersionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCourseVersion>
+        }
+        groupBy: {
+          args: Prisma.CourseVersionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CourseVersionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CourseVersionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CourseVersionCountAggregateOutputType> | number
+        }
+      }
+    }
     CourseModule: {
       payload: Prisma.$CourseModulePayload<ExtArgs>
       fields: Prisma.CourseModuleFieldRefs
@@ -1195,6 +1270,24 @@ export const CourseScalarFieldEnum = {
 export type CourseScalarFieldEnum = (typeof CourseScalarFieldEnum)[keyof typeof CourseScalarFieldEnum]
 
 
+export const CourseVersionScalarFieldEnum = {
+  id: 'id',
+  courseId: 'courseId',
+  organizationId: 'organizationId',
+  versionNumber: 'versionNumber',
+  title: 'title',
+  description: 'description',
+  snapshotJson: 'snapshotJson',
+  status: 'status',
+  publishedById: 'publishedById',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CourseVersionScalarFieldEnum = (typeof CourseVersionScalarFieldEnum)[keyof typeof CourseVersionScalarFieldEnum]
+
+
 export const CourseModuleScalarFieldEnum = {
   id: 'id',
   courseId: 'courseId',
@@ -1361,6 +1454,34 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
+ * Reference to a field of type 'CourseVersionStatus'
+ */
+export type EnumCourseVersionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CourseVersionStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'CourseVersionStatus[]'
+ */
+export type ListEnumCourseVersionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CourseVersionStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'CourseModuleStatus'
  */
 export type EnumCourseModuleStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CourseModuleStatus'>
@@ -1385,20 +1506,6 @@ export type EnumLessonContentTypeFieldRefInput<$PrismaModel> = FieldRefInputType
  * Reference to a field of type 'LessonContentType[]'
  */
 export type ListEnumLessonContentTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LessonContentType[]'>
-    
-
-
-/**
- * Reference to a field of type 'Json'
- */
-export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-/**
- * Reference to a field of type 'QueryMode'
- */
-export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -1566,6 +1673,7 @@ export type GlobalOmitConfig = {
   invitation?: Prisma.InvitationOmit
   authSession?: Prisma.AuthSessionOmit
   course?: Prisma.CourseOmit
+  courseVersion?: Prisma.CourseVersionOmit
   courseModule?: Prisma.CourseModuleOmit
   lesson?: Prisma.LessonOmit
   mediaAsset?: Prisma.MediaAssetOmit

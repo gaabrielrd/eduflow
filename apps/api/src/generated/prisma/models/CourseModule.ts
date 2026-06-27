@@ -487,14 +487,6 @@ export type CourseModuleUncheckedUpdateManyWithoutCourseNestedInput = {
   deleteMany?: Prisma.CourseModuleScalarWhereInput | Prisma.CourseModuleScalarWhereInput[]
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type EnumCourseModuleStatusFieldUpdateOperationsInput = {
   set?: $Enums.CourseModuleStatus
 }

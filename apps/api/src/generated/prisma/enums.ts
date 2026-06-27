@@ -29,6 +29,14 @@ export const CourseStatus = {
 export type CourseStatus = (typeof CourseStatus)[keyof typeof CourseStatus]
 
 
+export const CourseVersionStatus = {
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type CourseVersionStatus = (typeof CourseVersionStatus)[keyof typeof CourseVersionStatus]
+
+
 export const LessonContentType = {
   TEXT: 'TEXT',
   VIDEO: 'VIDEO',

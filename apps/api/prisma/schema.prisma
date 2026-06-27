@@ -21,6 +21,11 @@ enum CourseStatus {
   ARCHIVED
 }
 
+enum CourseVersionStatus {
+  PUBLISHED
+  ARCHIVED
+}
+
 enum LessonContentType {
   TEXT
   VIDEO
@@ -46,28 +51,30 @@ enum MediaAssetStatus {
 }
 
 model User {
-  id                 String       @id @default(cuid())
-  name               String
-  email              String       @unique
-  passwordHash       String
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
-  authSessions       AuthSession[]
-  memberships        Membership[]
-  createdCourses     Course[]     @relation("CourseCreatedBy")
-  uploadedMediaAssets MediaAsset[] @relation("MediaAssetUploadedBy")
+  id                  String          @id @default(cuid())
+  name                String
+  email               String          @unique
+  passwordHash        String
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  authSessions        AuthSession[]
+  memberships         Membership[]
+  createdCourses      Course[]        @relation("CourseCreatedBy")
+  publishedVersions   CourseVersion[] @relation("CourseVersionPublishedBy")
+  uploadedMediaAssets MediaAsset[]    @relation("MediaAssetUploadedBy")
 }
 
 model Organization {
-  id          String       @id @default(cuid())
-  name        String
-  slug        String       @unique
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  memberships Membership[]
-  invitations Invitation[]
-  courses     Course[]
-  mediaAssets MediaAsset[]
+  id             String          @id @default(cuid())
+  name           String
+  slug           String          @unique
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  memberships    Membership[]
+  invitations    Invitation[]
+  courses        Course[]
+  courseVersions CourseVersion[]
+  mediaAssets    MediaAsset[]
 }
 
 model Membership {
@@ -102,36 +109,59 @@ model Invitation {
 }
 
 model AuthSession {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   userId           String
   refreshTokenHash String
   expiresAt        DateTime
   revokedAt        DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index([userId])
   @@index([revokedAt])
 }
 
 model Course {
-  id             String       @id @default(cuid())
+  id             String          @id @default(cuid())
   organizationId String
   title          String
   slug           String
   description    String?
   status         CourseStatus
   createdById    String
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  createdBy      User         @relation("CourseCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdBy      User            @relation("CourseCreatedBy", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Cascade)
   modules        CourseModule[]
+  versions       CourseVersion[]
 
   @@unique([organizationId, slug])
   @@index([organizationId])
   @@index([createdById])
+}
+
+model CourseVersion {
+  id             String              @id @default(cuid())
+  courseId       String
+  organizationId String
+  versionNumber  Int
+  title          String
+  description    String?
+  snapshotJson   Json
+  status         CourseVersionStatus @default(PUBLISHED)
+  publishedById  String
+  publishedAt    DateTime
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  course         Course              @relation(fields: [courseId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  publishedBy    User                @relation("CourseVersionPublishedBy", fields: [publishedById], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([courseId, versionNumber])
+  @@index([organizationId])
+  @@index([publishedById])
 }
 
 model CourseModule {
