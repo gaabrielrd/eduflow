@@ -8,8 +8,10 @@ import { PrismaService } from "../database/prisma.service.js";
 import {
   CourseModuleStatus,
   CourseStatus,
+  CourseVersionStatus,
   LessonContentType,
   LessonStatus,
+  MediaAssetStatus,
   Role
 } from "../generated/prisma/enums.js";
 import {
@@ -23,6 +25,99 @@ import {
 
 let app: INestApplication;
 let prisma: PrismaService;
+
+function createValidContentDocument(text = "Publishable content") {
+  return {
+    version: 1,
+    blocks: [
+      {
+        id: `paragraph-${uniqueSuffix()}`,
+        type: "paragraph",
+        props: {
+          text
+        }
+      }
+    ]
+  };
+}
+
+function createImageContentDocument(assetId: string) {
+  return {
+    version: 1,
+    blocks: [
+      {
+        id: `image-${uniqueSuffix()}`,
+        type: "image",
+        props: {
+          assetId,
+          alt: "Course diagram"
+        }
+      }
+    ]
+  };
+}
+
+async function createPublishableCourse(params: {
+  organizationId: string;
+  createdById: string;
+  title?: string;
+  slug?: string;
+  contentJson?: object;
+}) {
+  const course = await prisma.course.create({
+    data: {
+      organizationId: params.organizationId,
+      title: params.title ?? "Publishable Course",
+      slug: params.slug ?? `publishable-course-${uniqueSuffix()}`,
+      description: "Ready to publish",
+      status: CourseStatus.DRAFT,
+      createdById: params.createdById
+    }
+  });
+  const module = await prisma.courseModule.create({
+    data: {
+      courseId: course.id,
+      title: "Getting Started",
+      description: "Core material",
+      position: 1,
+      status: CourseModuleStatus.ACTIVE
+    }
+  });
+  const lesson = await prisma.lesson.create({
+    data: {
+      moduleId: module.id,
+      title: "Welcome",
+      description: "Introduction",
+      contentType: LessonContentType.TEXT,
+      contentJson: params.contentJson ?? createValidContentDocument(),
+      position: 1,
+      estimatedDurationMinutes: 7,
+      isPreview: true,
+      status: LessonStatus.ACTIVE
+    }
+  });
+
+  return { course, module, lesson };
+}
+
+async function createMediaAsset(params: {
+  organizationId: string;
+  uploadedById: string;
+  status?: MediaAssetStatus;
+}) {
+  return prisma.mediaAsset.create({
+    data: {
+      organizationId: params.organizationId,
+      uploadedById: params.uploadedById,
+      fileName: `diagram-${uniqueSuffix()}.png`,
+      originalName: "Diagram.png",
+      mimeType: "image/png",
+      sizeBytes: 12345,
+      storageKey: `organizations/${params.organizationId}/media/${uniqueSuffix()}-diagram.png`,
+      status: params.status ?? MediaAssetStatus.READY
+    }
+  });
+}
 
 before(async () => {
   const testContext = await bootstrapTestApp();
@@ -405,6 +500,356 @@ test("DELETE /courses/:id archives the course and stays idempotent", async () =>
   });
 
   assert.equal(persistedCourse?.status, CourseStatus.ARCHIVED);
+});
+
+test("POST /courses/:courseId/publish creates immutable course versions from the current draft state", async () => {
+  const instructor = await createUserAndToken(app, `course-publish.${Date.now()}@courses.test`);
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: instructor.user.id,
+    name: "Publish Org",
+    slug: `publish-org-${uniqueSuffix()}`,
+    role: Role.INSTRUCTOR
+  });
+  const mediaAsset = await createMediaAsset({
+    organizationId: organization.id,
+    uploadedById: instructor.user.id
+  });
+  const { course, module } = await createPublishableCourse({
+    organizationId: organization.id,
+    createdById: instructor.user.id,
+    title: "First Publish Title",
+    contentJson: createImageContentDocument(mediaAsset.id)
+  });
+  await prisma.courseModule.create({
+    data: {
+      courseId: course.id,
+      title: "Archived Module",
+      position: 2,
+      status: CourseModuleStatus.ARCHIVED
+    }
+  });
+  await prisma.lesson.create({
+    data: {
+      moduleId: module.id,
+      title: "Archived Lesson",
+      contentType: LessonContentType.TEXT,
+      contentJson: createValidContentDocument("Archived"),
+      position: 2,
+      status: LessonStatus.ARCHIVED
+    }
+  });
+
+  const firstResponse = await request(app.getHttpServer())
+    .post(`/courses/${course.id}/publish`)
+    .set("Authorization", `Bearer ${instructor.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(201);
+
+  assert.equal(firstResponse.body.courseId, course.id);
+  assert.equal(firstResponse.body.organizationId, organization.id);
+  assert.equal(firstResponse.body.versionNumber, 1);
+  assert.equal(firstResponse.body.title, "First Publish Title");
+  assert.equal(firstResponse.body.status, CourseVersionStatus.PUBLISHED);
+  assert.equal(firstResponse.body.publishedById, instructor.user.id);
+  assert.equal(firstResponse.body.snapshotJson, undefined);
+
+  const firstVersion = await prisma.courseVersion.findUniqueOrThrow({
+    where: {
+      id: firstResponse.body.id
+    }
+  });
+  const firstSnapshot = firstVersion.snapshotJson as {
+    course: { title: string };
+    modules: Array<{ title: string; lessonIds: string[] }>;
+    lessons: Array<{ title: string }>;
+    lessonDetails: Array<{ media: Array<{ id: string; url: string }> }>;
+  };
+
+  assert.equal(firstSnapshot.course.title, "First Publish Title");
+  assert.deepEqual(
+    firstSnapshot.modules.map((item) => item.title),
+    ["Getting Started"]
+  );
+  assert.deepEqual(
+    firstSnapshot.lessons.map((item) => item.title),
+    ["Welcome"]
+  );
+  assert.equal(firstSnapshot.lessonDetails[0].media[0].id, mediaAsset.id);
+  assert.match(
+    firstSnapshot.lessonDetails[0].media[0].url,
+    new RegExp(`/eduflow-media/${mediaAsset.storageKey.replaceAll("/", "\\/")}$`)
+  );
+
+  const persistedCourse = await prisma.course.findUniqueOrThrow({
+    where: {
+      id: course.id
+    }
+  });
+
+  assert.equal(persistedCourse.status, CourseStatus.PUBLISHED);
+
+  await prisma.course.update({
+    where: {
+      id: course.id
+    },
+    data: {
+      title: "Second Publish Title"
+    }
+  });
+
+  const secondResponse = await request(app.getHttpServer())
+    .post(`/courses/${course.id}/publish`)
+    .set("Authorization", `Bearer ${instructor.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(201);
+
+  assert.equal(secondResponse.body.versionNumber, 2);
+  assert.equal(secondResponse.body.title, "Second Publish Title");
+
+  const unchangedFirstVersion = await prisma.courseVersion.findUniqueOrThrow({
+    where: {
+      id: firstVersion.id
+    }
+  });
+  const unchangedFirstSnapshot = unchangedFirstVersion.snapshotJson as {
+    course: { title: string };
+  };
+
+  assert.equal(unchangedFirstSnapshot.course.title, "First Publish Title");
+
+  const otherCourse = await createPublishableCourse({
+    organizationId: organization.id,
+    createdById: instructor.user.id,
+    title: "Other Publishable Course"
+  });
+  const otherResponse = await request(app.getHttpServer())
+    .post(`/courses/${otherCourse.course.id}/publish`)
+    .set("Authorization", `Bearer ${instructor.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(201);
+
+  assert.equal(otherResponse.body.versionNumber, 1);
+});
+
+test("POST /courses/:courseId/publish rejects missing and cross-organization courses", async () => {
+  const owner = await createUserAndToken(app, `course-publish-404.${Date.now()}@courses.test`);
+  const outsider = await createUserAndToken(app, `course-publish-foreign.${Date.now()}@courses.test`);
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: owner.user.id,
+    name: "Publish Current Org",
+    slug: `publish-current-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const foreignOrganization = await createOrganizationForUser({
+    prisma,
+    userId: outsider.user.id,
+    name: "Publish Foreign Org",
+    slug: `publish-foreign-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const foreignCourse = await createPublishableCourse({
+    organizationId: foreignOrganization.id,
+    createdById: outsider.user.id
+  });
+
+  const missingResponse = await request(app.getHttpServer())
+    .post(`/courses/missing-course-${uniqueSuffix()}/publish`)
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(404);
+  const foreignResponse = await request(app.getHttpServer())
+    .post(`/courses/${foreignCourse.course.id}/publish`)
+    .set("Authorization", `Bearer ${owner.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(404);
+
+  assert.equal(missingResponse.body.message, "Course not found");
+  assert.equal(foreignResponse.body.message, "Course not found");
+});
+
+test("POST /courses/:courseId/publish requires organization context and authoring role", async () => {
+  const student = await createUserAndToken(app, `course-publish-student.${Date.now()}@courses.test`);
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: student.user.id,
+    name: "Publish Student Org",
+    slug: `publish-student-org-${uniqueSuffix()}`,
+    role: Role.STUDENT
+  });
+  const { course } = await createPublishableCourse({
+    organizationId: organization.id,
+    createdById: student.user.id
+  });
+
+  const missingContextResponse = await request(app.getHttpServer())
+    .post(`/courses/${course.id}/publish`)
+    .set("Authorization", `Bearer ${student.accessToken}`)
+    .expect(403);
+  const studentResponse = await request(app.getHttpServer())
+    .post(`/courses/${course.id}/publish`)
+    .set("Authorization", `Bearer ${student.accessToken}`)
+    .set("X-Organization-Id", organization.id)
+    .expect(403);
+
+  assert.equal(missingContextResponse.body.message, "Organization context is required");
+  assert.equal(studentResponse.body.message, "Insufficient organization role");
+});
+
+test("POST /courses/:courseId/publish rejects invalid course structures without creating versions", async () => {
+  const owner = await createUserAndToken(app, `course-publish-invalid.${Date.now()}@courses.test`);
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: owner.user.id,
+    name: "Publish Invalid Org",
+    slug: `publish-invalid-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const emptyCourse = await prisma.course.create({
+    data: {
+      organizationId: organization.id,
+      title: "Empty Course",
+      slug: `empty-course-${uniqueSuffix()}`,
+      status: CourseStatus.DRAFT,
+      createdById: owner.user.id
+    }
+  });
+  const moduleOnlyCourse = await prisma.course.create({
+    data: {
+      organizationId: organization.id,
+      title: "Module Only Course",
+      slug: `module-only-course-${uniqueSuffix()}`,
+      status: CourseStatus.DRAFT,
+      createdById: owner.user.id
+    }
+  });
+  await prisma.courseModule.create({
+    data: {
+      courseId: moduleOnlyCourse.id,
+      title: "Empty Module",
+      position: 1,
+      status: CourseModuleStatus.ACTIVE
+    }
+  });
+  const invalidContentCourse = await createPublishableCourse({
+    organizationId: organization.id,
+    createdById: owner.user.id,
+    title: "Invalid Content Course",
+    contentJson: { type: "doc", content: [] }
+  });
+  const archivedCourse = await createPublishableCourse({
+    organizationId: organization.id,
+    createdById: owner.user.id,
+    title: "Archived Publish Course"
+  });
+  await prisma.course.update({
+    where: {
+      id: archivedCourse.course.id
+    },
+    data: {
+      status: CourseStatus.ARCHIVED
+    }
+  });
+
+  const cases = [
+    {
+      courseId: emptyCourse.id,
+      message: "Course must contain at least one active module"
+    },
+    {
+      courseId: moduleOnlyCourse.id,
+      message: /must contain at least one active lesson/
+    },
+    {
+      courseId: invalidContentCourse.course.id,
+      message: /has invalid contentJson/
+    },
+    {
+      courseId: archivedCourse.course.id,
+      message: "Archived courses cannot be published"
+    }
+  ];
+
+  for (const testCase of cases) {
+    const response = await request(app.getHttpServer())
+      .post(`/courses/${testCase.courseId}/publish`)
+      .set("Authorization", `Bearer ${owner.accessToken}`)
+      .set("X-Organization-Id", organization.id)
+      .expect(400);
+
+    if (typeof testCase.message === "string") {
+      assert.equal(response.body.message, testCase.message);
+    } else {
+      assert.match(response.body.message, testCase.message);
+    }
+  }
+
+  const versionCount = await prisma.courseVersion.count();
+
+  assert.equal(versionCount, 0);
+});
+
+test("POST /courses/:courseId/publish rejects unavailable referenced media without creating versions", async () => {
+  const owner = await createUserAndToken(app, `course-publish-media.${Date.now()}@courses.test`);
+  const outsider = await createUserAndToken(app, `course-publish-media-outsider.${Date.now()}@courses.test`);
+  const organization = await createOrganizationForUser({
+    prisma,
+    userId: owner.user.id,
+    name: "Publish Media Org",
+    slug: `publish-media-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const foreignOrganization = await createOrganizationForUser({
+    prisma,
+    userId: outsider.user.id,
+    name: "Publish Media Foreign Org",
+    slug: `publish-media-foreign-org-${uniqueSuffix()}`,
+    role: Role.OWNER
+  });
+  const pendingMedia = await createMediaAsset({
+    organizationId: organization.id,
+    uploadedById: owner.user.id,
+    status: MediaAssetStatus.PENDING
+  });
+  const deletedMedia = await createMediaAsset({
+    organizationId: organization.id,
+    uploadedById: owner.user.id,
+    status: MediaAssetStatus.DELETED
+  });
+  const foreignMedia = await createMediaAsset({
+    organizationId: foreignOrganization.id,
+    uploadedById: outsider.user.id
+  });
+  const unavailableMediaIds = [
+    `missing-media-${uniqueSuffix()}`,
+    pendingMedia.id,
+    deletedMedia.id,
+    foreignMedia.id
+  ];
+
+  for (const mediaId of unavailableMediaIds) {
+    const { course } = await createPublishableCourse({
+      organizationId: organization.id,
+      createdById: owner.user.id,
+      title: `Unavailable Media Course ${mediaId}`,
+      contentJson: createImageContentDocument(mediaId)
+    });
+    const response = await request(app.getHttpServer())
+      .post(`/courses/${course.id}/publish`)
+      .set("Authorization", `Bearer ${owner.accessToken}`)
+      .set("X-Organization-Id", organization.id)
+      .expect(400);
+
+    assert.equal(
+      response.body.message,
+      `Referenced media asset "${mediaId}" is unavailable`
+    );
+  }
+
+  const versionCount = await prisma.courseVersion.count();
+
+  assert.equal(versionCount, 0);
 });
 
 test("course endpoints reject cross-organization access with 404", async () => {

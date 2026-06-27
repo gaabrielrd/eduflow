@@ -7,5 +7,5 @@ export interface WorkspacePlaceholder {
   readonly status: "placeholder";
 }
 
-export * from "./content-contract";
-export * from "./course-version-snapshot";
+export * from "./content-contract.js";
+export * from "./course-version-snapshot.js";

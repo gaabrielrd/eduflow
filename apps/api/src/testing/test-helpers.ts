@@ -62,6 +62,7 @@ export async function resetDatabase(prisma: PrismaService) {
     prisma.mediaAsset.deleteMany(),
     prisma.lesson.deleteMany(),
     prisma.courseModule.deleteMany(),
+    prisma.courseVersion.deleteMany(),
     prisma.course.deleteMany(),
     prisma.membership.deleteMany(),
     prisma.invitation.deleteMany(),

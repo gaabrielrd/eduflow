@@ -79,4 +79,15 @@ export class CoursesController {
   ) {
     return this.coursesService.archiveCourse(context, id);
   }
+
+  @Post(":courseId/publish")
+  @Roles(...AUTHORING_ROLES)
+  @UseGuards(RolesGuard)
+  publish(
+    @CurrentOrganizationContext() context: OrganizationContext,
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("courseId") courseId: string
+  ) {
+    return this.coursesService.publishCourse(context, user, courseId);
+  }
 }
