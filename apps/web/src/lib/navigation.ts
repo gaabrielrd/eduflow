@@ -2,7 +2,7 @@ export type AppNavItem = {
   href: string;
   label: string;
   shortLabel: string;
-  section: "dashboard" | "courses" | "media" | "reports" | "settings";
+  section: "dashboard" | "learn" | "courses" | "media" | "reports" | "settings";
 };
 
 export type BreadcrumbItem = {
@@ -22,6 +22,12 @@ export const authNavigationItems: AppNavItem[] = [
     label: "Cursos",
     shortLabel: "CR",
     section: "courses"
+  },
+  {
+    href: "/app/learn",
+    label: "Aprender",
+    shortLabel: "AP",
+    section: "learn"
   },
   {
     href: "/app/media",
@@ -121,6 +127,10 @@ export function getBreadcrumbItems(pathname: string): BreadcrumbItem[] {
   if (/^\/app\/courses\/[^/]+\/curriculum$/.test(normalized)) {
     items.push({ label: "Curso" });
     items.push({ label: "Curriculo" });
+  }
+
+  if (/^\/app\/learn\/[^/]+$/.test(normalized)) {
+    items.push({ label: "Player" });
   }
 
   if (normalized === "/app/settings/members") {

@@ -1,10 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 import { createElement } from "react";
 import type { AnchorHTMLAttributes } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AppShell } from "@/components/app-shell";
 import { render, screen, within } from "@testing-library/react";
+
+let mockPathname = "/app/settings/members";
 
 vi.mock("next/link", () => ({
   default: ({
@@ -19,7 +21,7 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/app/settings/members"
+  usePathname: () => mockPathname
 }));
 
 vi.mock("@/hooks/use-session", () => ({
@@ -46,6 +48,10 @@ vi.mock("@/hooks/use-session", () => ({
 }));
 
 describe("AppShell", () => {
+  beforeEach(() => {
+    mockPathname = "/app/settings/members";
+  });
+
   it("exposes a skip link and marks the current navigation item", () => {
     render(createElement(AppShell, null, <div>Conteudo</div>));
 
@@ -66,5 +72,19 @@ describe("AppShell", () => {
 
     expect(screen.getByRole("navigation", { name: "Breadcrumb" })).toBeInTheDocument();
     expect(screen.getByText("Members")).toHaveAttribute("aria-current", "page");
+  });
+
+  it("marks the learner navigation item and breadcrumb as active", () => {
+    mockPathname = "/app/learn/enrollment-1";
+
+    render(createElement(AppShell, null, <div>Conteudo</div>));
+
+    const mainNavigation = screen.getByRole("navigation", { name: "Navegacao principal" });
+    const currentLink = within(mainNavigation)
+      .getAllByRole("link")
+      .find((link) => link.getAttribute("href") === "/app/learn");
+
+    expect(currentLink).toHaveAttribute("aria-current", "page");
+    expect(screen.getByText("Player")).toHaveAttribute("aria-current", "page");
   });
 });
