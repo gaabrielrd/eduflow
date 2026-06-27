@@ -4,6 +4,8 @@ Este documento define o formato de `CourseVersion.snapshotJson`. O snapshot e a 
 
 O schema runtime e os tipos TypeScript vivem em `@eduflow/types`, no arquivo `packages/types/src/course-version-snapshot.ts`.
 
+Para o fluxo operacional de publicacao, regras de validacao, incremento de versao, imutabilidade e limites conhecidos, consulte [docs/publishing-versioning.md](./publishing-versioning.md).
+
 ## Principios
 
 - O snapshot e otimizado para leitura, nao para edicao.

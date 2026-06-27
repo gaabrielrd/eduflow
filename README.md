@@ -112,6 +112,7 @@ O projeto possui uma pipeline inicial de qualidade em GitHub Actions que roda em
 
 - [Visao geral do monorepo](/E:/OneDrive/Dev/eduflow/docs/overview.md)
 - [Arquitetura tecnica](/E:/OneDrive/Dev/eduflow/docs/architecture.md)
+- [Publicacao e versionamento de cursos](/E:/OneDrive/Dev/eduflow/docs/publishing-versioning.md)
 - [Padroes iniciais de UI](/E:/OneDrive/Dev/eduflow/docs/ui.md)
 - [Setup local](/E:/OneDrive/Dev/eduflow/docs/setup.md)
 - [Roadmap do MVP](/E:/OneDrive/Dev/eduflow/docs/roadmap.md)
