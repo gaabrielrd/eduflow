@@ -17,7 +17,7 @@ import {
   DialogTitle,
   ErrorState,
   LoadingState,
-  PageHeader
+  PageHeader,
 } from "@eduflow/ui";
 import { useAppBreadcrumbs } from "@/components/breadcrumb-context";
 import { useSession } from "@/hooks/use-session";
@@ -25,19 +25,19 @@ import { ApiError } from "@/lib/api/api-client";
 import {
   formatCourseDate,
   formatCourseStatus,
-  getCourseStatusVariant
+  getCourseStatusVariant,
 } from "@/lib/courses/course-formatters";
 import {
   getCourseById,
   publishCourse,
-  validateCoursePublish
+  validateCoursePublish,
 } from "@/lib/courses/course-service";
 import type {
   Course,
   CoursePublishValidationError,
   CoursePublishValidationErrorCode,
   CoursePublishValidationResult,
-  CourseVersionMetadata
+  CourseVersionMetadata,
 } from "@/lib/courses/course-types";
 
 const authoringRoles = new Set(["OWNER", "ADMIN", "INSTRUCTOR", "MANAGER"]);
@@ -51,7 +51,7 @@ const validationLabels: Record<CoursePublishValidationErrorCode, string> = {
   MEDIA_ASSET_MISSING: "Selecionar midias existentes",
   MEDIA_ASSET_UNAVAILABLE: "Aguardar ou trocar midias indisponiveis",
   MEDIA_ASSET_WRONG_ORGANIZATION: "Trocar midias de outra organizacao",
-  MODULE_WITHOUT_LESSONS: "Adicionar aulas aos modulos vazios"
+  MODULE_WITHOUT_LESSONS: "Adicionar aulas aos modulos vazios",
 };
 
 function getValidationLabel(code: CoursePublishValidationErrorCode) {
@@ -84,21 +84,28 @@ function CoursePublishDialog({
   courseTitle,
   onPublished,
   onOpenChange,
-  open
+  open,
 }: CoursePublishDialogProps) {
   const [validation, setValidation] =
     useState<CoursePublishValidationResult | null>(null);
-  const [validationLoadError, setValidationLoadError] = useState<string | null>(null);
+  const [validationLoadError, setValidationLoadError] = useState<string | null>(
+    null,
+  );
   const [isLoadingValidation, setIsLoadingValidation] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
-  const [publishErrorMessage, setPublishErrorMessage] = useState<string | null>(null);
+  const [publishErrorMessage, setPublishErrorMessage] = useState<string | null>(
+    null,
+  );
   const [publishedVersion, setPublishedVersion] =
     useState<CourseVersionMetadata | null>(null);
 
   const loadValidation = useCallback(async () => {
+    setPublishedVersion(null);
+    setValidation(null);
+    setPublishErrorMessage(null);
+
     setIsLoadingValidation(true);
     setValidationLoadError(null);
-    setPublishErrorMessage(null);
 
     try {
       const nextValidation = await validateCoursePublish(courseId);
@@ -108,7 +115,7 @@ function CoursePublishDialog({
       setValidationLoadError(
         error instanceof Error
           ? error.message
-          : "Nao foi possivel verificar a publicacao"
+          : "Nao foi possivel verificar a publicacao",
       );
     } finally {
       setIsLoadingValidation(false);
@@ -119,11 +126,17 @@ function CoursePublishDialog({
     if (!open) {
       return;
     }
+    let cancelled = false;
 
-    setPublishedVersion(null);
-    setValidation(null);
-    setPublishErrorMessage(null);
-    void loadValidation();
+    queueMicrotask(() => {
+      if (!cancelled) {
+        void loadValidation();
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [loadValidation, open]);
 
   function handleOpenChange(nextOpen: boolean) {
@@ -154,7 +167,9 @@ function CoursePublishDialog({
       }
 
       setPublishErrorMessage(
-        error instanceof Error ? error.message : "Nao foi possivel publicar o curso"
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel publicar o curso",
       );
     } finally {
       setIsPublishing(false);
@@ -170,14 +185,17 @@ function CoursePublishDialog({
         <DialogHeader>
           <DialogTitle>Publicar curso</DialogTitle>
           <DialogDescription>
-            Revise a prontidao de {courseTitle} antes de criar uma nova versao publicada.
+            Revise a prontidao de {courseTitle} antes de criar uma nova versao
+            publicada.
           </DialogDescription>
         </DialogHeader>
 
         {publishedVersion ? (
           <div className="space-y-5">
             <div className="rounded-md border border-success/35 bg-success/12 px-4 py-3">
-              <p className="text-sm font-semibold text-success">Curso publicado</p>
+              <p className="text-sm font-semibold text-success">
+                Curso publicado
+              </p>
               <p className="mt-1 text-sm text-foreground">
                 Versao {publishedVersion.versionNumber} criada com sucesso.
               </p>
@@ -185,10 +203,14 @@ function CoursePublishDialog({
 
             <DialogFooter>
               <Button asChild variant="outline">
-                <Link href={`/app/courses/${courseId}`}>Voltar para detalhes</Link>
+                <Link href={`/app/courses/${courseId}`}>
+                  Voltar para detalhes
+                </Link>
               </Button>
               <Button asChild>
-                <Link href={`/app/courses/${courseId}/versions`}>Ver historico de versoes</Link>
+                <Link href={`/app/courses/${courseId}/versions`}>
+                  Ver historico de versoes
+                </Link>
               </Button>
             </DialogFooter>
           </div>
@@ -199,7 +221,9 @@ function CoursePublishDialog({
                 <Button variant="outline" onClick={() => onOpenChange(false)}>
                   Cancelar
                 </Button>
-                <Button onClick={() => void loadValidation()}>Tentar novamente</Button>
+                <Button onClick={() => void loadValidation()}>
+                  Tentar novamente
+                </Button>
               </div>
             }
             description={validationLoadError}
@@ -250,7 +274,7 @@ function CoursePublishDialog({
 
 function PublishChecklist({
   errors,
-  valid
+  valid,
 }: {
   errors: CoursePublishValidationError[];
   valid: boolean;
@@ -286,7 +310,9 @@ function PublishChecklist({
             <p className="text-sm font-semibold text-foreground">
               {getValidationLabel(error.code)}
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">{error.message}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {error.message}
+            </p>
             <p className="mt-2 text-xs font-medium text-muted-foreground">
               {error.path}
             </p>
@@ -306,9 +332,10 @@ export function CourseDetailsScreen({ courseId }: { courseId: string }) {
 
   const activeOrganization = useMemo(
     () =>
-      organizations.find((organization) => organization.id === activeOrganizationId) ??
-      null,
-    [activeOrganizationId, organizations]
+      organizations.find(
+        (organization) => organization.id === activeOrganizationId,
+      ) ?? null,
+    [activeOrganizationId, organizations],
   );
   const canManageCourses = authoringRoles.has(activeOrganization?.role ?? "");
 
@@ -321,7 +348,7 @@ export function CourseDetailsScreen({ courseId }: { courseId: string }) {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Nao foi possivel carregar o curso"
+          : "Nao foi possivel carregar o curso",
       );
     } finally {
       setIsLoading(false);
@@ -354,10 +381,10 @@ export function CourseDetailsScreen({ courseId }: { courseId: string }) {
         ? [
             { href: "/app/dashboard", label: "App" },
             { href: "/app/courses", label: "Cursos" },
-            { label: course.title }
+            { label: course.title },
           ]
         : null,
-    [course]
+    [course],
   );
 
   useAppBreadcrumbs(breadcrumbItems);
@@ -374,8 +401,12 @@ export function CourseDetailsScreen({ courseId }: { courseId: string }) {
   if (errorMessage || !course) {
     return (
       <ErrorState
-        action={<Button onClick={handleRetryLoadCourse}>Tentar novamente</Button>}
-        description={errorMessage ?? "Nao foi possivel localizar o curso solicitado."}
+        action={
+          <Button onClick={handleRetryLoadCourse}>Tentar novamente</Button>
+        }
+        description={
+          errorMessage ?? "Nao foi possivel localizar o curso solicitado."
+        }
         title="Nao foi possivel carregar o curso"
       />
     );
@@ -387,14 +418,20 @@ export function CourseDetailsScreen({ courseId }: { courseId: string }) {
         actions={
           <div className="flex flex-wrap gap-3">
             <Button asChild variant="outline">
-              <Link href={`/app/courses/${course.id}/curriculum`}>Ver curriculo</Link>
+              <Link href={`/app/courses/${course.id}/curriculum`}>
+                Ver curriculo
+              </Link>
             </Button>
             {canManageCourses ? (
               <>
                 <Button asChild variant="secondary">
-                  <Link href={`/app/courses/${course.id}/settings`}>Editar campos basicos</Link>
+                  <Link href={`/app/courses/${course.id}/settings`}>
+                    Editar campos basicos
+                  </Link>
                 </Button>
-                <Button onClick={() => setIsPublishDialogOpen(true)}>Publicar</Button>
+                <Button onClick={() => setIsPublishDialogOpen(true)}>
+                  Publicar
+                </Button>
               </>
             ) : null}
           </div>
@@ -414,7 +451,8 @@ export function CourseDetailsScreen({ courseId }: { courseId: string }) {
               Visao geral
             </h2>
             <p className="text-sm leading-6 text-muted-foreground">
-              Campos iniciais do curso para orientar catalogo e autoria nesta sprint.
+              Campos iniciais do curso para orientar catalogo e autoria nesta
+              sprint.
             </p>
           </CardHeader>
           <CardContent className="grid gap-5 sm:grid-cols-2">
