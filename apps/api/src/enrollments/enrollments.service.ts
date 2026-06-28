@@ -538,6 +538,7 @@ export class EnrollmentsService {
       snapshotMetadata: this.learningSnapshotService.getSnapshotMetadata(snapshot),
       modules: this.learningSnapshotService.getOrderedModules(snapshot),
       lessons: this.learningSnapshotService.getOrderedLessons(snapshot),
+      lessonDetails: this.learningSnapshotService.getOrderedLessonDetails(snapshot),
       lessonProgress: this.learningSnapshotService.getLessonProgressMap(
         enrollment.lessonProgress
       ),

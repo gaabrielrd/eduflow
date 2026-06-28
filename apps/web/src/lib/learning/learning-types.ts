@@ -1,3 +1,5 @@
+import type { ContentDocument } from "@eduflow/types";
+
 export type EnrollmentStatus = "ACTIVE" | "COMPLETED" | "CANCELLED";
 
 export type LessonProgressStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
@@ -30,6 +32,20 @@ export type LearningLesson = {
   position: number;
   estimatedDurationMinutes: number | null;
   isPreview: boolean;
+};
+
+export type LearningLessonMedia = {
+  id: string;
+  url: string;
+  fileName: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+};
+
+export type LearningLessonDetail = LearningLesson & {
+  contentJson: ContentDocument;
+  media: LearningLessonMedia[];
 };
 
 export type LearningLessonProgress = {
@@ -65,6 +81,17 @@ export type LearningEnrollmentDetail = {
   };
   modules: LearningModule[];
   lessons: LearningLesson[];
+  lessonDetails: LearningLessonDetail[];
   lessonProgress: Record<string, LearningLessonProgress>;
   progressPercentage: number;
+};
+
+export type LearningProgressSummary = {
+  enrollmentId: string;
+  status: EnrollmentStatus;
+  completedCount: number;
+  totalCount: number;
+  percentage: number;
+  completedAt: string | null;
+  lessonProgress: Record<string, LearningLessonProgress>;
 };

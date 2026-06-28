@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import type {
+  CourseVersionLessonDetail,
   CourseVersionLessonSummary,
   CourseVersionSnapshot,
   CourseVersionSnapshotModule
@@ -67,6 +68,23 @@ export class LearningSnapshotService {
     });
   }
 
+  getOrderedLessonDetails(snapshot: CourseVersionSnapshot) {
+    const lessonOrder = new Map(
+      this.getOrderedLessons(snapshot).map((lesson, index) => [lesson.id, index])
+    );
+
+    return [...snapshot.lessonDetails].sort((first, second) => {
+      const firstLessonIndex = lessonOrder.get(first.id) ?? Number.MAX_SAFE_INTEGER;
+      const secondLessonIndex =
+        lessonOrder.get(second.id) ?? Number.MAX_SAFE_INTEGER;
+
+      return (
+        firstLessonIndex - secondLessonIndex ||
+        comparePositionedItems(first, second)
+      );
+    });
+  }
+
   getProgressPercentage(
     snapshot: CourseVersionSnapshot,
     lessonProgress: readonly Pick<LessonProgressSummary, "lessonId" | "status">[]
@@ -111,8 +129,14 @@ export class LearningSnapshotService {
 }
 
 function comparePositionedItems(
-  first: CourseVersionSnapshotModule | CourseVersionLessonSummary,
-  second: CourseVersionSnapshotModule | CourseVersionLessonSummary
+  first:
+    | CourseVersionLessonDetail
+    | CourseVersionSnapshotModule
+    | CourseVersionLessonSummary,
+  second:
+    | CourseVersionLessonDetail
+    | CourseVersionSnapshotModule
+    | CourseVersionLessonSummary
 ) {
   return first.position - second.position || first.id.localeCompare(second.id);
 }

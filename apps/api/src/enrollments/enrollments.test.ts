@@ -756,9 +756,18 @@ test("GET /learning/enrollments/:enrollmentId returns learner snapshot detail", 
     response.body.lessons.map((lesson: { id: string }) => lesson.id),
     snapshot.lessons.map((lesson) => lesson.id)
   );
+  assert.deepEqual(
+    response.body.lessonDetails.map((lesson: { id: string }) => lesson.id),
+    snapshot.lessonDetails.map((lesson) => lesson.id)
+  );
   assert.equal(response.body.snapshotMetadata.course.id, course.id);
   assert.equal(response.body.snapshotMetadata.lessonCount, 3);
   assert.equal(response.body.progressPercentage, 33);
+  assert.deepEqual(
+    response.body.lessonDetails[0].contentJson,
+    snapshot.lessonDetails[0].contentJson
+  );
+  assert.deepEqual(response.body.lessonDetails[0].media, snapshot.lessonDetails[0].media);
   assert.equal(
     response.body.lessonProgress[snapshot.lessons[0].id].status,
     LessonProgressStatus.COMPLETED
@@ -772,6 +781,7 @@ test("GET /learning/enrollments/:enrollmentId returns learner snapshot detail", 
     LessonProgressStatus.NOT_STARTED
   );
   assert.equal(response.body.lessons[0].contentJson, undefined);
+  assert.equal(response.body.snapshotJson, undefined);
 });
 
 test("GET /learning/enrollments/:enrollmentId rejects another user's enrollment", async () => {
