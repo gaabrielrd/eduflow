@@ -67,7 +67,9 @@ Endpoints de listagem e inspecao de versoes nao devem expor o snapshot completo 
 
 `GET /learning/my-courses` lista apenas matriculas do usuario autenticado na organizacao atual, com metadados resumidos do snapshot e percentual de progresso. `GET /learning/enrollments/:enrollmentId` carrega a experiencia de aprendizado de uma matricula propria, retornando modulos e lessons ordenados a partir de `CourseVersion.snapshotJson`, alem de um mapa de progresso por `lessonId`. Esses endpoints nao usam `CourseModule` ou `Lesson` editaveis para renderizacao do aluno.
 
-`POST /learning/enrollments/:enrollmentId/lessons/:lessonId/start` cria ou atualiza o progresso da lesson do snapshot, marcando acesso e inicio quando aplicavel. `POST /learning/enrollments/:enrollmentId/lessons/:lessonId/complete` marca a lesson como concluida, preserva conclusoes existentes de forma idempotente e conclui a `Enrollment` quando todas as lessons do snapshot estiverem completas. `GET /learning/enrollments/:enrollmentId/progress` retorna contagem concluida, total do snapshot, percentual e mapa de progresso por `lessonId`.
+`POST /learning/enrollments/:enrollmentId/lessons/:lessonId/start` cria ou atualiza o progresso da lesson do snapshot, marcando acesso e inicio quando aplicavel. `POST /learning/enrollments/:enrollmentId/lessons/:lessonId/complete` marca a lesson como concluida, preserva conclusoes existentes de forma idempotente e conclui a `Enrollment` quando todas as lessons obrigatorias do snapshot estiverem completas. `GET /learning/enrollments/:enrollmentId/progress` retorna contagem concluida, total obrigatorio do snapshot, percentual e mapa de progresso por `lessonId`.
+
+No MVP, todas as lessons em `CourseVersion.snapshotJson.lessons` sao obrigatorias. O percentual de conclusao e `lessons obrigatorias concluidas / lessons obrigatorias do snapshot`, arredondado para o inteiro mais proximo; linhas de progresso com `lessonId` fora do snapshot nao entram nessa conta. Como a matricula aponta para uma `CourseVersion` imutavel, edicoes posteriores no rascunho do `Course`, incluindo novas lessons, nao alteram o total exigido para matriculas ja vinculadas a uma versao publicada. Quando a ultima lesson obrigatoria e concluida, a matricula muda para `COMPLETED` e `completedAt` e definido uma unica vez.
 
 ## Cobertura de testes
 
@@ -94,6 +96,7 @@ Esses testes entram na CI porque `.github/workflows/ci.yml` executa `pnpm test` 
 - Nao existe fluxo de despublicacao ou arquivamento operacional de versoes.
 - O player do aluno ainda nao consome `CourseVersion`.
 - Matriculas e progresso ja apontam para versoes publicadas no modelo de dados, mas ainda nao possuem endpoints ou UI de player.
+- O MVP nao possui lessons opcionais no snapshot; quizzes, notas minimas, certificados e outras regras de conclusao ficam para uma evolucao futura.
 - Relatorios e certificados ainda nao apontam para versoes publicadas.
 - Nao existe estrategia de backfill, migracao ou conversao para snapshots antigos alem da regra de manter leitores compativeis.
 - O snapshot v1 congela URLs publicas de midia; mudancas nessa semantica exigem novo `schemaVersion`.

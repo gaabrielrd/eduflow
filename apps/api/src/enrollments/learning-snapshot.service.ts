@@ -98,19 +98,25 @@ export class LearningSnapshotService {
     return Math.round((this.getCompletedLessonCount(snapshot, lessonProgress) / totalCount) * 100);
   }
 
+  getRequiredLessons(snapshot: CourseVersionSnapshot) {
+    return snapshot.lessons;
+  }
+
   getTotalLessonCount(snapshot: CourseVersionSnapshot) {
-    return snapshot.lessons.length;
+    return this.getRequiredLessons(snapshot).length;
   }
 
   getCompletedLessonCount(
     snapshot: CourseVersionSnapshot,
     lessonProgress: readonly Pick<LessonProgressSummary, "lessonId" | "status">[]
   ) {
-    const lessonIds = new Set(snapshot.lessons.map((lesson) => lesson.id));
+    const requiredLessonIds = new Set(
+      this.getRequiredLessons(snapshot).map((lesson) => lesson.id)
+    );
 
     return lessonProgress.filter(
       (progress) =>
-        lessonIds.has(progress.lessonId) &&
+        requiredLessonIds.has(progress.lessonId) &&
         progress.status === LessonProgressStatus.COMPLETED
     ).length;
   }

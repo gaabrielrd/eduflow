@@ -306,15 +306,25 @@ export class EnrollmentsService {
       }
 
       if (this.isEnrollmentComplete(snapshot, updatedEnrollment.lessonProgress)) {
-        await transaction.enrollment.update({
-          where: {
-            id: enrollmentId
-          },
-          data: {
-            status: EnrollmentStatus.COMPLETED,
-            completedAt: updatedEnrollment.completedAt ?? now
-          }
-        });
+        const completionData: Prisma.EnrollmentUpdateManyMutationInput = {
+          status: EnrollmentStatus.COMPLETED
+        };
+
+        if (!updatedEnrollment.completedAt) {
+          completionData.completedAt = now;
+        }
+
+        if (
+          updatedEnrollment.status !== EnrollmentStatus.COMPLETED ||
+          !updatedEnrollment.completedAt
+        ) {
+          await transaction.enrollment.update({
+            where: {
+              id: enrollmentId
+            },
+            data: completionData
+          });
+        }
       }
 
       const finalEnrollment = await this.findEnrollmentById(transaction, {
@@ -446,12 +456,15 @@ export class EnrollmentsService {
       snapshot: CourseVersionSnapshot;
     }
   ) {
-    if (params.snapshot.lessons.length === 0) {
+    const requiredLessons =
+      this.learningSnapshotService.getRequiredLessons(params.snapshot);
+
+    if (requiredLessons.length === 0) {
       return Promise.resolve({ count: 0 });
     }
 
     return client.lessonProgress.createMany({
-      data: params.snapshot.lessons.map((lesson) => ({
+      data: requiredLessons.map((lesson) => ({
         enrollmentId: params.enrollmentId,
         lessonId: lesson.id
       })),
@@ -496,10 +509,11 @@ export class EnrollmentsService {
       courseVersion,
       snapshotMetadata: this.learningSnapshotService.getSnapshotMetadata(snapshot),
       progressSummary: {
-        totalLessons: enrollment.lessonProgress.length,
-        completedLessons: enrollment.lessonProgress.filter(
-          (progress) => progress.status === LessonProgressStatus.COMPLETED
-        ).length
+        totalLessons: this.learningSnapshotService.getTotalLessonCount(snapshot),
+        completedLessons: this.learningSnapshotService.getCompletedLessonCount(
+          snapshot,
+          enrollment.lessonProgress
+        )
       }
     };
   }

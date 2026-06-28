@@ -82,6 +82,7 @@ Para o fluxo operacional de publicacao, regras de validacao, incremento de versa
 - IDs no snapshot sao copias congeladas. Consumidores podem usa-los como IDs locais do snapshot, mas nao devem ler registros editaveis para renderizar o curso publicado.
 - `LessonProgress.lessonId` persiste esse ID congelado como `String`; ele nao possui chave estrangeira para `Lesson`, porque `Lesson` continua sendo a entidade mutavel de autoria.
 - Codigo de player e progresso deve validar `lessonId` contra `CourseVersion.snapshotJson.lessons` ou `lessonDetails` na borda da aplicacao antes de gravar ou ler progresso.
+- O snapshot v1 nao possui marcador de lesson opcional ou obrigatoria. Para conclusao de matricula no MVP, todo item em `lessons[]` deve ser tratado como obrigatorio; mudancas posteriores no rascunho do curso nao alteram essa lista congelada.
 
 ## Lesson detail
 
